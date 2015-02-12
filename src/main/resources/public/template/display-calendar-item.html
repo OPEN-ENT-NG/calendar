@@ -1,0 +1,10 @@
+<div class="schedule-item-content [[item.color]]">
+
+    <behaviour name="process" resource="item" class="cell checkbox">
+        <input type="checkbox" ng-model="item.selected" ng-if="item.owner === me.userId || item.isPending() || item.myRights.manage !== undefined" />
+    </behaviour>
+
+    <div class="cell twelve" ng-click="viewCalendarEvent(item)">
+        [[item.title]]
+    </div>
+</div>

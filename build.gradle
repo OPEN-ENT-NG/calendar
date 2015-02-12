@@ -1,0 +1,60 @@
+apply from: "gradle/vertx.gradle"
+apply plugin: 'scala'
+
+dependencies {
+	compile "org.entcore:common:$entCoreVersion"
+  testCompile "org.entcore:tests:$entCoreVersion"
+}
+
+javadoc {
+  options.encoding = 'UTF-8'
+  classpath = configurations.provided
+  classpath += configurations.compile
+}
+
+task testJar(type: Jar) {
+  classifier = 'tests'
+  from sourceSets.test.output
+}
+
+task deploymentJar(type: Jar) {
+  classifier = 'deployment'
+  from 'deployment'
+}
+
+artifacts {
+  archives testJar
+  archives deploymentJar
+}
+
+repositories {
+    maven {
+        url "http://maven.web-education.net/nexus/content/groups/public"
+    }
+}
+
+def configurePom(def pom) {
+	pom.project {
+		description 'Calendar'
+		inceptionYear '2015'
+		packaging 'zip'
+		url 'http://code.web-education.net/wse/calendar'
+
+		developers {
+			developer {
+				id 'cwin'
+				name 'Herve Devos'
+				email 'herve.devos@atos.net'
+			}
+		}
+
+		scm {
+			url 'git@code.web-education.net:wse/calendar.git'
+		}
+
+		properties {
+			setProperty('project.build.sourceEncoding', 'UTF8')
+		}
+	}
+}
+

@@ -1,0 +1,59 @@
+<div class="row">
+	<span ng-if="!calendarEvent._id">
+		<h2><i18n>calendar.new.event</i18n></h2>
+	</span>
+	<span ng-if="calendarEvent._id">
+		<h2><i18n>calendar.edit.event</i18n></h2>
+	</span>
+	<label class="twelve cell"><i18n>calendar.event.title</i18n></label>
+	<input class="twelve cell" required ng-model="calendarEvent.title" type="text"/>
+
+	<div class="row">
+			<div class="twelve cell form-element" ng-if="calendarEvent._id">
+	            <label class="row"><i18n>calendar.event.details.owner</i18n></label>
+	            <p>[[calendarEvent.owner.displayName]]</p>
+	        </div>
+	</div>
+
+	<div class="row">
+		<div class="six cell">
+			<label class="twelve cell form-label"><i18n>calendar.event.start.date</i18n></label>
+			<date-picker-calendar ng-model="calendarEvent.startMoment"></date-picker-calendar>
+		</div>
+		<div class="six cell">
+			<label class="twelve cell form-label"><i18n>calendar.event.start.time</i18n></label>
+			<time-picker-calendar id="time-picker-start-moment" class="input-small two cell" ng-begin="true" ng-limit="calendarEvent.endMoment" ng-model="calendarEvent.startMoment" required></time-picker-calendar>
+		</div>
+	</div>
+
+	<div class="row">
+		<div class="six cell">
+			<label class="twelve cell form-label"><i18n>calendar.event.end.date</i18n></label>
+			<date-picker-calendar ng-model="calendarEvent.endMoment"></date-picker-calendar>
+		</div>
+		<div class="six cell">
+			<label class="twelve cell form-label"><i18n>calendar.event.end.time</i18n></label>
+			<time-picker-calendar id="time-picker-end-moment" class="input-small two cell" ng-end="true" ng-limit="calendarEvent.startMoment" ng-model="calendarEvent.endMoment" 
+				required></time-picker-calendar>
+		</div>
+	</div>
+
+	<span ng-if="calendarEvent._id">
+    	<button class="right-magnet" ng-click="confirmRemoveCalendarEvent(calendarEvent, $event)"><i18n>remove</i18n></button>
+	</span>
+	<button class="right-magnet" ng-click="saveCalendarEventEdit()"><i18n>save</i18n></button>
+</div>
+
+<div ng-if="display.confirmDeleteCalendarEvent">
+    <lightbox show="display.confirmDeleteCalendarEvent" on-close="cancelRemoveCalendarEvent()">
+        <div class="row">
+            <i18n>calendar.confirm.delete.event</i18n>
+        </div>
+
+        <div class="row"> 
+            <input type="button" class="cancel right-magnet" i18n-value="cancel" ng-click="cancelRemoveCalendarEvent()" />
+            <button class="right-magnet" ng-click="removeCalendarEvent(calendarEvent, $event)"><i18n>remove</i18n></button>
+        </div>
+    </lightbox>
+</div>
+

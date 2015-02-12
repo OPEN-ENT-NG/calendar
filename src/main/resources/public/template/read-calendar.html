@@ -1,0 +1,17 @@
+<p>Hello World Calendar</p>
+<div class="row">
+	<calendar 
+		display-template="display-calendar-item" 
+		create-template="edit-event"
+		on-create-open="createCalendarEvent(newItem)"
+		on-create-close="closeEvent()" 
+		items="calendarEvents">
+	</calendar>
+</div>
+
+<!-- Lightbox : Thread share -->
+<div ng-if="display.showEventPanel">
+    <lightbox show="display.showEventPanel" on-close="closeCalendarEvent()">
+        <container template="lightbox"></container>
+    </lightbox>
+</div>

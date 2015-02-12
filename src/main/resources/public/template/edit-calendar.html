@@ -1,0 +1,16 @@
+<div class="row">
+    <h2><i18n>calendar.new.calendar</i18n></h2>
+
+    <div class="row">
+        <label class="twelve cell"><i18n>calendar.title</i18n></label>
+        <input class="twelve cell" required ng-model="calendar.title" type="text"/>
+    </div>
+
+    <div class="row">
+        <label class="twelve cell"><i18n>calendar.color</i18n></label>
+        <color-selector ng-model='calendar.color'></color-selector>
+    </div>
+
+    <button class="right-magnet" ng-click="saveCalendarEdit()"><i18n>save</i18n></button>
+    <button class="cancel right-magnet" ng-click="cancelCalendarEdit()"><i18n>cancel</i18n></button>
+</div>

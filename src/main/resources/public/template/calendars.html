@@ -1,0 +1,53 @@
+<h1><i18n ng-click="openMainPage()">calendar.title</i18n></h1>
+
+<div class="items">
+	<div class="twelve cell">
+		<button ng-click="newCalendar()"><i18n>calendar.new</i18n></button>
+		<i class="open-right right-magnet big-hidden" ng-click="template.close('main')"></i>
+	</div>
+	<hr />
+	<div class="row" ng-repeat="cl in calendars.all" ng-click="openCalendar(cl)" ng-class="{ selected: cl._id === calendar._id }">
+		<article class="[[cl.color]]">
+				
+			<h1>
+				[[cl.title]]
+				<span ng-if="cl.shared">
+					- (Partagé)
+				</span>
+			</h1>
+			<div class="bottom-locked">
+				<behaviour name="manage" resource="cl">
+					<input type="checkbox" ng-model="cl.showButtons" ng-change="hideAlmostAllButtons(cl)"/>
+				</behaviour>
+			</div>
+			<div class="small-hidden buttons" ng-class="{ hidden: !cl.showButtons || cl._id !== calendar._id }">
+				<behaviour name="manage" resource="cl">
+					<button ng-click="editCalendar(cl, $event)"><i18n>edit</i18n></button>
+					<button ng-click="confirmRemoveCalendar(cl, $event)"><i18n>remove</i18n></button>
+					<button ng-click="shareCalendar(cl, $event)"><i18n>share</i18n></button>
+				</behaviour>
+			</div>
+		</article>
+	</div>
+</div>
+
+<!-- Lightbox : Thread share -->
+<div ng-if="display.showPanel">
+	<lightbox show="display.showPanel" on-close="display.showPanel = false;">
+		<share-panel app-prefix="'calendar'" resources="calendar"></share-panel>
+	</lightbox>
+</div>
+
+
+<div ng-if="display.confirmDeleteCalendar">
+	<lightbox show="display.confirmDeleteCalendar" on-close="cancelRemoveCalendar()">
+		<div class="row">
+			<i18n>calendar.confirm.delete.calendar</i18n>
+		</div>
+		
+		<div class="row">
+			<button class="right-magnet" ng-click="removeCalendar()"><i18n>remove</i18n></button>
+			<input type="button" class="cancel right-magnet" i18n-value="cancel" ng-click="cancelRemoveCalendar()" />
+		</div>
+	</lightbox>
+</div>

@@ -1,0 +1,34 @@
+<div class="row">
+    <h2><i18n>calendar.event</i18n></h2>
+
+    <div class="row details">
+        <div class="twelve cell form-element">
+            <label class="row"><i18n>calendar.event.details.owner</i18n></label>
+            <p>[[calendarEvent.owner.displayName]]</p>
+        </div>
+        <div class="six cell form-element">
+            <label class="row"><i18n>calendar.event.details.start</i18n></label>
+            <p>[[calendarEvent.startMoment.format('DD/MM/YYYY HH:mm')]]</p>
+        </div>
+        <div class="six cell form-element">
+            <label class="row"><i18n>calendar.event.details.end</i18n></label>
+            <p>[[calendarEvent.endMoment.format('DD/MM/YYYY HH:mm')]]</p>
+        </div>
+    </div>
+
+    <button class="right-magnet" ng-click="editCalendarEvent(calendarEvent, $event)"><i18n>edit</i18n></button>
+    <button class="right-magnet" ng-click="confirmRemoveCalendarEvent(calendarEvent, $event)"><i18n>remove</i18n></button>
+</div>
+
+<div ng-if="display.confirmDeleteCalendarEvent">
+    <lightbox show="display.confirmDeleteCalendarEvent" on-close="cancelRemoveCalendarEvent()">
+        <div class="row">
+            <i18n>calendar.confirm.delete.event</i18n>
+        </div>
+
+        <div class="row"> 
+            <input type="button" class="cancel right-magnet" i18n-value="cancel" ng-click="cancelRemoveCalendarEvent()" />
+            <button class="right-magnet" ng-click="removeCalendarEvent(calendarEvent, $event)"><i18n>remove</i18n></button>
+        </div>
+    </lightbox>
+</div>
