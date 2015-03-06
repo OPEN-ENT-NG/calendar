@@ -6,10 +6,10 @@
 		<i class="open-right right-magnet big-hidden" ng-click="template.close('main')"></i>
 	</div>
 	<hr />
-	<div class="row" ng-repeat="cl in calendars.all" ng-click="openCalendar(cl)" ng-class="{ selected: cl._id === calendar._id }">
+	<div class="row" ng-repeat="cl in calendars.all" ng-class="{ selected: isSelectedCalendar(cl) }">
 		<article class="[[cl.color]]">
 				
-			<h1>
+			<h1 ng-click="openOrCloseCalendar(cl)">
 				[[cl.title]]
 				<span ng-if="cl.shared">
 					- (Partagé)
@@ -17,11 +17,12 @@
 			</h1>
 			<div class="bottom-locked">
 				<behaviour name="manage" resource="cl">
-					<input type="checkbox" ng-model="cl.showButtons" ng-change="hideAlmostAllButtons(cl)"/>
+					<input type="checkbox" ng-model="cl.showButtons" ng-change="hideOtherCalendarCheckboxes(cl)"/>
 				</behaviour>
 			</div>
-			<div class="small-hidden buttons" ng-class="{ hidden: !cl.showButtons || cl._id !== calendar._id }">
+			<div class="small-hidden buttons" ng-class="{ hidden: !cl.showButtons }">
 				<behaviour name="manage" resource="cl">
+					<ics-export ng-model="cl"></ics-export>
 					<button ng-click="editCalendar(cl, $event)"><i18n>edit</i18n></button>
 					<button ng-click="confirmRemoveCalendar(cl, $event)"><i18n>remove</i18n></button>
 					<button ng-click="shareCalendar(cl, $event)"><i18n>share</i18n></button>

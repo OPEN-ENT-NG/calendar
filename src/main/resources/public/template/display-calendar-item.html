@@ -1,10 +1,20 @@
-<div class="schedule-item-content [[item.color]]">
 
-    <behaviour name="process" resource="item" class="cell checkbox">
-        <input type="checkbox" ng-model="item.selected" ng-if="item.owner === me.userId || item.isPending() || item.myRights.manage !== undefined" />
-    </behaviour>
 
-    <div class="cell twelve" ng-click="viewCalendarEvent(item)">
+<div class="schedule-item-content [[item.color]]"  ng-if="hasContribRight(item.calendar)" ng-click="viewCalendarEvent(item)">
+
+    <div class="cell twelve">
         [[item.title]]
     </div>
+
+</div>
+
+
+
+
+<div class="schedule-item-content [[item.color]]" ng-if="!hasContribRight(item.calendar)">
+
+    <div class="cell twelve">
+        [[item.title]]
+    </div>
+
 </div>

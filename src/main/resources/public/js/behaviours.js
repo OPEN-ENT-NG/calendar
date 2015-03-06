@@ -1,7 +1,7 @@
 var calendarBehaviours = {
 	resources: {
 		contrib: {
-			right: 'net-atos-entng-calendar-controllers-CalendarController|createCalendar'
+			right: 'net-atos-entng-calendar-controllers-CalendarController|updateCalendar'
 		},
 		manage: {
 			right: 'net-atos-entng-calendar-controllers-CalendarController|updateCalendar'

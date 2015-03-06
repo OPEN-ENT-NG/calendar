@@ -1,3 +1,26 @@
 {
-	"hello" : "hello"
+	"calendar.title": "Agenda",
+    "calendar.new": "Créer un agenda",
+    "calendar.edit": "Editer un agenda",
+    "calendar.color": "Couleur de l'agenda",
+    "calendar.confirm.delete.event": "Confirmer la suppression de l'évènement",
+    "calendar.new.event": "Créer un évènement",
+    "calendar.edit.event" : "Editer un évènement",
+    "calendar.event.calendar": "Calendrier",
+    "calendar.event.title": "Titre",
+    "calendar.event.description" : "Description",
+    "calendar.event.location": "Lieu",
+    "calendar.event.allday": "Toute la journée",
+    "calendar.event.start.date": "Date de début",
+    "calendar.event.end.date": "Date de fin",
+    "calendar.event.start.time": "Heure de début",
+    "calendar.event.end.time": "Heure de fin",
+    "calendar.event.owner" : "Créateur de l'évènement",
+    "calendar.export": "Exporter",
+    "calendar.read": "Lire",
+    "calendar.contrib": "Contribuer",
+    "calendar.manager": "Gérer",
+    "calendar.the.calendar" : "L'agenda",
+    "calendar.has.ben.created": "a été créé",
+    "calendar.you.can.share.this.calendar": "Vous puvez partager cet agenda"
 }

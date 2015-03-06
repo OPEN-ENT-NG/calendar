@@ -1,5 +1,9 @@
 <div class="row">
-    <h2><i18n>calendar.new.calendar</i18n></h2>
+
+    <h2>
+        <i18n ng-if="!calendar._id">calendar.new</i18n>
+        <i18n ng-if="calendar._id">calendar.edit</i18n>
+    </h2>
 
     <div class="row">
         <label class="twelve cell"><i18n>calendar.title</i18n></label>

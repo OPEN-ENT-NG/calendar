@@ -1,12 +1,16 @@
-<p>Hello World Calendar</p>
 <div class="row">
-	<calendar 
+	<calendar ng-if="hasContribRight()"
 		display-template="display-calendar-item" 
 		create-template="edit-event"
 		on-create-open="createCalendarEvent(newItem)"
 		on-create-close="closeEvent()" 
-		items="calendarEvents">
+		items="calendarEvents.all">
 	</calendar>
+
+    <calendar ng-if="!hasContribRight()"
+        display-template="display-calendar-item" 
+        items="calendarEvents.all">
+    </calendar>
 </div>
 
 <!-- Lightbox : Thread share -->

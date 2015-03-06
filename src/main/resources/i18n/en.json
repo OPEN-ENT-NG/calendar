@@ -1,3 +1,20 @@
 {
-	
+    "calendar.title": "Calendar",
+    "calendar.new": "New calendar",
+    "calendar.edit": "Edit calendar",
+    "calendar.color": "Calendar color",
+    "calendar.new.event": "New event",
+    "calendar.edit.event": "Edit event",
+    "calendar.event.title": "Title",
+    "calendar.event.start.date": "Start date",
+    "calendar.event.end.date": "End date",
+    "calendar.event.start.time": "Start time",
+    "calendar.event.end.time": "End time",
+    "calendar.event.owner" : "Event creator",
+    "calendar.read": "Read",
+    "calendar.contrib": "Contribute",
+    "calendar.manager": "Manage",
+    "calendar.the.calendar" : "The calendar",
+    "calendar.has.ben.created": "has been created",
+    "calendar.you.can.share.this.calendar": "You can share this calendar"
 }

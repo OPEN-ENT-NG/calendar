@@ -37,6 +37,12 @@ function CalendarEvent() {
 }
 
 CalendarEvent.prototype.save = function(callback){
+    if (this.allday) {
+        this.startMoment.hours(7);
+        this.startMoment.minutes(0);
+        this.endMoment.hours(20);
+        this.endMoment.minutes(0);
+    }
 	if(this._id){
 		this.update(callback);
 	}
@@ -78,8 +84,11 @@ CalendarEvent.prototype.toJSON = function(){
 
 	return {
 		title: this.title,
+        description: this.description,
+        location: this.location,
 		startMoment: this.startMoment,
-		endMoment: this.endMoment
+		endMoment: this.endMoment,
+        allday: this.allday
 	}
 };
 
@@ -194,5 +203,41 @@ model.build = function(){
 		},
 		
 		behaviours: 'calendar'
-	})
+	});
+
+    this.collection(CalendarEvent, {
+        pushAll: function(datas, trigger) {
+            if (datas) {
+                this.all = _.union(this.all, datas);
+                if (trigger) {
+                    this.trigger('sync');
+                }
+            }
+        },
+        pullAll: function(datas, trigger) {
+            if (datas) {
+                this.all = _.difference(this.all, datas);
+                if (trigger) {
+                    this.trigger('sync');   
+                }
+            }
+        },
+        removeCalendarEvents: function(calendar) {
+            if (calendar) {
+                var calendarEvents = [];
+                this.all.forEach(function(item) {
+                    if (item.calendar._id == calendar._id) {
+                        calendarEvents.push(item);
+                    }
+                });
+                this.pullAll(calendarEvents);
+            }
+        },
+        clear: function(trigger) {
+            this.all = [];
+            if (trigger) {
+                this.trigger('sync');   
+            }
+        }
+    });
 }

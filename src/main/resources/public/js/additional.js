@@ -21,7 +21,7 @@ module.directive('colorSelector', function($compile){
 		restrict: 'E',
 		template: templateString,
 		link: function($scope, $element, $attributes){
-			
+
 			$element.children('.color').each(function() {
 				if ($(this).attr('color') == $scope.ngModel) {
 					$(this).addClass('selected');
@@ -36,6 +36,36 @@ module.directive('colorSelector', function($compile){
 				$scope.$apply('ngModel');
 				$element.children('.color').removeClass('selected');
 				$(this).addClass('selected');
+			});
+		}
+	}
+});
+
+
+module.directive('icsExport', function ($compile) {
+	return {
+		scope: {
+			ngModel: '=',
+			ngChange: '&',
+		},
+		transclude: true,
+		replace: true,
+		restrict: 'E',
+		template: '<button><i18n>calendar.export</i18n></button>',
+		link: function($scope, $element, $attributes){
+			loader.loadFile('/calendar/public/js/ics-export.js');
+			$element.on('click', function() {
+				$element.icsExport = ics();
+				$scope.ngModel.calendarEvents.forEach(function(calendarEvent) {
+					var description = calendarEvent.description ? calendarEvent.description : '';
+					var location = calendarEvent.location ? calendarEvent.location : '';
+					if (calendarEvent.allday) {
+						$element.icsExport.addAllDayEvent(calendarEvent.title, description, location, calendarEvent.startMoment.format("YYYYMMDD"), calendarEvent.endMoment.format("YYYYMMDD"));
+					} else {
+						$element.icsExport.addEvent(calendarEvent.title, description, location, calendarEvent.startMoment.format("YYYYMMDDTHHmmss"), calendarEvent.endMoment.format("YYYYMMDDTHHmmss"));
+					}
+				});
+				$element.icsExport.download('calendar');
 			});
 		}
 	}
