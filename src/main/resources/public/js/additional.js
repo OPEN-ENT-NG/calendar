@@ -42,6 +42,37 @@ module.directive('colorSelector', function($compile){
 });
 
 
+module.directive('icsImport', function ($compile) {
+	return {
+		scope: {
+			ngModel: '=',
+			ngChange: '&',
+		},
+		transclude: true,
+		replace: true,
+		restrict: 'E',
+		template: '<button><i18n>calendar.import</i18n></button>',
+		link: function($scope, $element, $attributes){
+			loader.loadFile('/calendar/public/js/ical.js');
+			$element.on('click', function() {
+				var calendarData = 'BEGIN:VCALENDAR \
+				CALSCALE:GREGORIAN \
+				PRODID:-//Example Inc.//Example Calendar//EN \
+				VERSION:2.0 \
+				BEGIN:VEVENT \
+				DTSTAMP:20080205T191224Z \
+				DTSTART:20081006 \
+				SUMMARY:Planning meeting \
+				UID:4088E990AD89CB3DBB484909 \
+				END:VEVENT \
+				END:VCALENDAR';
+				var jcalData = ICAL.parse(calendarData);
+				console.log(jcalData);
+			});
+		}
+	}
+});
+
 module.directive('icsExport', function ($compile) {
 	return {
 		scope: {
@@ -93,7 +124,7 @@ module.directive('datePickerCalendar', function($compile){
 				$element.val($scope.ngModel.format('DD/MM/YYYY'));
 				
 			});
-			loader.asyncLoad('/' + infraPrefix + '/public/js/bootstrap-datepicker.js', function(){
+			loader.asyncLoad('/calendar/public/js/bootstrap-datepicker.js', function(){
 				$element.datepicker({
 						dates: {
 							months: moment.months(),

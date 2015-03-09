@@ -1,5 +1,3 @@
-loader.loadFile('/calendar/public/js/additional.js');
-
 model.colors = ['cyan', 'green', 'orange', 'pink', 'yellow', 'purple', 'grey'];
 model.defaultColor = 'grey';
 
@@ -187,6 +185,7 @@ Calendar.prototype.open = function(callback){
 };
 
 model.build = function(){
+    loader.loadFile('/calendar/public/js/additional.js');
 	this.makeModel(Calendar);
 	this.makeModel(CalendarEvent);
 
