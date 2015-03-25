@@ -16,9 +16,8 @@ import fr.wseduc.security.SecuredAction;
 import fr.wseduc.webutils.http.BaseController;
 import fr.wseduc.webutils.request.RequestUtils;
 
-
 public class EventController extends BaseController {
-    
+
     private final EventHelper eventHelper;
 
     public EventController(String collection, CrudService eventService) {
@@ -41,13 +40,13 @@ public class EventController extends BaseController {
             }
         });
     }
-    
+
     @Get("/:id/event/:eventid")
     @SecuredAction(value = "calendar.read", type = ActionType.RESOURCE)
     public void getEvent(HttpServerRequest request) {
         eventHelper.retrieve(request);
     }
-    
+
     @Put("/:id/event/:eventid")
     @SecuredAction(value = "calendar.contrib", type = ActionType.RESOURCE)
     public void updateEvent(final HttpServerRequest request) {
@@ -58,10 +57,25 @@ public class EventController extends BaseController {
             }
         });
     }
-    
+
     @Delete("/:id/event/:eventid")
     @SecuredAction(value = "calendar.contrib", type = ActionType.RESOURCE)
     public void deleteEvent(HttpServerRequest request) {
         eventHelper.delete(request);
     }
+
+    @Get("/:id/ical")
+    @SecuredAction(value = "calendar.read", type = ActionType.RESOURCE)
+    public void getIcal(HttpServerRequest request) {
+        eventHelper.getIcal(request);
+    }
+
+    @Put("/:id/ical")
+    @SecuredAction(value = "calendar.manager", type = ActionType.RESOURCE)
+    public void importIcal(HttpServerRequest request) {
+        eventHelper.importIcal(request);
+
+    }
+
+
 }

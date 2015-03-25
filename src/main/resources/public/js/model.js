@@ -101,6 +101,10 @@ function Calendar() {
 					calendarEvent.calendar = calendar;
 					calendarEvent.startMoment = moment(calendarEvent.startMoment).utc();
 					calendarEvent.endMoment = moment(calendarEvent.endMoment).utc();
+                    // ugly patch for event overflow display
+                    if (calendarEvent.allday) {
+                        calendarEvent.startMoment.hours(7);
+                    }
 					calendarEvent.is_periodic = false;
                     calendarEvent.locked = true;
                     calendarEvent.color = calendar.color;
@@ -193,8 +197,10 @@ model.build = function(){
 
 	this.collection(Calendar, {
 		sync: function(callback){
+            var collection = this;
 			http().get('/calendar/calendars').done(function(calendars){
 				this.load(calendars);
+                collection.trigger('sync');
 				if(typeof callback === 'function'){
 					callback();
 				}
@@ -221,7 +227,7 @@ model.build = function(){
                 }
             }
         },
-        removeCalendarEvents: function(calendar) {
+        removeCalendarEvents: function(calendar, trigger) {
             if (calendar) {
                 var calendarEvents = [];
                 this.all.forEach(function(item) {
@@ -229,7 +235,7 @@ model.build = function(){
                         calendarEvents.push(item);
                     }
                 });
-                this.pullAll(calendarEvents);
+                this.pullAll(calendarEvents, trigger);
             }
         },
         clear: function(trigger) {
@@ -237,6 +243,20 @@ model.build = function(){
             if (trigger) {
                 this.trigger('sync');   
             }
-        }
+        },
+        applyFilters: function() {
+            this.filtered = _.filter(this.all, function(calendarEvent){
+                return calendarEvent.startMoment.isBefore(model.calendarEvents.filters.endMoment) && 
+                        calendarEvent.endMoment.isAfter(model.calendarEvents.filters.startMoment);
+            });
+        },
+       
+        filters: {
+            mine: undefined,
+            dates: undefined,
+            startMoment: undefined,
+            endMoment: undefined
+        },
+        filtered: [],
     });
 }

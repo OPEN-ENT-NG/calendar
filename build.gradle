@@ -3,7 +3,8 @@ apply plugin: 'scala'
 
 dependencies {
 	compile "org.entcore:common:$entCoreVersion"
-  testCompile "org.entcore:tests:$entCoreVersion"
+    compile "org.mnode.ical4j:ical4j:1.0.6"
+    testCompile "org.entcore:tests:$entCoreVersion"
 }
 
 javadoc {

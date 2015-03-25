@@ -1,7 +1,7 @@
 var calendarBehaviours = {
 	resources: {
 		contrib: {
-			right: 'net-atos-entng-calendar-controllers-CalendarController|updateCalendar'
+			right: 'net-atos-entng-calendar-controllers-EventController|createEvent'
 		},
 		manage: {
 			right: 'net-atos-entng-calendar-controllers-CalendarController|updateCalendar'
@@ -42,7 +42,7 @@ Behaviours.register('calendar', {
 		return resource;
 	},
 	resourceRights: function(){
-		return ['read', 'manager']
+		return ['read', 'contrib', 'manager']
 	},
 	loadResources: function(callback) {
 		http().get('/calendar/list').done(function(calendars){

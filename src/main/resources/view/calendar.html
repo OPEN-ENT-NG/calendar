@@ -17,12 +17,12 @@
 
   <body ng-controller="CalendarController">
     <portal>
-
-      <div class="row patchwork">
-    		<container template="main" class="flexible content cell"></container>
-    		<container template="calendars" class="flexible navigation" ng-class="{ 'empty-neighbour': template.isEmpty('main'), 'filled-neighbour': !template.isEmpty('main') }"></container>
-      </div>
-    
+        <div class="row">
+          <container template="top-menu"></container>
+        </div>
+        <div class="row">
+          <container template="main"></container>
+        </div>
     </portal>
   </body>
 

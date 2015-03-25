@@ -1,12 +1,5 @@
-<h1><i18n ng-click="openMainPage()">calendar.title</i18n></h1>
-
 <div class="items">
-	<div class="twelve cell">
-		<button ng-click="newCalendar()"><i18n>calendar.new</i18n></button>
-		<i class="open-right right-magnet big-hidden" ng-click="template.close('main')"></i>
-	</div>
-	<hr />
-	<div class="row" ng-repeat="cl in calendars.all" ng-class="{ selected: isSelectedCalendar(cl) }">
+	<div class="row" ng-repeat="cl in calendars.all" ng-class="{ selected: cl.selected }">
 		<article class="[[cl.color]]">
 				
 			<h1 ng-click="openOrCloseCalendar(cl)">
@@ -22,8 +15,7 @@
 			</div>
 			<div class="small-hidden buttons" ng-class="{ hidden: !cl.showButtons }">
 				<behaviour name="manage" resource="cl">
-					<ics-export ng-model="cl"></ics-export>
-					<ics-import ng-model="cl"></ics-import>
+					<button ng-click="displayImportIcsPanel()"><i18n>import</i18n></button>
 					<button ng-click="editCalendar(cl, $event)"><i18n>edit</i18n></button>
 					<button ng-click="confirmRemoveCalendar(cl, $event)"><i18n>remove</i18n></button>
 					<button ng-click="shareCalendar(cl, $event)"><i18n>share</i18n></button>
@@ -40,6 +32,14 @@
 	</lightbox>
 </div>
 
+<!-- Lightbox : Import ICS -->
+<div ng-if="display.showImportPanel">
+	<lightbox show="display.showImportPanel" on-close="display.showImportPanel = false;">
+		<label><i18n>calendar.ics.file.to.import</i18n></label>
+		<input type="file" id="icsFile" />
+		<button class="right-magnet" ng-click="importIcsFile()"><i18n>import</i18n></button>
+	</lightbox>
+</div>
 
 <div ng-if="display.confirmDeleteCalendar">
 	<lightbox show="display.confirmDeleteCalendar" on-close="cancelRemoveCalendar()">

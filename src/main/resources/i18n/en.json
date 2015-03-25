@@ -16,5 +16,6 @@
     "calendar.manager": "Manage",
     "calendar.the.calendar" : "The calendar",
     "calendar.has.ben.created": "has been created",
-    "calendar.you.can.share.this.calendar": "You can share this calendar"
+    "calendar.you.can.share.this.calendar": "You can share this calendar",
+    "calendar.ics.file.to.import": "Fichier iCal à importer"
 }

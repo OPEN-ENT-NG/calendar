@@ -3,11 +3,19 @@ package net.atos.entng.calendar.services.impl;
 import static org.entcore.common.mongodb.MongoDbResult.validActionResultHandler;
 import static org.entcore.common.mongodb.MongoDbResult.validResultHandler;
 import static org.entcore.common.mongodb.MongoDbResult.validResultsHandler;
-import net.atos.entng.calendar.services.EventService;
 
+import java.net.SocketException;
+
+import net.atos.entng.calendar.ical.ICalHandler;
+import net.atos.entng.calendar.services.EventService;
+import net.fortuna.ical4j.util.UidGenerator;
+
+import org.apache.commons.lang.mutable.MutableInt;
 import org.entcore.common.service.impl.MongoDbCrudService;
 import org.entcore.common.user.UserInfos;
 import org.vertx.java.core.Handler;
+import org.vertx.java.core.eventbus.EventBus;
+import org.vertx.java.core.eventbus.Message;
 import org.vertx.java.core.json.JsonArray;
 import org.vertx.java.core.json.JsonObject;
 
@@ -20,9 +28,11 @@ import fr.wseduc.webutils.Either;
 
 public class EventServiceMongoImpl extends MongoDbCrudService implements EventService {
 
-    public EventServiceMongoImpl(String collection) {
-        super(collection);
+    private final EventBus eb;
 
+    public EventServiceMongoImpl(String collection, EventBus eb) {
+        super(collection);
+        this.eb = eb;
     }
 
     @Override
@@ -43,10 +53,24 @@ public class EventServiceMongoImpl extends MongoDbCrudService implements EventSe
         body.removeField("_id");
         body.removeField("calendar");
 
+        // ics Uid generate
+        UidGenerator uidGenerator;
+        String icsUid = "";
+        try {
+            uidGenerator = new UidGenerator("1");
+            icsUid = uidGenerator.generateUid().toString();
+        } catch (SocketException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        
         // Prepare data
-        JsonObject now = MongoDb.now();
-        body.putObject("owner", new JsonObject().putString("userId", user.getUserId()).putString("displayName", user.getUsername())).putObject("created", now).putObject("modified", now).putString("calendar", calendarId);
-
+        JsonObject now = MongoDb.now(); 
+        body.putObject("owner", new JsonObject().putString("userId", user.getUserId()).putString("displayName", user.getUsername()));
+        body.putObject("created", now);
+        body.putObject("modified", now);
+        body.putString("calendar", calendarId);
+        body.putString("icsUid", icsUid);
         mongo.save(this.collection, body, validActionResultHandler(handler));
     }
 
@@ -54,6 +78,18 @@ public class EventServiceMongoImpl extends MongoDbCrudService implements EventSe
     public void retrieve(String calendarId, String eventId, UserInfos user, Handler<Either<String, JsonObject>> handler) {
         // Query
         QueryBuilder query = QueryBuilder.start("_id").is(eventId);
+        query.put("calendar").is(calendarId);
+
+        // Projection
+        JsonObject projection = new JsonObject();
+
+        mongo.findOne(this.collection, MongoQueryBuilder.build(query), projection, validResultHandler(handler));
+    }
+
+    @Override
+    public void retrieveByIcsUid(String calendarId, String icsUid, UserInfos user, Handler<Either<String, JsonObject>> handler) {
+        // Query
+        QueryBuilder query = QueryBuilder.start("icsUid").is(icsUid);
         query.put("calendar").is(calendarId);
 
         // Projection
@@ -88,6 +124,78 @@ public class EventServiceMongoImpl extends MongoDbCrudService implements EventSe
         query.put("calendar").is(calendarId);
         mongo.delete(this.collection, MongoQueryBuilder.build(query), validActionResultHandler(handler));
 
+    }
+
+    @Override
+    public void getIcal(String calendarId, UserInfos user, final Handler<Message<JsonObject>> handler) {
+        final JsonObject message = new JsonObject();
+        message.putString("action", ICalHandler.ACTION_GET);
+        this.list(calendarId, user, new Handler<Either<String, JsonArray>>() {
+            @Override
+            public void handle(Either<String, JsonArray> event) {
+                JsonArray values = event.right().getValue();
+                message.putArray("events", values);
+                eb.send(ICalHandler.ICAL_HANDLER_ADDRESS, message, handler);
+
+            }
+        });
+    }
+
+    @Override
+    public void importIcal(final String calendarId, String ics, final UserInfos user, final Handler<Either<String, JsonObject>> handler) {
+        final JsonObject message = new JsonObject();
+        message.putString("action", ICalHandler.ACTION_PUT);
+        message.putString("calendarId", calendarId);
+        message.putString("ics", ics);
+        final EventServiceMongoImpl eventService = this;
+        final MutableInt i = new MutableInt();
+        eb.send(ICalHandler.ICAL_HANDLER_ADDRESS, message, new Handler<Message<JsonObject>>() {
+            @Override
+            public void handle(Message<JsonObject> reply) {
+                JsonObject body = reply.body();
+                JsonArray calendarEvents = body.getArray("events");
+                i.add(calendarEvents.size());
+                for (Object e : calendarEvents) {
+                    final JsonObject calendarEvent = (JsonObject) e;
+                    eventService.retrieveByIcsUid(calendarId, calendarEvent.getString("icsUid"), user, new Handler<Either<String, JsonObject>>() {
+                        @Override
+                        public void handle(Either<String, JsonObject> event) {
+                            // No existing event found
+                            if (event.isRight() && event.right().getValue().size() == 0) {
+                                eventService.create(calendarId, calendarEvent, user, new Handler<Either<String, JsonObject>>() {
+                                    @Override
+                                    public void handle(Either<String, JsonObject> event) {     
+                                        i.subtract(1);
+                                        // There is no more events to create
+                                        if (i.toInteger() == 0) {    
+                                            handler.handle(new Either.Right<String, JsonObject>(new JsonObject()));
+                                        }
+                                    }
+                                });
+                            } // Existing event found 
+                            else if (event.isRight() && event.right().getValue().size() > 0) {
+                                eventService.update(calendarId, event.right().getValue().getString("_id"), calendarEvent, user, new Handler<Either<String, JsonObject>>() {
+                                    @Override
+                                    public void handle(Either<String, JsonObject> event) {
+                                        i.subtract(1);
+                                        // There is no more events to create
+                                        if (i.toInteger() == 0) {   
+                                            handler.handle(new Either.Right<String, JsonObject>(new JsonObject()));
+                                        }
+                                    }
+                                });
+                            } // An error occured while retrieving the event 
+                            else {         
+                                i.subtract(1);
+                                if (i.toInteger() == 0) {
+                                    handler.handle(new Either.Right<String, JsonObject>(new JsonObject()));
+                                }
+                            }
+                        }
+                    });
+                }
+            }
+        });
     }
 
 }

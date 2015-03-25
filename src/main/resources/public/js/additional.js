@@ -29,10 +29,8 @@ module.directive('colorSelector', function($compile){
 			});
 
 			$element.children('.color').on('click', function(){
-				console.log('before :' + $scope.ngModel);
 				var color = $(this).attr('color');
 				$scope.ngModel = color;
-				console.log('after : ' + $scope.ngModel);
 				$scope.$apply('ngModel');
 				$element.children('.color').removeClass('selected');
 				$(this).addClass('selected');
@@ -121,8 +119,7 @@ module.directive('datePickerCalendar', function($compile){
 				if ($scope.ngModel === undefined || $scope.ngModel === null) {
 					$scope.ngModel = moment().startOf('day');
 				}
-				$element.val($scope.ngModel.format('DD/MM/YYYY'));
-				
+				$element.val($scope.ngModel.format('DD/MM/YYYY'));	
 			});
 			loader.asyncLoad('/calendar/public/js/bootstrap-datepicker.js', function(){
 				$element.datepicker({

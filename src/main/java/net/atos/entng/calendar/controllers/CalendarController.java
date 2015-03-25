@@ -1,6 +1,8 @@
 package net.atos.entng.calendar.controllers;
 
 import org.entcore.common.mongodb.MongoDbControllerHelper;
+import org.entcore.common.user.UserInfos;
+import org.entcore.common.user.UserUtils;
 import org.vertx.java.core.Handler;
 import org.vertx.java.core.http.HttpServerRequest;
 import org.vertx.java.core.json.JsonObject;
@@ -14,17 +16,16 @@ import fr.wseduc.security.ActionType;
 import fr.wseduc.security.SecuredAction;
 import fr.wseduc.webutils.request.RequestUtils;
 
-
 public class CalendarController extends MongoDbControllerHelper {
-    
+
     public CalendarController(String collection) {
         super(collection);
     }
 
     @Get("")
-   	@SecuredAction("calendar.view")
-	public void view(HttpServerRequest request) {
-    	renderView(request);
+    @SecuredAction("calendar.view")
+    public void view(HttpServerRequest request) {
+        renderView(request);
     }
 
     @Get("/calendars")
@@ -32,7 +33,7 @@ public class CalendarController extends MongoDbControllerHelper {
     public void listCalendars(HttpServerRequest request) {
         list(request);
     }
-    
+
     @Post("/calendars")
     @SecuredAction("calendar.create")
     public void createCalendar(final HttpServerRequest request) {
@@ -43,7 +44,7 @@ public class CalendarController extends MongoDbControllerHelper {
             }
         });
     }
-    
+
     @Put("/:id")
     @SecuredAction(value = "calendar.manager", type = ActionType.RESOURCE)
     public void updateCalendar(final HttpServerRequest request) {
@@ -54,13 +55,13 @@ public class CalendarController extends MongoDbControllerHelper {
             }
         });
     }
-    
+
     @Delete("/:id")
     @SecuredAction(value = "calendar.manager", type = ActionType.RESOURCE)
     public void deleteCalendar(HttpServerRequest request) {
         delete(request);
     }
-    
+
     @Get("/share/json/:id")
     @ApiDoc("Share calendar by id.")
     @SecuredAction(value = "calendar.manager", type = ActionType.RESOURCE)
@@ -72,7 +73,25 @@ public class CalendarController extends MongoDbControllerHelper {
     @ApiDoc("Share calendar by id.")
     @SecuredAction(value = "calendar.manager", type = ActionType.RESOURCE)
     public void shareCalendarSubmit(final HttpServerRequest request) {
-        shareJsonSubmit(request, "notify-timeline-shared.html", false);
+        UserUtils.getUserInfos(eb, request, new Handler<UserInfos>() {
+            @Override
+            public void handle(final UserInfos user) {
+                if (user != null) {
+                    final String id = request.params().get("id");
+                    if (id == null || id.trim().isEmpty()) {
+                        badRequest(request);
+                        return;
+                    }
+
+                    JsonObject params = new JsonObject();
+                    params.putString("profilUri", container.config().getString("userbook-host") + "/userbook/annuaire#" + user.getUserId() + "#" + user.getType());
+                    params.putString("username", user.getUsername());
+                    params.putString("calendarUri", container.config().getString("host") + "/calendar#/view/" + id);
+
+                    shareJsonSubmit(request, "notify-calendar-shared.html", false, params, "title");
+                }
+            }
+        });
     }
 
     @Put("/share/remove/:id")

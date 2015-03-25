@@ -1,0 +1,18 @@
+<div class="three cell">
+  <h1>
+    <i class="rbs"></i>
+    <a ng-click="showCalendar(display.admin)">
+      <i18n>calendar.title</i18n>
+    </a>
+  </h1> 
+</div>
+
+<div class="nine cell display-buttons">
+    <div class="row">
+
+          <i class="show-list" ng-class="{ selected: display.list === true }" ng-click="showList()"
+          tooltip="calendar.icon.show.events.list"></i>
+          <i class="show-calendar" ng-class="{ selected: display.list === false }" ng-click="showCalendar()"
+          tooltip="calendar.icon.show.calendar"></i>
+    </div>
+</div>

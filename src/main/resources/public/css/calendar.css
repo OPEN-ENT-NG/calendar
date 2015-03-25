@@ -2,23 +2,23 @@
 	z-index: 11000 !important;
 }
 
-.color-selector .green, .row .green {
-    background-color: #28c7a9;
+.color-selector .green, .row .green, nav.vertical ul li a.green {
+    background-color: #28c7a9 !important;
 }
-.color-selector .purple, .row .purple {
-    background-color: #ab6fc9;
+.color-selector .purple, .row .purple, nav.vertical ul li a.purple {
+    background-color: #ab6fc9 !important;
 }
-.color-selector .orange, .row .orange {
-    background-color: #f4ce01;
+.color-selector .orange, .row .orange, nav.vertical ul li a.orange {
+    background-color: #f4ce01 !important;
 }
-.color-selector .pink, .row .pink {
-    background-color: #ec6045;
+.color-selector .pink, .row .pink, nav.vertical ul li a.pink {
+    background-color: #ec6045 !important;
 }
-.color-selector .cyan, .row .cyan {
-    background-color: #23a3db;
+.color-selector .cyan, .row .cyan , nav.vertical ul li a.cyan{
+    background-color: #23a3db !important;
 }
-.color-selector .grey, .row .grey {
-    background-color: #b7b8ba;
+.color-selector .grey, .row .grey, nav.vertical ul li a.grey {
+    background-color: #b7b8ba !important;
 }
 
 .color-selector .color {
@@ -45,4 +45,55 @@
 
 .patchwork .navigation .items > .row .buttons {
     z-index:1000 !important;
+}
+
+.lightbox-background {
+    z-index:9000 !important;
+}
+
+.colored li a {
+    opacity:0.4;
+}
+
+.colored li a.selected {
+    opacity:1;
+}
+
+nav.vertical ul li a input.calendar-checkbox {
+  float:right;
+}
+
+nav.vertical ul li li:last-child > a{
+    background-repeat: no-repeat, repeat-y !important;
+}
+
+ nav.vertical ul li li:last-child {
+    background: url("/assets/themes/neo/img/icons/nav-lines.png") repeat-y scroll 0px 0 #ffffff !important;
+    background-image: url("/assets/themes/neo/img/icons/folder-last-lines.png"), url("/assets/themes/neo/img/icons/folder-last-lines.png") !important;
+    background-repeat: no-repeat, repeat-y !important;
+}
+
+
+.filters div.dates {
+    position: absolute;
+    right: 0px;
+    top: 4px;
+}
+
+.filters div.dates div.cell {
+    margin-right: 5px;
+    line-height: 40px;
+    vertical-align: middle;
+}
+
+.toggle-buttons{
+    z-index:1000 !important;
+}
+
+.remove-calendar-event .lightbox-background {
+    z-index:12000 !important;
+}
+
+.remove-calendar-event .lightbox-view {
+    z-index:12001 !important;
 }

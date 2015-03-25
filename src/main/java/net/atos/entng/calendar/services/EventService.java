@@ -2,6 +2,7 @@ package net.atos.entng.calendar.services;
 
 import org.entcore.common.user.UserInfos;
 import org.vertx.java.core.Handler;
+import org.vertx.java.core.eventbus.Message;
 import org.vertx.java.core.json.JsonArray;
 import org.vertx.java.core.json.JsonObject;
 
@@ -15,8 +16,14 @@ public interface EventService {
 
     void retrieve(String calendarId, String eventId, UserInfos user, Handler<Either<String, JsonObject>> handler);
 
+    void retrieveByIcsUid(String calendarId, String icsUid, UserInfos user, Handler<Either<String, JsonObject>> handler);
+
     void update(String calendarId, String eventId, JsonObject body, UserInfos user, Handler<Either<String, JsonObject>> handler);
 
     void delete(String calendarId, String eventId, UserInfos user, Handler<Either<String, JsonObject>> handler);
+
+    void getIcal(String calendarId, UserInfos user, Handler<Message<JsonObject>> handler);
+    
+    void importIcal(String calendarId, String ics, UserInfos user, Handler<Either<String, JsonObject>> handler);
 
 }

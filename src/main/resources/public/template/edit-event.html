@@ -7,9 +7,15 @@
 
 
     <div class="row">
-        <label><i18n>calendar.event.calendar</i18n></label>
-        <select class="twelve cell" ng-model="calendarEvent.calendar" ng-change="changeCalendarEventCalendar()" 
-        ng-options="opt as opt.title for opt in selectedCalendars | filter:hasContribRight" />
+        <label><i18n>calendar.event.calendar</i18n></label><span ng-if="calendarEvent._id"> [[calendarEvent.calendar.title]]</span>
+        <select ng-if="!calendarEvent._id" class="twelve cell" ng-model="calendarEvent.calendar" ng-change="changeCalendarEventCalendar()" 
+        ng-options="opt as opt.title for opt in calendars.selection() | filter:hasContribRight" />
+    </div>
+
+    <div class="row" ng-if="calendarEvent._id">
+        <div class="twelve cell form-element">
+            <label><i18n>calendar.event.owner</i18n></label><span> [[calendarEvent.owner.displayName]]</span>
+        </div>
     </div>
 
 	<label class="twelve cell"><i18n>calendar.event.title</i18n></label>
@@ -20,13 +26,6 @@
 
     <label class="twelve cell"><i18n>calendar.event.location</i18n></label>
     <input class="twelve cell" ng-model="calendarEvent.location" type="text"/>
-
-	<div class="row" ng-if="calendarEvent._id">
-		<div class="twelve cell form-element">
-            <label><i18n>calendar.event.owner</i18n></label>
-            <p>[[calendarEvent.owner.displayName]]</p>
-        </div>
-	</div>
 
 	<div class="row">
 		<div class="six cell">
@@ -54,6 +53,8 @@
     <div class="twelve cell">
         <input type="checkbox" ng-model="calendarEvent.allday"/>
         <label><i18n>calendar.event.allday</i18n></label>
+        <input type="checkbox" ng-model="display.calendarEventRecurrence"/>
+        <label><i18n>calendar.event.recurrence</i18n></label>
     </div>
 
 	<span ng-if="calendarEvent._id">
@@ -62,10 +63,46 @@
 	<button class="right-magnet" ng-click="saveCalendarEventEdit()"><i18n>save</i18n></button>
 </div>
 
-<div ng-if="display.confirmDeleteCalendarEvent">
-    <lightbox show="display.confirmDeleteCalendarEvent" on-close="cancelRemoveCalendarEvent()">
+
+
+<div ng-if="display.calendarEventRecurrence">
+    <lightbox show="display.calendarEventRecurrence" on-close="cancelCalendarEventRecurrence()">
         <div class="row">
-            <i18n>calendar.confirm.delete.event</i18n>
+            <i18n>calendar.recurrence</i18n>
+        </div>
+
+        <div class="row">
+            <label><i18n>calendar.reccurent</i18n></label>
+            <select ng-model="calendarEvent.reccurence.type">
+                <option><i18n>calendar.recurrence.every.day</i18n></option>
+                <option><i18n>calendar.recurrence.every.week.day</i18n></option>
+                <option><i18n>calendar.recurrence.every.week</i18n></option>
+                <option><i18n>calendar.recurrence.every.month</i18n></option>
+                <option><i18n>calendar.recurrence.every.year</i18n></option>
+            </select>
+        </div>
+
+        <div class="row">
+            <label><i18n>calendar.recurrence.repeat.on</i18n></label>
+            <select ng-model="calendarEvent.recurrence.repeat">
+                <option ng-repeat="i in periods.periodicities">[[i]]</option>
+            </select>
+        </div>
+
+        <div class="row">
+            <label><i18n>calendar.recurrence.end</i18n></label>
+            <div class="row">
+                <input type="radio" name="reccurence-end" ng-model="calendarEvent.recurrence.end" value="never"/>
+                <label><i18n>calendar.recurrence.end.never</i18n></label>
+            </div>
+            <div class="row">
+                <input type="radio" name="reccurence-end" ng-model="calendarEvent.recurrence.end" value="after"/>
+                <label><i18n>calendar.recurrence.end.after</i18n></label>
+            </div>
+            <div class="row">
+                <input type="radio" name="reccurence-end" ng-model="calendarEvent.recurrence.end" value="on"/>
+                <label><i18n>calendar.recurrence.end.on</i18n></label>
+            </div>
         </div>
 
         <div class="row"> 
@@ -74,3 +111,5 @@
         </div>
     </lightbox>
 </div>
+
+

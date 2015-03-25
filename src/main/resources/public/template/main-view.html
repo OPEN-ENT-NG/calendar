@@ -1,0 +1,116 @@
+<section class="cell three">
+    <button ng-click="newCalendar()"><i18n>calendar.new</i18n></button>
+    <nav class="vertical row">
+        <ul class="colored">
+            <!-- My calendars -->
+            <li ng-if="ownCalendars()">
+                <a class="selected"><i18n>calendar.my.calendars</i18n></a>
+                <ul>
+                    <li ng-repeat="cl in calendars.all | filter:isMyCalendar">
+                        <a class="[[cl.color]]" ng-class="{'selected': cl.selected}" ng-click="openOrCloseCalendar(cl)">
+                            [[cl.title]]
+                            <input type="checkbox" class="calendar-checkbox" ng-click="$event.stopPropagation();" ng-model="cl.showButtons" ng-change="hideOtherCalendarCheckboxes(cl)"/>
+                        </a>
+                    </li>
+                </ul>
+            </li>
+            <!-- Shared calendars -->
+            <li ng-if="hasSharedCalendars()">
+                <a class="selected"><i18n>calendar.shared.calendars</i18n></a>
+                <ul>
+                    <li ng-repeat="cl in calendars.all | filter:isCalendarSharedWithMe">
+                        <a class="[[cl.color]]" ng-class="{'selected': cl.selected}" ng-click="openOrCloseCalendar(cl)">
+                            [[cl.title]]
+                            <input type="checkbox" class="calendar-checkbox" ng-click="$event.stopPropagation();" ng-model="cl.showButtons" ng-change="hideOtherCalendarCheckboxes(cl)"/>
+                        </a>
+                    </li>
+                </ul>
+            </li>
+            
+            <div ng-if="calendars.empty() === true"><i18n>calendar.calendars.empty</i18n></div>
+        </ul>
+    <hr />
+    </nav>
+</section>
+
+<section class="cell nine">
+    <container template="calendar"></container>
+</section>
+
+<!-- Action buttons for calendar -->
+<section class="toggle-buttons" ng-class="{ hide: !display.showToggleButtons}">
+    <div class="toggle">
+        <div class="row">
+            <behaviour name="manage" resource="calendar">
+                    <a href="/calendar/[[showButtonsCalendar._id]]/ical"><button><i18n>calendar.export</i18n></button></a>
+                    <button ng-click="displayImportIcsPanel()"><i18n>calendar.import</i18n></button>
+                    <button ng-click="editCalendar(showButtonsCalendar, $event)"><i18n>edit</i18n></button>
+                    <button ng-click="confirmRemoveCalendar(showButtonsCalendar, $event)"><i18n>remove</i18n></button>
+                    <button ng-click="shareCalendar(showButtonsCalendar, $event)"><i18n>share</i18n></button>
+            </behaviour>
+        </div>
+    </div>
+</section>
+
+<!-- Action buttons for calendar events -->
+<section class="toggle-buttons" ng-class="{ hide: calendarEvents.selection().length === 0 || !display.list}">
+    <div class="toggle">
+        <div class="row">
+            <behaviour name="manage" resource="calendarEvents.selection()" class="cell">
+                <button ng-if="calendarEvents.selection().length === 1" ng-click="viewCalendarEvent(calendarEvents.selection()[0])"><i18n>edit</i18n></button>
+                <button ng-click="confirmRemoveCalendarEvents($event)"><i18n>remove</i18n></button>
+            </behaviour>
+        </div>
+    </div>
+</section>
+
+<!-- Lightbox : Share calendar -->
+<div ng-if="display.showPanel">
+    <lightbox show="display.showPanel" on-close="display.showPanel = false;">
+        <share-panel app-prefix="'calendar'" resources="calendar"></share-panel>
+    </lightbox>
+</div>
+
+<!-- Lightbox : Import ICS -->
+<div ng-if="display.showImportPanel">
+    <lightbox show="display.showImportPanel" on-close="display.showImportPanel = false;">
+        <label><i18n>calendar.ics.file.to.import</i18n></label>
+        <input type="file" id="icsFile" />
+        <button class="right-magnet" ng-click="importIcsFile(showButtonsCalendar)"><i18n>import</i18n></button>
+    </lightbox>
+</div>
+
+<!-- Lightbox : Delete calendar -->
+<div ng-if="display.confirmDeleteCalendar">
+    <lightbox show="display.confirmDeleteCalendar" on-close="cancelRemoveCalendar()">
+        <div class="row">
+            <i18n>calendar.confirm.delete.calendar</i18n>
+        </div>
+        
+        <div class="row">
+            <button class="right-magnet" ng-click="removeCalendar()"><i18n>remove</i18n></button>
+            <input type="button" class="cancel right-magnet" i18n-value="cancel" ng-click="cancelRemoveCalendar()" />
+        </div>
+    </lightbox>
+</div>
+
+<!-- Lightbox : Event creation / edition -->
+<div ng-if="display.showEventPanel">
+    <lightbox show="display.showEventPanel" on-close="closeCalendarEvent()">
+        <container template="lightbox"></container>
+    </lightbox>
+</div>
+
+<!-- Lightbox : Confirm remove calendar event -->
+<div ng-if="display.confirmDeleteCalendarEvent">
+    <lightbox class="remove-calendar-event" show="display.confirmDeleteCalendarEvent" on-close="cancelRemoveCalendarEvent()">
+        <div class="row">
+            <i18n>calendar.confirm.delete.event</i18n>
+        </div>
+
+        <div class="row"> 
+            <input type="button" class="cancel right-magnet" i18n-value="cancel" ng-click="cancelRemoveCalendarEvent()" />
+            <button class="right-magnet" ng-click="removeCalendarEvents($event)"><i18n>remove</i18n></button>
+        </div>
+    </lightbox>
+</div>
