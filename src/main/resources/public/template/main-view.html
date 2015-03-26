@@ -7,7 +7,7 @@
                 <a class="selected"><i18n>calendar.my.calendars</i18n></a>
                 <ul>
                     <li ng-repeat="cl in calendars.all | filter:isMyCalendar">
-                        <a class="[[cl.color]]" ng-class="{'selected': cl.selected}" ng-click="openOrCloseCalendar(cl)">
+                        <a class="[[cl.color]]" ng-class="{'selected': cl.selected}" ng-click="openOrCloseCalendar(cl, true)">
                             [[cl.title]]
                             <input type="checkbox" class="calendar-checkbox" ng-click="$event.stopPropagation();" ng-model="cl.showButtons" ng-change="hideOtherCalendarCheckboxes(cl)"/>
                         </a>
@@ -19,7 +19,7 @@
                 <a class="selected"><i18n>calendar.shared.calendars</i18n></a>
                 <ul>
                     <li ng-repeat="cl in calendars.all | filter:isCalendarSharedWithMe">
-                        <a class="[[cl.color]]" ng-class="{'selected': cl.selected}" ng-click="openOrCloseCalendar(cl)">
+                        <a class="[[cl.color]]" ng-class="{'selected': cl.selected}" ng-click="openOrCloseCalendar(cl, true)">
                             [[cl.title]]
                             <input type="checkbox" class="calendar-checkbox" ng-click="$event.stopPropagation();" ng-model="cl.showButtons" ng-change="hideOtherCalendarCheckboxes(cl)"/>
                         </a>
