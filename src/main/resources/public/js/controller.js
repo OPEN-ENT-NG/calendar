@@ -26,7 +26,6 @@ function CalendarController($scope, template, model, date, route, $timeout) {
 
         template.open('main', 'main-view');
         template.open('top-menu', 'top-menu');
-        template.open('calendar', 'read-calendar');
     };
 
     // Definition of actions
@@ -49,22 +48,7 @@ function CalendarController($scope, template, model, date, route, $timeout) {
         mainPage : function(params) {
             $scope.calendars.one('sync', function(){
                 $scope.loadCalendarPreferences(function() {
-                    if ($scope.calendarPreferences.selectedCalendars) {
-                        var toSelectCalendars = _.filter($scope.calendars.all, function(calendar) {
-                            return _.contains($scope.calendarPreferences.selectedCalendars, calendar._id);
-                        });
-                        toSelectCalendars.forEach(function(cl) {
-                           $scope.openOrCloseCalendar(cl, false);
-                        });
-                    }
-                    
-                    if ($scope.calendars.selection().length == 0 && !$scope.calendars.isEmpty()) {
-                        var calendarToOpen = $scope.firstOwnedCalendar();
-                        if (calendarToOpen === undefined) {
-                            calendarToOpen = $scope.calendars.all[0];
-                        }
-                        $scope.openOrCloseCalendar(calendarToOpen, true);
-                    }
+                    $scope.loadSelectedCalendars();
                 });
             });
         }
@@ -74,6 +58,25 @@ function CalendarController($scope, template, model, date, route, $timeout) {
         return _.find($scope.calendars.all, function(calendar) {
             return $scope.isMyCalendar(calendar);
         });
+    }
+
+    $scope.loadSelectedCalendars = function() {
+        if ($scope.calendarPreferences.selectedCalendars) {
+            var toSelectCalendars = _.filter($scope.calendars.all, function(calendar) {
+                return _.contains($scope.calendarPreferences.selectedCalendars, calendar._id);
+            });
+            toSelectCalendars.forEach(function(cl) {
+               $scope.openOrCloseCalendar(cl, false);
+            });
+        }
+        
+        if ($scope.calendars.selection().length == 0 && !$scope.calendars.isEmpty()) {
+            var calendarToOpen = $scope.firstOwnedCalendar();
+            if (calendarToOpen === undefined) {
+                calendarToOpen = $scope.calendars.all[0];
+            }
+            $scope.openOrCloseCalendar(calendarToOpen, true);
+        }
     }
 
     $scope.loadCalendarPreferences = function(callback) {
@@ -172,6 +175,7 @@ function CalendarController($scope, template, model, date, route, $timeout) {
                 if ($scope.display.list) {
                     $scope.calendarEvents.applyFilters();
                 }
+                template.open('calendar', 'read-calendar');
             });
             if (savePreferences) {
                 $scope.calendarPreferences.selectedCalendars = _.map($scope.calendars.selection(), function(calendar) {
@@ -283,9 +287,12 @@ function CalendarController($scope, template, model, date, route, $timeout) {
         }
         else { 
             $scope.calendar.save(function(){
-                template.open('calendar', 'share-calendar');
+                $scope.calendars.sync(function() {
+                    $scope.loadCalendarPreferences(function() {
+                        $scope.loadSelectedCalendars();
+                    });
+                });
             });
-            $scope.calendars.sync();
         }
         template.close('calendar');
     };
@@ -319,6 +326,11 @@ function CalendarController($scope, template, model, date, route, $timeout) {
     };
 
     $scope.removeCalendar = function() {
+        // remove toggle buttons
+        if ($scope.showButtonsCalendar._id == $scope.calendar._id) {
+            $scope.showButtonsCalendar = undefined;
+            $scope.showToggleButtons = undefined;
+        }
         // remove all calendar events from calendar display items
         $scope.calendarEvents.removeCalendarEvents($scope.calendar);
 
@@ -330,6 +342,7 @@ function CalendarController($scope, template, model, date, route, $timeout) {
         // remove calendar
         $scope.calendar.delete();
         $scope.display.confirmDeleteCalendar = undefined;
+
 
     };
 
