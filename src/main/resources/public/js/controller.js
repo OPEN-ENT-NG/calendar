@@ -26,24 +26,24 @@ function CalendarController($scope, template, model, date, route, $timeout) {
 
         template.open('main', 'main-view');
         template.open('top-menu', 'top-menu');
+        template.open('calendar', 'read-calendar');
     };
 
     // Definition of actions
     route({
         goToCalendar : function(params) {
             $scope.calendars.one('sync', function() {
-               var cal = model.calendars.find(function(cl) {
+               var calendar = model.calendars.find(function(cl) {
                     return cl._id === params.calendarId;
                 });
-                if (cal === undefined) {
+                if (calendar === undefined) {
                     $scope.notFound = true;
 
                     template.open('error', '404');
                 } else {
                     $scope.notFound = false;
-                    $scope.openOrCloseCalendar(cal);
+                    $scope.openOrCloseCalendar(calendar);
                 }
-                template.open('calendar', 'read-calendar');
             });
         },
         mainPage : function(params) {
@@ -59,13 +59,22 @@ function CalendarController($scope, template, model, date, route, $timeout) {
                     }
                     
                     if ($scope.calendars.selection().length == 0 && !$scope.calendars.isEmpty()) {
-                        $scope.openOrCloseCalendar($scope.calendars.all[0], true);
+                        var calendarToOpen = $scope.firstOwnedCalendar();
+                        if (calendarToOpen === undefined) {
+                            calendarToOpen = $scope.calendars.all[0];
+                        }
+                        $scope.openOrCloseCalendar(calendarToOpen, true);
                     }
-                    template.open('calendar', 'read-calendar');
                 });
             });
         }
     });
+
+    $scope.firstOwnedCalendar = function() {
+        return _.find($scope.calendars.all, function(calendar) {
+            return $scope.isMyCalendar(calendar);
+        });
+    }
 
     $scope.loadCalendarPreferences = function(callback) {
        
@@ -93,7 +102,7 @@ function CalendarController($scope, template, model, date, route, $timeout) {
 
     $scope.showCalendar = function() {
         $scope.display.list = false;
-        //template.open('calendar', 'read-calendar');
+        template.open('calendar', 'read-calendar');
     };
 
     $scope.ownCalendars = function() {
@@ -153,23 +162,23 @@ function CalendarController($scope, template, model, date, route, $timeout) {
     };
 
     $scope.openOrCloseCalendar = function(calendar, savePreferences) {
-        calendar.selected = !calendar.selected;
-        calendar.open(function(){
-            if (calendar.selected) {
-                $scope.calendar = calendar;
-            } 
-            $scope.refreshCalendarEventItems();
-            if (!$scope.display.list) {
-                //template.open('calendar', 'read-calendar');
-            } else {
-                $scope.calendarEvents.applyFilters();
-            }
-        });
-        if (savePreferences) {
-            $scope.calendarPreferences.selectedCalendars = _.map($scope.calendars.selection(), function(calendar) {
-                return calendar._id;
+        if ($scope.calendars.selection().length > 1 || !calendar.selected) {
+            calendar.selected = !calendar.selected;
+            calendar.open(function(){
+                if (calendar.selected) {
+                    $scope.calendar = calendar;
+                } 
+                $scope.refreshCalendarEventItems();
+                if ($scope.display.list) {
+                    $scope.calendarEvents.applyFilters();
+                }
             });
-            $scope.saveCalendarPreferences();
+            if (savePreferences) {
+                $scope.calendarPreferences.selectedCalendars = _.map($scope.calendars.selection(), function(calendar) {
+                    return calendar._id;
+                });
+                $scope.saveCalendarPreferences();
+            }
         }
     };
 
