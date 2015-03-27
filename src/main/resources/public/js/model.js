@@ -258,5 +258,6 @@ model.build = function(){
             endMoment: undefined
         },
         filtered: [],
+        behaviours: 'calendar'
     });
 }

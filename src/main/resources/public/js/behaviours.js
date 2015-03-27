@@ -20,7 +20,7 @@ Behaviours.register('calendar', {
 	behaviours:  calendarBehaviours,
 	resource: function(resource){
 		var rightsContainer = resource;
-		if(resource instanceof Event && resource.calendar){
+		if(resource instanceof CalendarEvent && resource.calendar){
 			rightsContainer = resource.calendar;
 		}
 		if(!resource.myRights){

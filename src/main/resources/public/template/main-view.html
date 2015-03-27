@@ -21,7 +21,7 @@
                     <li ng-repeat="cl in calendars.all | filter:isCalendarSharedWithMe">
                         <a class="[[cl.color]]" ng-class="{'selected': cl.selected}" ng-click="openOrCloseCalendar(cl, true)">
                             [[cl.title]]
-                            <input type="checkbox" class="calendar-checkbox" ng-click="$event.stopPropagation();" ng-model="cl.showButtons" ng-change="hideOtherCalendarCheckboxes(cl)"/>
+                            <input ng-if="cl.myRights.manage" type="checkbox" class="calendar-checkbox" ng-click="$event.stopPropagation();" ng-model="cl.showButtons" ng-change="hideOtherCalendarCheckboxes(cl)"/>
                         </a>
                     </li>
                 </ul>
@@ -38,10 +38,10 @@
 </section>
 
 <!-- Action buttons for calendar -->
-<section class="toggle-buttons" ng-class="{ hide: !display.showToggleButtons}">
+<section class="toggle-buttons" ng-class="{ hide: !display.showToggleButtons }">
     <div class="toggle">
         <div class="row">
-            <behaviour name="manage" resource="calendar">
+            <behaviour name="manage" resource="showButtonsCalendar">
                     <a href="/calendar/[[showButtonsCalendar._id]]/ical"><button><i18n>calendar.export</i18n></button></a>
                     <button ng-click="displayImportIcsPanel()"><i18n>calendar.import</i18n></button>
                     <button ng-click="editCalendar(showButtonsCalendar, $event)"><i18n>edit</i18n></button>

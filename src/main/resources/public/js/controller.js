@@ -259,6 +259,9 @@ function CalendarController($scope, template, model, date, route, $timeout) {
                         $scope.closeCalendarEvent();
                         $scope.refreshCalendarEventItems();
                         $scope.calendarEvents.applyFilters();
+                        if ($scope.display.list && $scope.display.selectAllCalendarEvents) {
+                            $scope.display.selectAllCalendarEvents = undefined;
+                        }
                     }
                 });
             });
@@ -414,7 +417,11 @@ function CalendarController($scope, template, model, date, route, $timeout) {
 
     $scope.switchSelectAllCalendarEvents = function() {
         if ($scope.display.selectAllCalendarEvents) {
-            $scope.calendarEvents.selectAll();
+            $scope.calendarEvents.forEach(function(calendarEvent) {
+                if (calendarEvent.myRights.contrib) {
+                    calendarEvent.selected = true;
+                }
+            });
         }
         else {
             $scope.calendarEvents.deselectAll();
