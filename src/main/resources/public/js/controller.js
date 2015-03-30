@@ -174,8 +174,9 @@ function CalendarController($scope, template, model, date, route, $timeout) {
                 $scope.refreshCalendarEventItems();
                 if ($scope.display.list) {
                     $scope.calendarEvents.applyFilters();
+                } else {
+                    template.open('calendar', 'read-calendar');
                 }
-                template.open('calendar', 'read-calendar');
             });
             if (savePreferences) {
                 $scope.calendarPreferences.selectedCalendars = _.map($scope.calendars.selection(), function(calendar) {
