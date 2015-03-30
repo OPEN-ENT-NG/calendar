@@ -319,7 +319,7 @@ function CalendarController($scope, template, model, date, route, $timeout) {
         $scope.calendars.forEach(function(cl) {
             cl.showButtons = false;                
         });
-        template.close('calendar');
+        template.open('calendar', 'read-calendar');
     };
 
     $scope.confirmRemoveCalendar = function(calendar, event){

@@ -60,7 +60,7 @@ module.directive('datePickerCalendar', function($compile){
 				}
 				$element.val($scope.ngModel.format('DD/MM/YYYY'));	
 			});
-			loader.asyncLoad('/' + infraPrefix + '/public/js/bootstrap-datepicker.js', function(){
+			loader.asyncLoad('/calendar/public/js/bootstrap-datepicker.js', function(){
 				$element.datepicker({
 						dates: {
 							months: moment.months(),
