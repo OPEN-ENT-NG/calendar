@@ -29,6 +29,7 @@ artifacts {
 }
 
 repositories {
+    mavenCentral()
     maven {
         url "http://maven.web-education.net/nexus/content/groups/public"
     }
