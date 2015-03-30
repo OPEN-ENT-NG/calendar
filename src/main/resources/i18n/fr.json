@@ -35,6 +35,7 @@
     "calendar.calendars.empty": "Pas de calendriers",
     "calendar.shared.calendars": "Agendas partagés",
     "calendar.event.recurrence": "Récurrence",
+    "calendar.ics.file.to.import" : "Fichier iCal à importer",
 
 	"group.AdminLocal": "Tous les administrateurs locaux",
     "group.Personnel": "Tous les personnels du groupe {0}.",
