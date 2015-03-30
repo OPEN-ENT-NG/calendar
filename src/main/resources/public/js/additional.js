@@ -39,67 +39,6 @@ module.directive('colorSelector', function($compile){
 	}
 });
 
-
-module.directive('icsImport', function ($compile) {
-	return {
-		scope: {
-			ngModel: '=',
-			ngChange: '&',
-		},
-		transclude: true,
-		replace: true,
-		restrict: 'E',
-		template: '<button><i18n>calendar.import</i18n></button>',
-		link: function($scope, $element, $attributes){
-			loader.loadFile('/calendar/public/js/ical.js');
-			$element.on('click', function() {
-				var calendarData = 'BEGIN:VCALENDAR \
-				CALSCALE:GREGORIAN \
-				PRODID:-//Example Inc.//Example Calendar//EN \
-				VERSION:2.0 \
-				BEGIN:VEVENT \
-				DTSTAMP:20080205T191224Z \
-				DTSTART:20081006 \
-				SUMMARY:Planning meeting \
-				UID:4088E990AD89CB3DBB484909 \
-				END:VEVENT \
-				END:VCALENDAR';
-				var jcalData = ICAL.parse(calendarData);
-				console.log(jcalData);
-			});
-		}
-	}
-});
-
-module.directive('icsExport', function ($compile) {
-	return {
-		scope: {
-			ngModel: '=',
-			ngChange: '&',
-		},
-		transclude: true,
-		replace: true,
-		restrict: 'E',
-		template: '<button><i18n>calendar.export</i18n></button>',
-		link: function($scope, $element, $attributes){
-			loader.loadFile('/calendar/public/js/ics-export.js');
-			$element.on('click', function() {
-				$element.icsExport = ics();
-				$scope.ngModel.calendarEvents.forEach(function(calendarEvent) {
-					var description = calendarEvent.description ? calendarEvent.description : '';
-					var location = calendarEvent.location ? calendarEvent.location : '';
-					if (calendarEvent.allday) {
-						$element.icsExport.addAllDayEvent(calendarEvent.title, description, location, calendarEvent.startMoment.format("YYYYMMDD"), calendarEvent.endMoment.format("YYYYMMDD"));
-					} else {
-						$element.icsExport.addEvent(calendarEvent.title, description, location, calendarEvent.startMoment.format("YYYYMMDDTHHmmss"), calendarEvent.endMoment.format("YYYYMMDDTHHmmss"));
-					}
-				});
-				$element.icsExport.download('calendar');
-			});
-		}
-	}
-});
-
 module.directive('datePickerCalendar', function($compile){
 	return {
 		scope: {
@@ -121,7 +60,7 @@ module.directive('datePickerCalendar', function($compile){
 				}
 				$element.val($scope.ngModel.format('DD/MM/YYYY'));	
 			});
-			loader.asyncLoad('/calendar/public/js/bootstrap-datepicker.js', function(){
+			loader.asyncLoad('/' + infraPrefix + '/public/js/bootstrap-datepicker.js', function(){
 				$element.datepicker({
 						dates: {
 							months: moment.months(),
@@ -204,14 +143,18 @@ module.directive('timePickerCalendar', function($compile){
 		template: "<input type='text'/>",
 
 		link: function($scope, $element, $attributes){
-			loader.asyncLoad('/' + infraPrefix + '/public/js/bootstrap-timepicker.js', function(){
+			loader.asyncLoad('/calendar/public/js/jquery.timepicker.js', function(){
+				console.log('Loaded jquery-timepicker');
 				$element.timepicker({
-					showMeridian: false,
-					defaultTime: 'current',
-					disableFocus : true,
-					minuteStep: model.timeConfig.interval,
-					minHour: model.timeConfig.start_hour,
-					maxHour: model.timeConfig.end_hour
+					'timeFormat': 'H:i',
+					'step': 15
+				}).on('changeTime', function(){
+					var time = $element.val().split(':');
+					$scope.ngModel.set('hour', time[0]);
+					$scope.ngModel.set('minute', time[1]);
+					$scope.$apply('ngModel');
+					$scope.$parent.$eval($scope.ngChange);
+					$scope.$parent.$apply();
 				});
 			});
 			$scope.$watch('ngModel', function(newVal){
@@ -228,22 +171,7 @@ module.directive('timePickerCalendar', function($compile){
 					}
 				}
 			});
-			$element.on('change', function(){
-				var time = $element.val().split(':');
-				$scope.ngModel = moment($scope.ngLimit);
-				$scope.ngModel.set('hour', time[0]);
-				$scope.ngModel.set('minute', time[1]);
-				$scope.$apply('ngModel');
-				$scope.$parent.$eval($scope.ngChange);
-				$scope.$parent.$apply();
-			});
-			$element.on('focus', function() {
-				$element.timepicker('updateFromElementVal');
-			});
-
-			$element.on('$destroy', function() {
-				$element.timepicker('remove');			
-			});
+			
 		}
 	}
 });

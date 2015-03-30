@@ -3,7 +3,7 @@ model.defaultColor = 'grey';
 
 model.timeConfig = { // 5min slots from 7h00 to 19h55, default 8h00
 	interval: 5, // in minutes
-	start_hour: 1,
+	start_hour: 0,
 	end_hour: 23,
 	default_hour: 8
 };
