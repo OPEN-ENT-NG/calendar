@@ -17,5 +17,18 @@
     "calendar.the.calendar" : "The calendar",
     "calendar.has.ben.created": "has been created",
     "calendar.you.can.share.this.calendar": "You can share this calendar",
-    "calendar.ics.file.to.import": "Fichier iCal à importer"
+    "calendar.ics.file.to.import": "Fichier iCal à importer",
+
+    "calendar.recurrence": "Récurrence",
+    "calendar.reccurent": "Récurrent",
+    "calendar.recurrence.every.day": "Tous les jours",
+    "calendar.recurrence.every.week.day": "Tous les jours de la semaine",
+    "calendar.recurrence.every.week": "Toutes les semaines",
+    "calendar.recurrence.every.month": "Tous les mois",
+    "calendar.recurrence.every.year": "Tous les ans",
+    "calendar.recurrence.repeat.on": "Répéter le",
+    "calendar.recurrence.end": "Fin",
+    "calendar.recurrence.end.never": "Jamais",
+    "calendar.recurrence.end.after": "Après",
+    "calendar.recurrence.end.on": "Le"
 }

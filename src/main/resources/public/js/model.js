@@ -1,6 +1,27 @@
 model.colors = ['cyan', 'green', 'orange', 'pink', 'yellow', 'purple', 'grey'];
 model.defaultColor = 'grey';
 
+model.recurrence = {
+    week_days: {
+        1: false,
+        2: false,
+        3: false,
+        4: false,
+        5: false,
+        6: false,
+        7: false
+    },
+    dayMap: {
+        1: 'L',
+        2: 'M',
+        3: 'M',
+        4: 'J',
+        5: 'V',
+        6: 'S',
+        7: 'D',
+    }
+};
+
 model.timeConfig = { // 5min slots from 7h00 to 19h55, default 8h00
 	interval: 5, // in minutes
 	start_hour: 0,
@@ -9,6 +30,10 @@ model.timeConfig = { // 5min slots from 7h00 to 19h55, default 8h00
 };
 
 model.periods = {
+    every_day_max: 10,
+    every_week_max: 10,
+    every_month_max: 10,
+    every_year_max: 10,
 	periodicities: [1, 2, 3, 4], // weeks
 	days: [
 		1, // monday
@@ -36,10 +61,10 @@ function CalendarEvent() {
 
 CalendarEvent.prototype.save = function(callback){
     if (this.allday) {
-        this.startMoment.hours(7);
+        this.startMoment.hours(0);
         this.startMoment.minutes(0);
-        this.endMoment.hours(20);
-        this.endMoment.minutes(0);
+        this.endMoment.hours(23);
+        this.endMoment.minutes(59);
     }
 	if(this._id){
 		this.update(callback);
@@ -86,7 +111,9 @@ CalendarEvent.prototype.toJSON = function(){
         location: this.location,
 		startMoment: this.startMoment,
 		endMoment: this.endMoment,
-        allday: this.allday
+        allday: this.allday,
+        recurrence: this.recurrence,
+        parentId : this.parentId
 	}
 };
 
@@ -101,10 +128,6 @@ function Calendar() {
 					calendarEvent.calendar = calendar;
 					calendarEvent.startMoment = moment(calendarEvent.startMoment).utc();
 					calendarEvent.endMoment = moment(calendarEvent.endMoment).utc();
-                    // ugly patch for event overflow display
-                    if (calendarEvent.allday) {
-                        calendarEvent.startMoment.hours(7);
-                    }
 					calendarEvent.is_periodic = false;
                     calendarEvent.locked = true;
                     calendarEvent.color = calendar.color;
@@ -114,7 +137,7 @@ function Calendar() {
 					callback();
 				}
 			}.bind(this));
-		},
+		},   
 		removeSelection: function(callback){
 			var counter = this.selection().length;
 			this.selection().forEach(function(item){
@@ -237,6 +260,19 @@ model.build = function(){
                 });
                 this.pullAll(calendarEvents, trigger);
             }
+        },
+        getRecurrenceEvents: function(calendarEvent) {
+            var calendarEvents = [];
+            var parentId = calendarEvent.parentId ? calendarEvent.parentId : calendarEvent._id;
+            this.all.forEach(function(item) {
+                if ((item.parentId && item.parentId === parentId) || item._id === parentId) {
+                    calendarEvents.push(item);
+                }
+            });
+            if (calendarEvents.length == 1 && calendarEvents[0]._id == calendarEvent._id) {
+                calendarEvents = [];
+            }
+            return calendarEvents;
         },
         clear: function(trigger) {
             this.all = [];

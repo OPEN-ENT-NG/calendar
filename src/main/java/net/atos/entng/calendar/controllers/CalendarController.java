@@ -84,9 +84,9 @@ public class CalendarController extends MongoDbControllerHelper {
                     }
 
                     JsonObject params = new JsonObject();
-                    params.putString("profilUri", container.config().getString("userbook-host") + "/userbook/annuaire#" + user.getUserId() + "#" + user.getType());
+                    params.putString("profilUri", "/userbook/annuaire#" + user.getUserId() + "#" + user.getType());
                     params.putString("username", user.getUsername());
-                    params.putString("calendarUri", container.config().getString("host") + "/calendar#/view/" + id);
+                    params.putString("calendarUri", "/calendar#/view/" + id);
 
                     shareJsonSubmit(request, "notify-calendar-shared.html", false, params, "title");
                 }

@@ -2,12 +2,13 @@
     <div class="dates" >
         <div class="cell">
             <date-picker-icon ng-model="calendarEvents.filters.startDate" ng-change="switchFilterListByDates(true)" class="cell"></date-picker-icon>
-            <div class="cell"><i18n>calendar.filters.date.from</i18n>&nbsp;[[calendarEvents.filters.startMoment.format('dddd DD MMM YYYY')]]</div>
         </div>
+            <div class="cell"><i18n>calendar.filters.date.from</i18n>&nbsp;[[calendarEvents.filters.startMoment.format('dddd DD MMM YYYY')]]</div>
+
         <div class="cell">
             <date-picker-icon ng-model="calendarEvents.filters.endDate" ng-change="switchFilterListByDates(true)" class="cell"></date-picker-icon>
-            <div class="cell"><i18n>calendar.filters.date.to</i18n>&nbsp;[[calendarEvents.filters.endMoment.format('dddd DD MMM YYYY')]]</div>
         </div>
+        <div class="cell"><i18n>calendar.filters.date.to</i18n>&nbsp;[[calendarEvents.filters.endMoment.format('dddd DD MMM YYYY')]]</div>
     </div>
 </filters>
 

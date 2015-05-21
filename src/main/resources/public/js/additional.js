@@ -47,13 +47,21 @@ module.directive('datePickerCalendar', function($compile){
 			minDate: '=',
 			past: '=',
 			expObject: '=',
-			exp: '='
+			exp: '=',
+			disable: '='
 		},
 		transclude: true,
 		replace: true,
 		restrict: 'E',
-		template: '<input ng-transclude type="text" data-date-format="dd/mm/yyyy"  />',
+		template: '<input ng-transclude type="text" data-date-format="dd/mm/yyyy" />',
 		link: function($scope, $element, $attributes){
+			//console.log('disabled = ' + $scope.disable);
+			//$element.prop('disabled', $scope.disable);
+
+			$scope.$watch('disable', function(newVal){
+        		$element.prop('disabled', newVal);
+     		});
+
 			$scope.$watch('ngModel', function(newVal){
 				if ($scope.ngModel === undefined || $scope.ngModel === null) {
 					$scope.ngModel = moment().startOf('day');
@@ -68,7 +76,8 @@ module.directive('datePickerCalendar', function($compile){
 							days: moment.weekdays(),
 							daysShort: moment.weekdaysShort(),
 							daysMin: moment.weekdaysMin()
-						}
+						},
+						format: 'dd/mm/yyyy'
 					})
 					.on('changeDate', function(){
 						setTimeout(function(){
@@ -144,7 +153,6 @@ module.directive('timePickerCalendar', function($compile){
 
 		link: function($scope, $element, $attributes){
 			loader.asyncLoad('/calendar/public/js/jquery.timepicker.js', function(){
-				console.log('Loaded jquery-timepicker');
 				$element.timepicker({
 					'timeFormat': 'H:i',
 					'step': 15

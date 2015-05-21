@@ -27,6 +27,7 @@
 		}
 		this.element = $(element);
 		this.format = DPGlobal.parseFormat(options.format||this.element.data('date-format')||'dd/mm/yyyy');
+		this.format.separator= '/';
 		this.picker = $(DPGlobal.template)
 							.appendTo('body')
 							.on({
@@ -130,7 +131,9 @@
 		},
 		
 		set: function() {
+			console.log(this.format);
 			var formated = DPGlobal.formatDate(this.date, this.format);
+			console.log(formated);
 			if (!this.isInput) {
 				if (this.component){
 					this.element.find('input').prop('value', formated);
@@ -386,13 +389,14 @@
 		getDaysInMonth: function (year, month) {
 			return [31, (DPGlobal.isLeapYear(year) ? 29 : 28), 31, 30, 31, 30, 31, 31, 30, 31, 30, 31][month]
 		},
+		validParts: /dd?|DD?|mm?|MM?|yy(?:yy)?/g,
 		parseFormat: function(format){
-			var separator = format.match(/[.\/\-\s].*?/),
-				parts = format.split(/\W+/);
-			if (!separator || !parts || parts.length === 0){
+			var separators = format.replace(this.validParts, '\0').split('\0');
+			var parts = format.match(this.validParts);
+			if (!separators || !separators.length || !parts || parts.length === 0){
 				throw new Error("Invalid date format.");
 			}
-			return {separator: separator, parts: parts};
+			return {separators: separators, parts: parts};
 		},
 		parseDate: function(date, format) {
 			var parts = date.split(format.separator),

@@ -6,12 +6,15 @@ routes.define(function($routeProvider) {
     });
 });
 
-function CalendarController($scope, template, model, date, route, $timeout) {
+function CalendarController($scope, template, model, lang, date, route, $timeout) {
 	
     this.initialize = function() {
+        $scope._ = _;
+        $scope.lang = lang;
         $scope.template = template;
         $scope.display = {};
         $scope.display.list = false;
+        $scope.model = model;
         $scope.me = model.me;
         $scope.date = date;
         $scope.calendarEvent = new CalendarEvent();
@@ -26,7 +29,144 @@ function CalendarController($scope, template, model, date, route, $timeout) {
 
         template.open('main', 'main-view');
         template.open('top-menu', 'top-menu');
+
     };
+
+    $scope.handleRecurrence = function(calendarEvent) {
+        if (calendarEvent.recurrence) {
+            if (calendarEvent.recurrence.type == 'every_day' && calendarEvent.recurrence.every) {
+                $scope.handleEveryDayRecurrence(calendarEvent);
+            }
+            else if (calendarEvent.recurrence.type == 'every_week_day') {
+                $scope.handleEveryWeekDayRecurrence(calendarEvent);
+            }
+            else if (calendarEvent.recurrence.type == 'every_week') {
+                $scope.handleEveryWeekRecurrence(calendarEvent);
+            }
+        }
+    };
+ 
+    $scope.handleEveryDayRecurrence = function(calendarEvent) {
+        var calendarRecurrentEvent;
+        if (calendarEvent.recurrence.end_type == 'after' && calendarEvent.recurrence.end_after) {
+            for (i = 0; i < calendarEvent.recurrence.end_after; i++) {
+                calendarRecurrentEvent = $scope.createChildCalendarEvent(calendarEvent);
+
+                var toAdd = (i + 1) * parseInt(calendarEvent.recurrence.every);
+                calendarRecurrentEvent.startMoment = moment(calendarEvent.startMoment).add(toAdd, 'days');
+                calendarRecurrentEvent.endMoment = moment(calendarEvent.endMoment).add(toAdd, 'days');
+
+                $scope.saveCalendarEventEdit(calendarRecurrentEvent);
+            }
+        } else if (calendarEvent.recurrence.end_type == 'on' && calendarEvent.recurrence.end_on) {
+            var endOnMoment = moment(calendarEvent.recurrence.end_on);
+            var startMoment = calendarEvent.startMoment;
+
+            for (i =0; startMoment.isBefore(endOnMoment); i++) {
+                calendarRecurrentEvent = $scope.createChildCalendarEvent(calendarEvent);
+
+                var toAdd = (i + 1) * parseInt(calendarEvent.recurrence.every);
+                calendarRecurrentEvent.startMoment = moment(calendarEvent.startMoment).add(toAdd, 'days');
+                calendarRecurrentEvent.endMoment = moment(calendarEvent.endMoment).add(toAdd, 'days');
+                if (calendarRecurrentEvent.startMoment.isAfter(endOnMoment)) {
+                    break;
+                }
+                $scope.saveCalendarEventEdit(calendarRecurrentEvent);
+                startMoment = calendarRecurrentEvent.startMoment;
+            }
+        }
+    }
+
+    $scope.handleEveryWeekDayRecurrence = function(calendarEvent) {
+        var calendarRecurrentEvent;
+        if (calendarEvent.recurrence.end_type == 'after' && calendarEvent.recurrence.end_after) {
+            for (i = 0; i < calendarEvent.recurrence.end_after; i++) {
+                calendarRecurrentEvent = $scope.createChildCalendarEvent(calendarEvent);
+
+                calendarRecurrentEvent.startMoment = moment(calendarEvent.startMoment).add(i + 1, 'days');
+                calendarRecurrentEvent.endMoment = moment(calendarEvent.endMoment).add(i + 1, 'days');
+
+                $scope.saveCalendarEventEdit(calendarRecurrentEvent);
+            }
+        } else if (calendarEvent.recurrence.end_type == 'on' && calendarEvent.recurrence.end_on) {
+            
+        }
+    }
+
+    $scope.handleEveryWeekRecurrence = function(calendarEvent) {
+        var calendarRecurrentEvent;
+        var every = calendarEvent.recurrence.every;
+        var weekCount = calendarEvent.startMoment.week();
+
+        if (calendarEvent.recurrence.end_type == 'after' && calendarEvent.recurrence.end_after) {
+            for (var i = 0; i < calendarEvent.recurrence.end_after;) {
+                for (var day in calendarEvent.recurrence.week_days) {
+                    if (calendarEvent.recurrence.week_days[day] === true) {
+                        if (day > calendarEvent.startMoment.day() || (day < calendarEvent.startMoment.day() && weekCount > calendarEvent.startMoment.week())) {
+                            calendarRecurrentEvent = $scope.createChildCalendarEvent(calendarEvent);
+                            calendarRecurrentEvent.startMoment = moment(calendarEvent.startMoment).isoWeekday(1).isoWeekday(7).day(parseInt(day)).week(weekCount);
+                            var startMomentDuration = moment.duration(calendarEvent.startMoment.dayOfYear(), 'd');
+                            var endMomentDuration = moment.duration(calendarEvent.endMoment.dayOfYear(), 'd');
+                            var eventDaysDuration = endMomentDuration.subtract(startMomentDuration).days();
+                            calendarRecurrentEvent.endMoment = moment(calendarEvent.endMoment).isoWeekday(1).isoWeekday(7).day(parseInt(day) + eventDaysDuration).week(weekCount);
+                            
+                            $scope.saveCalendarEventEdit(calendarRecurrentEvent)
+                            i++;
+                        }
+                    }
+                }
+                if (i == calendarEvent.recurrence.end_after) {
+                    break;
+                }
+                weekCount += every;
+            }
+        } else if (calendarEvent.recurrence.end_type == 'on' && calendarEvent.recurrence.end_on) {
+            var endOnMoment = moment(calendarEvent.recurrence.end_on);
+            var startMoment = calendarEvent.startMoment;
+
+            while (true) {
+                for (var day in calendarEvent.recurrence.week_days) {   
+                    if (calendarEvent.recurrence.week_days[day] === true) {
+                        if (day > calendarEvent.startMoment.day() || (day < calendarEvent.startMoment.day() && weekCount > calendarEvent.startMoment.week())) {
+                            calendarRecurrentEvent = $scope.createChildCalendarEvent(calendarEvent);
+                            calendarRecurrentEvent.startMoment = moment(calendarEvent.startMoment).isoWeekday(1).isoWeekday(7).day(parseInt(day)).week(weekCount);
+                            
+                            if (calendarRecurrentEvent.startMoment.isAfter(endOnMoment)) {
+                                break;
+                            }
+                            var startMomentDuration = moment.duration(calendarEvent.startMoment.dayOfYear(), 'd');
+                            var endMomentDuration = moment.duration(calendarEvent.endMoment.dayOfYear(), 'd');
+                            var eventDaysDuration = endMomentDuration.subtract(startMomentDuration).days();
+                            calendarRecurrentEvent.endMoment = moment(calendarEvent.endMoment).isoWeekday(1).isoWeekday(7).day(parseInt(day) + eventDaysDuration).week(weekCount);
+                            
+                            $scope.saveCalendarEventEdit(calendarRecurrentEvent)
+                            i++;
+                            startMoment = calendarRecurrentEvent.startMoment;
+                        }
+                    }
+
+                }
+                if (calendarRecurrentEvent.startMoment.isAfter(endOnMoment)) {
+                    break;
+                }
+                weekCount += every;
+            }
+        }
+    }
+
+    $scope.createChildCalendarEvent = function(calendarEvent) {
+        var child  = new CalendarEvent();
+        child.title = calendarEvent.title;
+        child.description = calendarEvent.description;
+        child.location = calendarEvent.location;
+        child.color = calendarEvent.color;
+        child.locked = calendarEvent.locked;
+        child.is_periodic = calendarEvent.is_periodic;
+        child.calendar = calendarEvent.calendar;
+        child.parentId = calendarEvent._id;
+        child.allday = calendarEvent.allday;
+        return child;
+    }
 
     // Definition of actions
     route({
@@ -197,7 +337,6 @@ function CalendarController($scope, template, model, date, route, $timeout) {
                 $scope.calendarEvents.pushAll(cl.calendarEvents.all);
             });
         }
-
     };
 
     $scope.hideOtherCalendarCheckboxes = function(calendar) {
@@ -227,6 +366,13 @@ function CalendarController($scope, template, model, date, route, $timeout) {
 
     $scope.viewCalendarEvent = function(calendarEvent) {
         $scope.calendarEvent = calendarEvent;
+        $scope.calendarEvent.showDetails = true;
+        if (!$scope.calendarEvent.recurrence) {
+            $scope.calendarEvent.recurrence = {};
+            $scope.calendarEvent.recurrence.week_days = $scope.model.recurrence.week_days;
+        }
+        $scope.calendarEvent.recurrence.end_on = moment($scope.calendarEvent.recurrence.end_on);
+
         template.open('lightbox', 'edit-event');
         $scope.display.showEventPanel = true;
     };
@@ -240,6 +386,9 @@ function CalendarController($scope, template, model, date, route, $timeout) {
      $scope.confirmRemoveCalendarEvent = function(calendarEvent, event){
         $scope.calendar.calendarEvents.deselectAll();
         calendarEvent.selected = true;
+        $scope.calendarEvents.getRecurrenceEvents(calendarEvent).forEach(function(calEvent) {
+            calEvent.selected = true;
+        });
         $scope.display.confirmDeleteCalendarEvent = true;
         event.stopPropagation();
     };
@@ -272,6 +421,9 @@ function CalendarController($scope, template, model, date, route, $timeout) {
 
     $scope.cancelRemoveCalendarEvent = function() {
         $scope.display.confirmDeleteCalendarEvent = undefined;
+        $scope.calendarEvents.forEach(function(calendarEvent) {
+            calendarEvent.selected = false;
+        });
     };
 
     $scope.editCalendar = function(calendar, event) {
@@ -363,8 +515,9 @@ function CalendarController($scope, template, model, date, route, $timeout) {
     $scope.createCalendarEvent = function() {
         $scope.calendarEvent = new CalendarEvent();
         $scope.calendarEvent.recurrence = {};
-        $scope.calendarEvent.recurrence.end = 'never';
+        $scope.calendarEvent.recurrence.week_days = $scope.model.recurrence.week_days;
         $scope.calendarEvent.calendar = $scope.calendars.selection()[$scope.calendars.selection().length - 1];
+        $scope.calendarEvent.showDetails = true;
 
         // dates
         if (model.calendar.newItem !== undefined) {
@@ -396,14 +549,21 @@ function CalendarController($scope, template, model, date, route, $timeout) {
                 $scope.display.showImportPanel = undefined;
                 calendar.calendarEvents.sync(function() {
                     $scope.refreshCalendarEventItems(calendar);
+                    if ($scope.display.list) {
+                        $scope.calendarEvents.applyFilters();
+                    }
                 });
             });
         }
         reader.readAsBinaryString(file);
     };
 
-    $scope.saveCalendarEventEdit = function() { 
-        $scope.calendarEvent.save(function(){
+    $scope.saveCalendarEventEdit = function(calendarEvent) { 
+        if (!calendarEvent) {
+            calendarEvent = $scope.calendarEvent;
+        }
+        calendarEvent.save(function(){
+            $scope.handleRecurrence(calendarEvent);
             $scope.calendarEvent.calendar.calendarEvents.sync(function() {
                 $scope.refreshCalendarEventItems($scope.calendarEvent.calendar);    
             });
@@ -441,6 +601,55 @@ function CalendarController($scope, template, model, date, route, $timeout) {
         $scope.calendarEvents.applyFilters();
         $scope.calendarEvents.trigger('change');
     };
+
+    $scope.closeRecurrence = function() {
+        $scope.display.calendarEventRecurrence = false;
+    };
+
+
+    $scope.nextWeekButton = function() {
+        var next = moment(model.calendar.firstDay).add(7, 'day');
+        updateCalendarSchedule(next);
+    };
+ 
+    $scope.previousWeekButton = function() {
+        var prev = moment(model.calendar.firstDay).subtract(7, 'day');
+        updateCalendarSchedule(prev);
+ 
+    };
+    $scope.nextWeekBookingButton = function() {
+        var nextStart = moment(model.calendarEvents.filters.startMoment).add(7, 'day');
+        var nextEnd = moment(model.calendarEvents.filters.endMoment).add(7, 'day');
+        updateCalendarList(nextStart,nextEnd);
+    };
+ 
+    $scope.previousWeekBookingButton = function() {
+        var prevStart = moment(model.calendarEvents.filters.startMoment).subtract(7, 'day');
+        var prevEnd = moment(model.calendarEvents.filters.endMoment).subtract(7, 'day');
+        updateCalendarList(prevStart,prevEnd);
+    };
+    var updateCalendarList = function(start, end){
+        model.calendarEvents.filters.startMoment.date(start.date());
+        model.calendarEvents.filters.startMoment.month(start.month());
+        model.calendarEvents.filters.startMoment.year(start.year());
+        
+        model.calendarEvents.filters.endMoment.date(end.date());
+        model.calendarEvents.filters.endMoment.month(end.month());
+        model.calendarEvents.filters.endMoment.year(end.year());
+ 
+        $scope.calendarEvents.applyFilters();
+ 
+    };
+ 
+    var updateCalendarSchedule = function(date){
+        model.calendar.firstDay.date(date.date());
+        model.calendar.firstDay.month(date.month());
+        model.calendar.firstDay.year(date.year());
+ 
+        $('.hiddendatepickerform').datepicker('setValue', date.format("DD/MM/YYYY")).datepicker('update');
+        $('.hiddendatepickerform').trigger({type: 'changeDate',date: date});
+    };
+
 
     this.initialize();
 }

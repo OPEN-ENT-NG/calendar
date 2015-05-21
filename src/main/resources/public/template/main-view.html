@@ -76,14 +76,15 @@
     <lightbox show="display.showImportPanel" on-close="display.showImportPanel = false;">
         <label><i18n>calendar.ics.file.to.import</i18n></label>
         <input type="file" id="icsFile" />
-        <button class="right-magnet" ng-click="importIcsFile(showButtonsCalendar)"><i18n>calendar.import</i18n></button>
+        
+        <button ng-click="importIcsFile(showButtonsCalendar)"><i18n>calendar.import</i18n></button>
     </lightbox>
 </div>
 
 <!-- Lightbox : Delete calendar -->
 <div ng-if="display.confirmDeleteCalendar">
     <lightbox show="display.confirmDeleteCalendar" on-close="cancelRemoveCalendar()">
-        <div class="row">
+        <div class="row height-one">
             <i18n>calendar.confirm.delete.calendar</i18n>
         </div>
         
@@ -104,8 +105,35 @@
 <!-- Lightbox : Confirm remove calendar event -->
 <div ng-if="display.confirmDeleteCalendarEvent">
     <lightbox class="remove-calendar-event" show="display.confirmDeleteCalendarEvent" on-close="cancelRemoveCalendarEvent()">
-        <div class="row">
+        <div class="row height-one">
             <i18n>calendar.confirm.delete.event</i18n>
+        </div>
+
+        <div class="cell twelve warning" ng-if="calendarEvents.getRecurrenceEvents(calendarEvent).length > 0">
+            <i18n>calendar.confirm.delete.recurrent.event</i18n>
+        </div>
+
+        <div class="row scrollable-content" ng-if="calendarEvents.getRecurrenceEvents(calendarEvent).length > 0">  
+            <table class="list-view colored">
+                <thead>
+                    <tr>
+                        <th colspan="1"></th>
+                        <th><i18n>calendar.title</i18n></th>
+                        <th><i18n>calendar.event.title</i18n></th>
+                        <th><i18n>calendar.event.start.date</i18n></th>
+                        <th><i18n>calendar.event.end.date</i18n></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr ng-repeat="calendarEvent in calendarEvents.selection()">
+                        <td class="icon" ng-class="calendarEvent.calendar.color"></td>
+                        <td>[[calendarEvent.calendar.title]]</td>
+                        <td>[[calendarEvent.title]]</td>
+                        <td>[[calendarEvent.startMoment.format('DD/MM/YYYY HH:mm')]]</td>
+                        <td>[[calendarEvent.endMoment.format('DD/MM/YYYY HH:mm')]]</td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
 
         <div class="row"> 
