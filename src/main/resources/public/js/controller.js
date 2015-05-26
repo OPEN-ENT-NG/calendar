@@ -538,7 +538,8 @@ function CalendarController($scope, template, model, lang, date, route, $timeout
         $scope.display.showImportPanel = true;
     };
 
-    $scope.importIcsFile = function(calendar) {
+    $scope.importIcsFile = function(calendar, e) {
+        e.currentTarget.disabled = true;
         var icsFileInput = $('#icsFile')[0];
         var file = icsFileInput.files[0];
         var reader = new FileReader();

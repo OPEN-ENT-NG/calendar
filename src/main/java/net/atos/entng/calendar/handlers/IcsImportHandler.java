@@ -19,11 +19,17 @@ public class IcsImportHandler implements Handler<Either<String, JsonObject>> {
     final MutableInt i = new MutableInt();
     private JsonObject result;
     
+    public JsonObject getCalendarEvent() {
+        return calendarEvent;
+    }
+
+    public void setCalendarEvent(JsonObject calendarEvent) {
+        this.calendarEvent = calendarEvent;
+    }
     
-    public IcsImportHandler(EventService eventService, String calendarId, JsonObject calendarEvent, UserInfos user, Handler<Either<String, JsonObject>> handler, JsonObject result) {
+    public IcsImportHandler(EventService eventService, String calendarId, UserInfos user, Handler<Either<String, JsonObject>> handler, JsonObject result) {
        this.eventService = eventService;
        this.calendarId = calendarId;
-       this.calendarEvent = calendarEvent;
        this.user = user;
        this.handler = handler;
        this.result = result;       

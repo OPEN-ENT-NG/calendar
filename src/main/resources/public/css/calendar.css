@@ -2,6 +2,10 @@
 	z-index: 11000 !important;
 }
 
+.color-selector .grey, .row .grey, nav.vertical ul li a {
+    overflow:hidden;
+}
+
 .color-selector .green, .row .green, nav.vertical ul li a.green {
     background-color: #28c7a9 !important;
 }
