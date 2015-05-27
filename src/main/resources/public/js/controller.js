@@ -539,21 +539,36 @@ function CalendarController($scope, template, model, lang, date, route, $timeout
     };
 
     $scope.importIcsFile = function(calendar, e) {
-        e.currentTarget.disabled = true;
+        var importButton = e.currentTarget;
+        importButton.disabled = true;
         var icsFileInput = $('#icsFile')[0];
         var file = icsFileInput.files[0];
         var reader = new FileReader();
         reader.onloadend = function(e){
             var jsonData = {};
             jsonData.ics = e.target.result;
-            http().putJson('/calendar/' + calendar._id + '/ical', jsonData).done(function(e){
+
+            $.ajax('/calendar/' + calendar._id + '/ical', {
+                type: "PUT",
+                traditional: true,
+                data: angular.toJson(jsonData)
+            }).done(function(data){
                 $scope.display.showImportPanel = undefined;
+                $scope.icsImport = data;
+                $scope.icsImport.invalidEvents.forEach(function(calendarEvent) {
+                    calendarEvent.startMoment = moment(calendarEvent.startMoment);
+                    calendarEvent.endMoment = moment(calendarEvent.endMoment);
+                });
+                $scope.display.showImportReport = true;
                 calendar.calendarEvents.sync(function() {
                     $scope.refreshCalendarEventItems(calendar);
                     if ($scope.display.list) {
                         $scope.calendarEvents.applyFilters();
                     }
                 });
+            }).fail(function(){
+                importButton.disabled = false;
+                notify.error(lang.translate("calendar.notify.icsImportError"))
             });
         }
         reader.readAsBinaryString(file);
@@ -648,7 +663,6 @@ function CalendarController($scope, template, model, lang, date, route, $timeout
         model.calendar.firstDay.year(date.year());
  
         $('.hiddendatepickerform').datepicker('setValue', date.format("DD/MM/YYYY")).datepicker('update');
-        $('.hiddendatepickerform').trigger({type: 'changeDate',date: date});
     };
 
 

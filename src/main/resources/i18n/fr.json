@@ -13,6 +13,7 @@
     "calendar.event.header.recurrence": "Récurrence",
     "calendar.event.title": "Titre",
     "calendar.event.description" : "Description",
+    "calendar.event.error.cause": "Cause de l'erreur",
     "calendar.event.location": "Lieu",
     "calendar.event.allday": "Toute la journée",
     "calendar.event.start.date": "Date de début",
@@ -20,6 +21,9 @@
     "calendar.event.start.time": "Heure de début",
     "calendar.event.end.time": "Heure de fin",
     "calendar.event.owner": "Créateur de l'évènement",
+    "calendar.events.not.imported": "évènements non importé(s)",
+    "calendar.events.properly.imported": "évènements correctement importé(s)",
+
     "calendar.export": "Exporter",
     "calendar.read": "Lire",
     "calendar.contrib": "Contribuer",
@@ -38,8 +42,9 @@
     "calendar.calendars.empty": "Pas de calendriers",
     "calendar.shared.calendars": "Agendas partagés",
     "calendar.event.recurrence": "Récurrence",
+    "calendar.ics.file.import.report": "Rapport d'import de fichier ICS",
     "calendar.ics.file.to.import": "Fichier iCal à importer",
-
+    "calendar.notify.icsImportError" : "Erreur d'importation du fichier ICS",
     "calendar.recurrence": "Récurrence",
     "calendar.reccurent": "Récurrent",
     "calendar.recurrence.repeat.every": "Répéter tous les",
@@ -64,14 +69,6 @@
     "calendar.recurrence.day.of.week": "jours de la semaine",
 
     "calendar.confirm.delete.recurrent.event": "Vous allez supprimer un évènement récurrent ainsi que toutes ses occurrences",
-
-    "calendar.sunday.first.character": "D",
-    "calendar.monday.first.character": "L",
-    "calendar.thuesday.first.character": "M",
-    "calendar.wednesday.first.character": "M",
-    "calendar.thursday.first.character": "J",
-    "calendar.friday.first.character": "V",
-    "calendar.saturday.first.character": "S",
 
 	"group.AdminLocal": "Tous les administrateurs locaux",
     "group.Personnel": "Tous les personnels du groupe {0}.",

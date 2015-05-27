@@ -25,8 +25,7 @@
                         </a>
                     </li>
                 </ul>
-            </li>
-            
+            </li> 
             <div ng-if="calendars.empty() === true"><i18n>calendar.calendars.empty</i18n></div>
         </ul>
     <hr />
@@ -78,6 +77,40 @@
         <input type="file" id="icsFile" />
         
         <button ng-click="importIcsFile(showButtonsCalendar, $event)"><i18n>calendar.import</i18n></button>
+    </lightbox>
+</div>
+
+<!-- Lightbox : Import ICS Report -->
+<div ng-if="display.showImportReport">
+    <lightbox show="display.showImportReport" on-close="display.showImportReport = false;">
+         <div class="row height-one">
+            <label><i18n>calendar.ics.file.import.report</i18n></label>
+        </div>
+        <div class="row">
+            <label>[[icsImport.createdEvents]] <i18n>calendar.events.properly.imported</i18n></label>
+        </div>
+        <div class="row" ng-if="icsImport.invalidEvents.length > 0">
+            <label>[[icsImport.invalidEvents.length]] <i18n>calendar.events.not.imported</i18n></label>
+        </div>
+
+        <table class="list-view colored" ng-if="icsImport.invalidEvents.length > 0">
+            <thead>
+                <tr>
+                    <th><i18n>calendar.event.title</i18n></th>
+                    <th><i18n>calendar.event.start.date</i18n></th>
+                    <th><i18n>calendar.event.end.date</i18n></th>
+                    <th><i18n>calendar.event.error.cause</i18n></th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr ng-repeat="calendarEvent in icsImport.invalidEvents">
+                    <td>[[calendarEvent.title]]</td>
+                    <td>[[calendarEvent.startMoment.format('DD/MM/YYYY HH:mm')]]</td>
+                    <td>[[calendarEvent.endMoment.format('DD/MM/YYYY HH:mm')]]</td>
+                    <td>[[calendarEvent.errorCause]]</td>
+                </tr>
+            </tbody>
+        </table>
     </lightbox>
 </div>
 
