@@ -161,6 +161,9 @@ public class EventServiceMongoImpl extends MongoDbCrudService implements EventSe
                     result.putArray("invalidEvents", invalidCalendarEvents);
                     result.putNumber("createdEvents", calendarEvents.size());
                     IcsImportHandler icsImportHandler = new IcsImportHandler(eventService, calendarId, user, handler, result);
+                    if (calendarEvents.size() == 0) {
+                        handler.handle(new Either.Right<String, JsonObject>(result));
+                    }
                     for (Object e : calendarEvents) {
                         final JsonObject calendarEvent = (JsonObject) e;
                         icsImportHandler.setCalendarEvent(calendarEvent);
