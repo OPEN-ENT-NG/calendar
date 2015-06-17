@@ -17,6 +17,9 @@ public class Calendar extends BaseServer {
     public final static String CALENDAR_COLLECTION = "calendar";
     public final static String CALENDAR_EVENT_COLLECTION = "calendarevent";
 
+    public static final String MANAGE_RIGHT_ACTION = "net-atos-entng-calendar-controllers-CalendarController|updateCalendar";
+
+    
     @Override
     public void start() {
         super.start();
@@ -30,6 +33,8 @@ public class Calendar extends BaseServer {
         setDefaultResourceFilter(new ShareAndOwner());
         container.deployWorkerVerticle(ICalHandler.class.getName(), config);
 
+        setRepositoryEvents(new CalendarRepositoryEvents());
+        
         addController(new CalendarController(CALENDAR_COLLECTION));
         addController(new EventController(CALENDAR_EVENT_COLLECTION, eventService));
     }
