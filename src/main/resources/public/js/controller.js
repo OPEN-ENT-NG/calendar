@@ -337,6 +337,7 @@ function CalendarController($scope, template, model, lang, date, route, $timeout
                 $scope.calendarEvents.pushAll(cl.calendarEvents.all);
             });
         }
+        $scope.calendarEvents.applyFilters();
     };
 
     $scope.hideOtherCalendarCheckboxes = function(calendar) {

@@ -103,6 +103,30 @@ CalendarEvent.prototype.delete = function(callback) {
     }.bind(this));
 };
 
+CalendarEvent.prototype.calendarUpdate = function(cb, cbe) {
+    if (this.beginning) {
+        this.startMoment = this.beginning;
+        this.endMoment = this.end;
+    }
+    if(this._id) {
+        this.update(function(){
+            model.refresh();
+        }, function(error){
+            // notify
+            model.refresh();
+        });
+    }
+    else {
+        this.create(function(){
+            model.refresh();
+        }, function(error){
+            // notify
+            model.refresh();
+        });
+    }
+}
+
+
 CalendarEvent.prototype.toJSON = function(){
 
 	return {
@@ -129,7 +153,7 @@ function Calendar() {
 					calendarEvent.startMoment = moment(calendarEvent.startMoment).utc();
 					calendarEvent.endMoment = moment(calendarEvent.endMoment).utc();
 					calendarEvent.is_periodic = false;
-                    calendarEvent.locked = true;
+                    calendarEvent.locked = false;
                     calendarEvent.color = calendar.color;
 				});
 				this.load(calendarEvents);
@@ -297,3 +321,9 @@ model.build = function(){
         behaviours: 'calendar'
     });
 }
+
+model.refresh = function() {
+    model.calendarEvents.clear();
+    model.calendarEvents.sync();
+    model.calendarEvents.applyFilters();
+};
