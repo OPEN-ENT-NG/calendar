@@ -7,12 +7,13 @@
   </h1> 
 </div>
 
-<div class="nine cell display-buttons">
-    <div class="row">
+<div class="nine cell">
+  <div class="row">
+    <button ng-click="createCalendarEvent(newItem); viewCalendarEvent(calendarEvent);"><i18n>calendar.new.event</i18n></button>
 
-          <i class="show-list" ng-class="{ selected: display.list === true }" ng-click="showList()"
-          tooltip="calendar.icon.show.events.list"></i>
-          <i class="show-calendar" ng-class="{ selected: display.list === false }" ng-click="showCalendar()"
-          tooltip="calendar.icon.show.calendar"></i>
-    </div>
+    <i class="show-list" ng-class="{ selected: display.list === true }" ng-click="showList()"
+    tooltip="calendar.icon.show.events.list"></i>
+    <i class="show-calendar" ng-class="{ selected: display.list === false }" ng-click="showCalendar()"
+    tooltip="calendar.icon.show.calendar"></i>
+  </div>
 </div>
