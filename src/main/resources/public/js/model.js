@@ -323,7 +323,9 @@ model.build = function(){
 }
 
 model.refresh = function() {
-    model.calendarEvents.clear();
-    model.calendarEvents.sync();
+    model.calendarEvents.clear(true);
+            model.calendars.selection().forEach(function(cl) {
+                model.calendarEvents.pushAll(cl.calendarEvents.all);
+            });
     model.calendarEvents.applyFilters();
 };
