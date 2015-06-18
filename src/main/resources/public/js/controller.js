@@ -632,8 +632,8 @@ function CalendarController($scope, template, model, lang, date, route, $timeout
     $scope.previousWeekButton = function() {
         var prev = moment(model.calendar.firstDay).subtract(7, 'day');
         updateCalendarSchedule(prev);
- 
     };
+
     $scope.nextWeekBookingButton = function() {
         var nextStart = moment(model.calendarEvents.filters.startMoment).add(7, 'day');
         var nextEnd = moment(model.calendarEvents.filters.endMoment).add(7, 'day');
@@ -645,6 +645,7 @@ function CalendarController($scope, template, model, lang, date, route, $timeout
         var prevEnd = moment(model.calendarEvents.filters.endMoment).subtract(7, 'day');
         updateCalendarList(prevStart,prevEnd);
     };
+
     var updateCalendarList = function(start, end){
         model.calendarEvents.filters.startMoment.date(start.date());
         model.calendarEvents.filters.startMoment.month(start.month());
@@ -664,6 +665,8 @@ function CalendarController($scope, template, model, lang, date, route, $timeout
         model.calendar.firstDay.year(date.year());
  
         $('.hiddendatepickerform').datepicker('setValue', date.format("DD/MM/YYYY")).datepicker('update');
+        $('.hiddendatepickerform').trigger({type: 'changeDate',date: date});
+
     };
 
 
