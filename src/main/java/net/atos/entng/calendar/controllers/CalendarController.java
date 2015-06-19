@@ -1,11 +1,19 @@
 package net.atos.entng.calendar.controllers;
 
+import java.util.Calendar;
+import java.util.Map;
+
+import org.entcore.common.events.EventStore;
+import org.entcore.common.events.EventStoreFactory;
 import org.entcore.common.mongodb.MongoDbControllerHelper;
 import org.entcore.common.user.UserInfos;
 import org.entcore.common.user.UserUtils;
 import org.vertx.java.core.Handler;
+import org.vertx.java.core.Vertx;
 import org.vertx.java.core.http.HttpServerRequest;
+import org.vertx.java.core.http.RouteMatcher;
 import org.vertx.java.core.json.JsonObject;
+import org.vertx.java.platform.Container;
 
 import fr.wseduc.rs.ApiDoc;
 import fr.wseduc.rs.Delete;
@@ -18,6 +26,17 @@ import fr.wseduc.webutils.request.RequestUtils;
 
 public class CalendarController extends MongoDbControllerHelper {
 
+	// Used for module "statistics"
+	private EventStore eventStore;
+	private enum CalendarEvent { ACCESS }
+
+	@Override
+	public void init(Vertx vertx, Container container, RouteMatcher rm,
+			Map<String, fr.wseduc.webutils.security.SecuredAction> securedActions) {
+		super.init(vertx, container, rm, securedActions);
+		eventStore = EventStoreFactory.getFactory().getEventStore(Calendar.class.getSimpleName());
+	}
+
     public CalendarController(String collection) {
         super(collection);
     }
@@ -26,6 +45,9 @@ public class CalendarController extends MongoDbControllerHelper {
     @SecuredAction("calendar.view")
     public void view(HttpServerRequest request) {
         renderView(request);
+
+		// Create event "access to application Calendar" and store it, for module "statistics"
+		eventStore.createAndStoreEvent(CalendarEvent.ACCESS.name(), request);
     }
 
     @Get("/calendars")
