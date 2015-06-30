@@ -6,11 +6,11 @@ import static org.entcore.common.mongodb.MongoDbResult.validResultsHandler;
 
 import java.net.SocketException;
 
-import net.atos.entng.calendar.handlers.IcsImportHandler;
 import net.atos.entng.calendar.ical.ICalHandler;
 import net.atos.entng.calendar.services.EventService;
 import net.fortuna.ical4j.util.UidGenerator;
 
+import org.apache.commons.lang.mutable.MutableInt;
 import org.entcore.common.service.impl.MongoDbCrudService;
 import org.entcore.common.user.UserInfos;
 import org.vertx.java.core.Handler;
@@ -147,27 +147,64 @@ public class EventServiceMongoImpl extends MongoDbCrudService implements EventSe
         message.putString("calendarId", calendarId);
         message.putString("ics", ics);
         final EventServiceMongoImpl eventService = this;
+        final MutableInt i = new MutableInt();
+
         eb.send(ICalHandler.ICAL_HANDLER_ADDRESS, message, new Handler<Message<JsonObject>>() {
             @Override
             public void handle(Message<JsonObject> reply) {
                 final JsonObject result = new JsonObject();
                 if ("ko".equals(reply.body().getString("status"))) {
                     handler.handle(new Either.Left<String, JsonObject>(new String("Error")));
-                } 
-                else {
+                } else {
                     JsonObject body = reply.body();
                     JsonArray calendarEvents = body.getArray("events");
                     final JsonArray invalidCalendarEvents = body.getArray("invalidEvents");
                     result.putArray("invalidEvents", invalidCalendarEvents);
                     result.putNumber("createdEvents", calendarEvents.size());
-                    IcsImportHandler icsImportHandler = new IcsImportHandler(eventService, calendarId, user, handler, result);
                     if (calendarEvents.size() == 0) {
                         handler.handle(new Either.Right<String, JsonObject>(result));
                     }
+                    i.add(calendarEvents.size());
+
                     for (Object e : calendarEvents) {
                         final JsonObject calendarEvent = (JsonObject) e;
-                        icsImportHandler.setCalendarEvent(calendarEvent);
-                        eventService.retrieveByIcsUid(calendarId, calendarEvent.getString("icsUid"), user, icsImportHandler);
+                        eventService.retrieveByIcsUid(calendarId, calendarEvent.getString("icsUid"), user, new Handler<Either<String, JsonObject>>() {
+                            @Override
+                            public void handle(Either<String, JsonObject> event) {
+                                // No existing event found
+                                if (event.isRight() && event.right().getValue().size() == 0) {
+                                    eventService.create(calendarId, calendarEvent, user, new Handler<Either<String, JsonObject>>() {
+                                        @Override
+                                        public void handle(Either<String, JsonObject> event) {
+                                            i.subtract(1);
+                                            // There is no more events to create
+                                            if (i.toInteger() == 0) {
+                                                handler.handle(new Either.Right<String, JsonObject>(result));
+                                            }
+                                        }
+                                    });
+                                } // Existing event found
+                                else if (event.isRight() && event.right().getValue().size() > 0) {
+                                    eventService.update(calendarId, event.right().getValue().getString("_id"), calendarEvent, user, new Handler<Either<String, JsonObject>>() {
+                                        @Override
+                                        public void handle(Either<String, JsonObject> event) {
+                                            i.subtract(1);
+                                            // There is no more events to create
+                                            if (i.toInteger() == 0) {
+                                                handler.handle(new Either.Right<String, JsonObject>(result));
+                                            }
+                                        }
+                                    });
+                                } // An error occured while retrieving the event
+                                else {
+                                    i.subtract(1);
+                                    if (i.toInteger() == 0) {
+                                        handler.handle(new Either.Right<String, JsonObject>(result));
+                                    }
+                                }
+
+                            }
+                        });
                     }
                 }
             }
