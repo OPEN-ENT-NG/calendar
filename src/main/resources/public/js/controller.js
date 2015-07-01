@@ -20,7 +20,7 @@ function CalendarController($scope, template, model, lang, date, route, $timeout
         $scope.calendarEvent = new CalendarEvent();
         $scope.initEventDates(moment().utc(), moment().utc());
         $scope.calendars = model.calendars;
-        
+        $scope.display.importFileButtonDisabled = true;
         $scope.calendarEvents = model.calendarEvents;
         $scope.periods = model.periods;
 
@@ -31,6 +31,12 @@ function CalendarController($scope, template, model, lang, date, route, $timeout
         template.open('top-menu', 'top-menu');
 
     };
+
+    $scope.disableImportFileButton = function() {
+        $scope.$apply(function() {
+            $scope.display.importFileButtonDisabled = false;
+        });
+    }
 
     $scope.handleRecurrence = function(calendarEvent) {
         if (calendarEvent.recurrence) {
@@ -396,6 +402,11 @@ function CalendarController($scope, template, model, lang, date, route, $timeout
 
     $scope.confirmRemoveCalendarEvents = function(event){
         $scope.display.confirmDeleteCalendarEvent = true;
+        $scope.calendarEvents.selection().forEach(function(calendarEvent) {
+            $scope.calendarEvents.getRecurrenceEvents(calendarEvent).forEach(function(calEvent) {
+                calEvent.selected = true;
+            });
+        });
         event.stopPropagation();
     };
 
@@ -537,6 +548,7 @@ function CalendarController($scope, template, model, lang, date, route, $timeout
 
     $scope.displayImportIcsPanel = function() {
         $scope.display.showImportPanel = true;
+        $scope.display.importFileButtonDisabled = true;
     };
 
     $scope.importIcsFile = function(calendar, e) {
@@ -561,6 +573,7 @@ function CalendarController($scope, template, model, lang, date, route, $timeout
                     calendarEvent.endMoment = moment(calendarEvent.endMoment);
                 });
                 $scope.display.showImportReport = true;
+                $scope.importFileButtonDisabled = true;
                 calendar.calendarEvents.sync(function() {
                     $scope.refreshCalendarEventItems(calendar);
                     if ($scope.display.list) {
@@ -579,8 +592,14 @@ function CalendarController($scope, template, model, lang, date, route, $timeout
         if (!calendarEvent) {
             calendarEvent = $scope.calendarEvent;
         }
+        var hasExistingRecurrence = false;
+        if ($scope.calendarEvents.getRecurrenceEvents(calendarEvent).length > 1) {
+            hasExistingRecurrence = true;
+        }
         calendarEvent.save(function(){
-            $scope.handleRecurrence(calendarEvent);
+            if (!hasExistingRecurrence) {
+                $scope.handleRecurrence(calendarEvent);
+            }
             $scope.calendarEvent.calendar.calendarEvents.sync(function() {
                 $scope.refreshCalendarEventItems($scope.calendarEvent.calendar);    
             });

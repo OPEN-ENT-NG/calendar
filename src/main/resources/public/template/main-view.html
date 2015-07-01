@@ -73,10 +73,13 @@
 <!-- Lightbox : Import ICS -->
 <div ng-if="display.showImportPanel">
     <lightbox show="display.showImportPanel" on-close="display.showImportPanel = false;">
-        <label><i18n>calendar.ics.file.to.import</i18n></label>
-        <input type="file" id="icsFile" />
-        
-        <button ng-click="importIcsFile(showButtonsCalendar, $event)"><i18n>calendar.import</i18n></button>
+        <form name="form">
+
+            <label><i18n>calendar.ics.file.to.import</i18n></label>        
+            <input onchange="angular.element(this).scope().disableImportFileButton()" type="file" id="icsFile" />
+            
+            <button ng-disabled="display.importFileButtonDisabled" ng-click="importIcsFile(showButtonsCalendar, $event)"><i18n>calendar.import</i18n></button>
+        </form>
     </lightbox>
 </div>
 
@@ -146,7 +149,7 @@
             <i18n>calendar.confirm.delete.recurrent.event</i18n>
         </div>
 
-        <div class="row scrollable-content" ng-if="calendarEvents.getRecurrenceEvents(calendarEvent).length > 0">  
+        <div class="row scrollable-content" ng-if="calendarEvents.selection().length > 1">  
             <table class="list-view colored">
                 <thead>
                     <tr>
