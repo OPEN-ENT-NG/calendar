@@ -25,6 +25,10 @@
     background-color: #b7b8ba !important;
 }
 
+.color-selector .yellow, .row .yellow, nav.vertical ul li a.yellow {
+    background-color: #ecbe30 !important;
+}
+
 .color-selector .color {
     border:1px #CCCCCC solid;
     width:30px;
