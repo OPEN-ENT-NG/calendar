@@ -74,11 +74,20 @@
 <div ng-if="display.showImportPanel">
     <lightbox show="display.showImportPanel" on-close="display.showImportPanel = false;">
         <form name="form">
-
-            <label><i18n>calendar.ics.file.to.import</i18n></label>        
-            <input onchange="angular.element(this).scope().disableImportFileButton()" type="file" id="icsFile" />
-            
-            <button ng-disabled="display.importFileButtonDisabled" ng-click="importIcsFile(showButtonsCalendar, $event)"><i18n>calendar.import</i18n></button>
+			<div class="row fixed-block">
+				<h2 class="subtitle"><i18n>calendar.ics.file.to.import</i18n></h2>
+				<div class="eight cell select-file input-block">
+					<div class="hidden-content">
+						<input type="file" files-input-change="setFilename()" ng-model="newFile.files"/>
+		            </div>
+		            <button class="file-button">Parcourir</button>
+		            <input type="text" ng-model="newFile.name" data-display-file class="nomargin" disabled/>
+	            </div>
+	            
+	            <div class="twelve cell">
+		            <button class="right-magnet" ng-disabled="display.importFileButtonDisabled" ng-click="importIcsFile(showButtonsCalendar, $event)"><i18n>calendar.import</i18n></button>
+	            </div>
+            </div>
         </form>
     </lightbox>
 </div>
@@ -86,8 +95,8 @@
 <!-- Lightbox : Import ICS Report -->
 <div ng-if="display.showImportReport">
     <lightbox show="display.showImportReport" on-close="display.showImportReport = false;">
-         <div class="row height-one">
-            <label><i18n>calendar.ics.file.import.report</i18n></label>
+         <div class="row">
+         	<h2 class="subtitle"><i18n>calendar.ics.file.import.report</i18n></h2>
         </div>
         <div class="row">
             <label>[[icsImport.createdEvents]] <i18n>calendar.events.properly.imported</i18n></label>
@@ -121,7 +130,7 @@
 <div ng-if="display.confirmDeleteCalendar">
     <lightbox show="display.confirmDeleteCalendar" on-close="cancelRemoveCalendar()">
         <div class="row height-one">
-            <i18n>calendar.confirm.delete.calendar</i18n>
+        	<h2 class="subtitle"><i18n>calendar.confirm.delete.calendar</i18n></h2>
         </div>
         
         <div class="row">

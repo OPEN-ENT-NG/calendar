@@ -43,7 +43,7 @@
     "calendar.shared.calendars": "Agendas partagés",
     "calendar.event.recurrence": "Récurrence",
     "calendar.ics.file.import.report": "Rapport d'import de fichier ICS",
-    "calendar.ics.file.to.import": "Fichier iCal à importer",
+    "calendar.ics.file.to.import": "Sélectionner un fichier iCal",
     "calendar.notify.icsImportError" : "Erreur d'importation du fichier ICS",
     "calendar.recurrence": "Récurrence",
     "calendar.reccurent": "Récurrent",

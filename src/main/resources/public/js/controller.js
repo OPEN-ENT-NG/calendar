@@ -23,6 +23,7 @@ function CalendarController($scope, template, model, lang, date, route, $timeout
         $scope.display.importFileButtonDisabled = true;
         $scope.calendarEvents = model.calendarEvents;
         $scope.periods = model.periods;
+        $scope.newFile = {};
 
         model.calendarEvents.filters.startMoment = moment().startOf('day');
         model.calendarEvents.filters.endMoment = moment().add('month', 2).startOf('day');
@@ -32,7 +33,7 @@ function CalendarController($scope, template, model, lang, date, route, $timeout
 
     };
 
-    $scope.disableImportFileButton = function() {
+    function disableImportFileButton() {
         $scope.$apply(function() {
             $scope.display.importFileButtonDisabled = false;
         });
@@ -81,7 +82,7 @@ function CalendarController($scope, template, model, lang, date, route, $timeout
                 startMoment = calendarRecurrentEvent.startMoment;
             }
         }
-    }
+    };
 
     $scope.handleEveryWeekDayRecurrence = function(calendarEvent) {
         var calendarRecurrentEvent;
@@ -97,7 +98,7 @@ function CalendarController($scope, template, model, lang, date, route, $timeout
         } else if (calendarEvent.recurrence.end_type == 'on' && calendarEvent.recurrence.end_on) {
             
         }
-    }
+    };
 
     $scope.handleEveryWeekRecurrence = function(calendarEvent) {
         var calendarRecurrentEvent;
@@ -116,7 +117,7 @@ function CalendarController($scope, template, model, lang, date, route, $timeout
                             var eventDaysDuration = endMomentDuration.subtract(startMomentDuration).days();
                             calendarRecurrentEvent.endMoment = moment(calendarEvent.endMoment).isoWeekday(1).isoWeekday(7).day(parseInt(day) + eventDaysDuration).week(weekCount);
                             
-                            $scope.saveCalendarEventEdit(calendarRecurrentEvent)
+                            $scope.saveCalendarEventEdit(calendarRecurrentEvent);
                             i++;
                         }
                     }
@@ -145,7 +146,7 @@ function CalendarController($scope, template, model, lang, date, route, $timeout
                             var eventDaysDuration = endMomentDuration.subtract(startMomentDuration).days();
                             calendarRecurrentEvent.endMoment = moment(calendarEvent.endMoment).isoWeekday(1).isoWeekday(7).day(parseInt(day) + eventDaysDuration).week(weekCount);
                             
-                            $scope.saveCalendarEventEdit(calendarRecurrentEvent)
+                            $scope.saveCalendarEventEdit(calendarRecurrentEvent);
                             i++;
                             startMoment = calendarRecurrentEvent.startMoment;
                         }
@@ -158,7 +159,7 @@ function CalendarController($scope, template, model, lang, date, route, $timeout
                 weekCount += every;
             }
         }
-    }
+    };
 
     $scope.createChildCalendarEvent = function(calendarEvent) {
         var child  = new CalendarEvent();
@@ -172,7 +173,7 @@ function CalendarController($scope, template, model, lang, date, route, $timeout
         child.parentId = calendarEvent._id;
         child.allday = calendarEvent.allday;
         return child;
-    }
+    };
 
     // Definition of actions
     route({
@@ -204,7 +205,7 @@ function CalendarController($scope, template, model, lang, date, route, $timeout
         return _.find($scope.calendars.all, function(calendar) {
             return $scope.isMyCalendar(calendar);
         });
-    }
+    };
 
     $scope.loadSelectedCalendars = function() {
         if ($scope.calendarPreferences.selectedCalendars) {
@@ -216,14 +217,14 @@ function CalendarController($scope, template, model, lang, date, route, $timeout
             });
         }
         
-        if ($scope.calendars.selection().length == 0 && !$scope.calendars.isEmpty()) {
+        if ($scope.calendars.selection().length === 0 && !$scope.calendars.isEmpty()) {
             var calendarToOpen = $scope.firstOwnedCalendar();
             if (calendarToOpen === undefined) {
                 calendarToOpen = $scope.calendars.all[0];
             }
             $scope.openOrCloseCalendar(calendarToOpen, true);
         }
-    }
+    };
 
     $scope.loadCalendarPreferences = function(callback) {
        
@@ -505,7 +506,7 @@ function CalendarController($scope, template, model, lang, date, route, $timeout
         // remove all calendar events
         $scope.calendar.calendarEvents.forEach(function(calendarEvent) {
             calendarEvent.delete();
-        })
+        });
 
         // remove calendar
         $scope.calendar.delete();
@@ -549,13 +550,20 @@ function CalendarController($scope, template, model, lang, date, route, $timeout
     $scope.displayImportIcsPanel = function() {
         $scope.display.showImportPanel = true;
         $scope.display.importFileButtonDisabled = true;
+        $scope.newFile.name = '';
+    };
+    
+    $scope.setFilename = function() {
+    	if($scope.newFile && $scope.newFile.files && $scope.newFile.files.length > 0) {
+    		disableImportFileButton();
+        	$scope.newFile.name = $scope.newFile.files[0].name;
+    	}
     };
 
     $scope.importIcsFile = function(calendar, e) {
         var importButton = e.currentTarget;
         importButton.disabled = true;
-        var icsFileInput = $('#icsFile')[0];
-        var file = icsFileInput.files[0];
+        var file = $scope.newFile.files[0];
         var reader = new FileReader();
         reader.onloadend = function(e){
             var jsonData = {};
@@ -582,9 +590,9 @@ function CalendarController($scope, template, model, lang, date, route, $timeout
                 });
             }).fail(function(){
                 importButton.disabled = false;
-                notify.error(lang.translate("calendar.notify.icsImportError"))
+                notify.error(lang.translate("calendar.notify.icsImportError"));
             });
-        }
+        };
         reader.readAsBinaryString(file);
     };
 
