@@ -500,6 +500,8 @@ function CalendarController($scope, template, model, lang, date, route, $timeout
             $scope.showButtonsCalendar = undefined;
             $scope.showToggleButtons = undefined;
         }
+        $scope.display.showToggleButtons = false;
+        
         // remove all calendar events from calendar display items
         $scope.calendarEvents.removeCalendarEvents($scope.calendar);
 
