@@ -61,6 +61,7 @@
 
 .colored li a {
     opacity:0.4;
+    color:black;
 }
 
 .colored li a.selected {
