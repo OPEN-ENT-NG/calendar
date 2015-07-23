@@ -11,14 +11,14 @@ var calendarBehaviours = {
 		}
 	},
 	workflow: {
-		admin: 'net.atos.entng.forum.controllers.CalendarController|createCalendar'
+		admin: 'net.atos.entng.calendar.controllers.CalendarController|createCalendar'
 	},
 	viewRights: [ 'net-atos-entng-calendar-controllers-CalendarController|view' ]
 };
 
 Behaviours.register('calendar', {
 	behaviours:  calendarBehaviours,
-	resource: function(resource){
+	resourceRights: function(resource){
 		var rightsContainer = resource;
 		if(resource instanceof CalendarEvent && resource.calendar){
 			rightsContainer = resource.calendar;
@@ -28,9 +28,9 @@ Behaviours.register('calendar', {
 		}
 
 		for(var behaviour in calendarBehaviours.resources){
-			if(model.me.hasRight(rightsContainer, calendarBehaviours.resources[behaviour]) 
-					|| model.me.userId === resource.owner.userId 
-					|| model.me.userId === rightsContainer.owner.userId){
+			if(model.me.hasRight(rightsContainer, calendarBehaviours.resources[behaviour]) || 
+					model.me.userId === resource.owner.userId ||  
+					model.me.userId === rightsContainer.owner.userId){
 				if(resource.myRights[behaviour] !== undefined){
 					resource.myRights[behaviour] = resource.myRights[behaviour] && calendarBehaviours.resources[behaviour];
 				}
@@ -41,8 +41,16 @@ Behaviours.register('calendar', {
 		}
 		return resource;
 	},
-	resourceRights: function(){
-		return ['read', 'contrib', 'manager']
+	workflow: function(){
+		var workflow = { };
+		var calendarWorkflow = calendarBehaviours.workflow;
+		for(var prop in calendarWorkflow){
+			if(model.me.hasWorkflow(calendarWorkflow[prop])){
+				workflow[prop] = true;
+			}
+		}
+
+		return workflow;
 	},
 	loadResources: function(callback) {
 		http().get('/calendar/list').done(function(calendars){
