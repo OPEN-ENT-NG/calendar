@@ -839,13 +839,13 @@ function CalendarController($scope, template, model, lang, date, route, $timeout
  
     };
  
-    var updateCalendarSchedule = function(date){
-        model.calendar.firstDay.date(date.date());
-        model.calendar.firstDay.month(date.month());
-        model.calendar.firstDay.year(date.year());
+    var updateCalendarSchedule = function(newDate){
+        model.calendar.firstDay.date(newDate.date());
+        model.calendar.firstDay.month(newDate.month());
+        model.calendar.firstDay.year(newDate.year());
  
-        $('.hiddendatepickerform').datepicker('setValue', date.format("DD/MM/YYYY")).datepicker('update');
-        //$('.hiddendatepickerform').trigger({type: 'changeDate',date: date});
+        $('.hiddendatepickerform').datepicker('setValue', newDate.format("DD/MM/YYYY")).datepicker('update');
+        $('.hiddendatepickerform').trigger({type: 'changeDate', date: newDate});
 
     };
 
