@@ -131,9 +131,9 @@
 		},
 		
 		set: function() {
-			console.log(this.format);
+			//console.log(this.format);
 			var formated = DPGlobal.formatDate(this.date, this.format);
-			console.log(formated);
+			//console.log(formated);
 			if (!this.isInput) {
 				if (this.component){
 					this.element.find('input').prop('value', formated);

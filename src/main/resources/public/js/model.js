@@ -61,10 +61,10 @@ function CalendarEvent() {
 
 CalendarEvent.prototype.save = function(callback){
     if (this.allday) {
-        this.startMoment.hours(0);
+        this.startMoment.hours(7);
         this.startMoment.minutes(0);
-        this.endMoment.hours(23);
-        this.endMoment.minutes(59);
+        this.endMoment.hours(20);
+        this.endMoment.minutes(0);
     }
 	if(this._id){
 		this.update(callback);
@@ -133,11 +133,12 @@ CalendarEvent.prototype.toJSON = function(){
 		title: this.title,
         description: this.description,
         location: this.location,
-		startMoment: this.startMoment,
-		endMoment: this.endMoment,
+		startMoment: this.startMoment.second(0).millisecond(0),
+		endMoment: this.endMoment.second(0).millisecond(0),
         allday: this.allday,
         recurrence: this.recurrence,
-        parentId : this.parentId
+        parentId : this.parentId,
+        isRecurrent: this.isRecurrent
 	}
 };
 
@@ -150,8 +151,8 @@ function Calendar() {
 			http().get('/calendar/' + calendar._id + '/events').done(function(calendarEvents){
 				_.each(calendarEvents, function(calendarEvent){
 					calendarEvent.calendar = calendar;
-					calendarEvent.startMoment = moment(calendarEvent.startMoment).utc();
-					calendarEvent.endMoment = moment(calendarEvent.endMoment).utc();
+					calendarEvent.startMoment = moment(calendarEvent.startMoment).utc().second(0).millisecond(0);
+					calendarEvent.endMoment = moment(calendarEvent.endMoment).utc().second(0).millisecond(0);
 					calendarEvent.is_periodic = false;
                     calendarEvent.locked = false;
                     calendarEvent.color = calendar.color;
@@ -287,9 +288,11 @@ model.build = function(){
         },
         getRecurrenceEvents: function(calendarEvent) {
             var calendarEvents = [];
-            var parentId = calendarEvent.parentId ? calendarEvent.parentId : calendarEvent._id;
+            //var parentId = calendarEvent.parentId ? calendarEvent.parentId : calendarEvent._id;
+            var parentId = calendarEvent.parentId ? calendarEvent.parentId : false;
             this.all.forEach(function(item) {
-                if ((item.parentId && item.parentId === parentId) || item._id === parentId) {
+            //    if ((item.parentId && item.parentId === parentId) || item._id === parentId) {
+                if (item.parentId && item.parentId === parentId) {
                     calendarEvents.push(item);
                 }
             });

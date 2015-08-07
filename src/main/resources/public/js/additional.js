@@ -58,6 +58,25 @@ module.directive('datePickerCalendar', function($compile){
 			//console.log('disabled = ' + $scope.disable);
 			//$element.prop('disabled', $scope.disable);
 
+			function setNewDate(){
+				var date = $element.val().split('/');
+				var temp = date[0];
+				date[0] = date[1];
+				date[1] = temp;
+				date = date.join('/');
+				var newMoment = moment(new Date(date));
+				if ($scope.ngModel) {
+					$scope.ngModel.dayOfYear(newMoment.dayOfYear());
+					$scope.ngModel.month(newMoment.month());
+					$scope.ngModel.year(newMoment.year());
+				} else {
+					$scope.ngModel = newMoment;
+				}
+				$scope.$apply('ngModel');
+				$scope.$parent.$eval($scope.ngChange);
+				$scope.$parent.$apply();
+			}
+
 			$scope.$watch('disable', function(newVal){
         		$element.prop('disabled', newVal);
      		});
@@ -77,32 +96,17 @@ module.directive('datePickerCalendar', function($compile){
 							daysShort: moment.weekdaysShort(),
 							daysMin: moment.weekdaysMin()
 						},
-						format: 'dd/mm/yyyy'
+						format: 'dd/mm/yyyy',
+                        weekStart: 1
 					})
 					.on('changeDate', function(){
-						setTimeout(function(){
-							var date = $element.val().split('/');
-							var temp = date[0];
-							date[0] = date[1];
-							date[1] = temp;
-							date = date.join('/');
-							var newMoment = moment(new Date(date));
-							if ($scope.ngModel) {
-								$scope.ngModel.dayOfYear(newMoment.dayOfYear());
-								$scope.ngModel.month(newMoment.month());
-								$scope.ngModel.year(newMoment.year());
-							} else {
-								$scope.ngModel = newMoment;
-							}
-							$scope.$apply('ngModel');
-							$scope.$parent.$eval($scope.ngChange);
-							$scope.$parent.$apply();
-						}, 10);
+						setTimeout(setNewDate, 10);
 
 						$(this).datepicker('hide');
 					});
 				$element.datepicker('hide');
 			});
+
 
 			$element.on('focus', function(){
 				var that = this;
@@ -112,24 +116,7 @@ module.directive('datePickerCalendar', function($compile){
 				$element.datepicker('show');
 			});
 
-			$element.on('change', function(){
-				var date = $element.val().split('/');
-				var temp = date[0];
-				date[0] = date[1];
-				date[1] = temp;
-				date = date.join('/');
-				var newMoment = moment(new Date(date));
-				if ($scope.ngModel) {
-					$scope.ngModel.dayOfYear(newMoment.dayOfYear());
-					$scope.ngModel.month(newMoment.month());
-					$scope.ngModel.year(newMoment.year());
-				} else {
-					$scope.ngModel = newMoment;
-				}
-				$scope.$apply('ngModel');
-				$scope.$parent.$eval($scope.ngChange);
-				$scope.$parent.$apply();
-			});
+			$element.on('change', setNewDate);
 
 			$element.on('$destroy', function() {
 				$element.datepicker('destroy');			
@@ -144,7 +131,8 @@ module.directive('timePickerCalendar', function($compile){
 			ngModel: '=',
 			ngBegin: '=',
 			ngEnd: '=',
-			ngLimit: '='
+			ngLimit: '=',
+			ngChange: '&'
 		},
 		transclude: true,
 		replace: true,

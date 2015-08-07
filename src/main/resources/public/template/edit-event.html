@@ -36,6 +36,12 @@
 
                         <label class="twelve cell"><i18n>calendar.event.location</i18n></label>
                         <input class="twelve cell" ng-model="calendarEvent.location" type="text"/>
+
+                        <div class="row" ng-if="calendarEvent.parentId">
+                            <input type="checkbox" ng-model="calendarEvent.detailToRecurrence"/> 
+                            <label>Appliquer à toute la récurrence</label>
+                        </div>
+
                     </div>
                 </div>
             </article>
@@ -51,28 +57,40 @@
                         <div class="row">
                             <div class="six cell">
                                 <label class="twelve cell form-label"><i18n>calendar.event.start.date</i18n></label>
-                                <date-picker-calendar ng-model="calendarEvent.startMoment"></date-picker-calendar>
+                                <date-picker-calendar ng-model="calendarEvent.startMoment" ng-change="changeEndMoment()"></date-picker-calendar> 
+                                <!-- <input type="text" ng-model="calendarEvent.startMoment" data-date-format="dd/MM/yyyy" data-autoclose="1" bs-datepicker> -->
                             </div>
                             <div class="six cell" ng-if="!calendarEvent.allday">    
                                 <label class="twelve cell form-label"><i18n>calendar.event.start.time</i18n></label>
-                                <time-picker-calendar id="time-picker-start-moment" class="input-small two cell time-picker" ng-begin="true" ng-limit="calendarEvent.endMoment" ng-model="calendarEvent.startMoment"></time-picker-calendar>
+                                <time-picker-calendar id="time-picker-start-moment" class="input-small two cell time-picker" ng-begin="true" ng-limit="calendarEvent.endMoment" ng-model="calendarEvent.startMoment" ng-change="changeEndMoment()"></time-picker-calendar>
                             </div>
                         </div>
 
                         <div class="row">
                             <div class="six cell">
                                 <label class="twelve cell form-label"><i18n>calendar.event.end.date</i18n></label>
-                                <date-picker-calendar ng-model="calendarEvent.endMoment"></date-picker-calendar>
+                                <date-picker-calendar ng-model="calendarEvent.endMoment" ng-change="changeStartMoment()"></date-picker-calendar>
                             </div>
                             <div class="six cell" ng-if="!calendarEvent.allday">
                                 <label class="twelve cell form-label"><i18n>calendar.event.end.time</i18n></label>
-                                <time-picker-calendar id="time-picker-end-moment" class="input-small two cell" ng-end="true" ng-limit="calendarEvent.startMoment" ng-model="calendarEvent.endMoment"></time-picker-calendar>
+                                <time-picker-calendar id="time-picker-end-moment" class="input-small two cell" ng-end="true" ng-limit="calendarEvent.startMoment" ng-model="calendarEvent.endMoment" ng-change="changeStartMoment()"></time-picker-calendar>
                             </div>
                         </div>
-
-                        <div class="twelve cell">
-                            <input type="checkbox" ng-model="calendarEvent.allday"/>
-                            <label><i18n>calendar.event.allday</i18n></label>
+                        <div class="row">
+                            <div class="six cell">
+                                <input type="checkbox" ng-model="calendarEvent.allday"/>
+                                <label><i18n>calendar.event.allday</i18n></label>
+                            </div>
+                            <!--
+                            <div class="six cell">
+                                <input type="checkbox" ng-model="calendarEvent.isRecurrent" ng-change="toggleIsRecurrent()" ng-init="toggleIsRecurrent()" 
+                                    ng-disabled="hasExistingRecurrence(calendarEvent)"/>
+                                <label><i18n>calendar.event.isrecurrent</i18n></label>
+                            </div> -->
+                            <div class="six cell" ng-if="calendarEvent.parentId">
+                                <input type="checkbox" ng-model="calendarEvent.dateToRecurrence"/> 
+                                <label>Appliquer la durée à toute la récurrence</label>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -84,11 +102,15 @@
                     <i18n>calendar.event.header.recurrence</i18n>
                 </h2>
                 <div class="toggle">
-                    <div class="content">
+                        <div class="row">
+                            <input type="checkbox" ng-if="!calendarEvent.parentId" ng-model="calendarEvent.isRecurrent" ng-change="toggleIsRecurrent()"/>
+                            <label><i18n>calendar.event.isrecurrent</i18n></label>
+                        </div>
+                    <div class="content" ng-if="!calendarEvent.parentId && calendarEvent.isRecurrent">
 
                         <div class="row">
                             <label><i18n>calendar.reccurent</i18n></label>
-                            <select ng-model="calendarEvent.recurrence.type">
+                            <select ng-model="calendarEvent.recurrence.type" ng-change="changedRecurrenceType()">
                                 <option value="every_day">[[lang.translate("calendar.recurrence.every.day")]]</option>
                                 <!--<option value="every_week_day">[[lang.translate("calendar.recurrence.every.week.day")]]</option>-->
                                 <option value="every_week">[[lang.translate("calendar.recurrence.every.week")]]</option>
@@ -99,7 +121,7 @@
 
                         <div class="row" ng-if="calendarEvent.recurrence.type === 'every_day'">
                             <i18n>calendar.recurrence.every</i18n>
-                            <select ng-model="calendarEvent.recurrence.every" ng-options="n for n in _.range(1, periods.every_day_max)">
+                            <select ng-model="calendarEvent.recurrence.every" ng-options="n for n in _.range(1, periods.every_day_max)" ng-init="calendarEvent.recurrence.every">
                             </select>
                             <i18n>calendar.recurrence.days</i18n>
                         </div>
@@ -107,7 +129,7 @@
                         <div ng-if="calendarEvent.recurrence.type === 'every_week'">
                             <div class="row">
                                 <i18n>calendar.recurrence.every</i18n>
-                                <select ng-model="calendarEvent.recurrence.every" ng-options="n for n in _.range(1, periods.every_week_max)">
+                                <select ng-model="calendarEvent.recurrence.every" ng-options="n for n in _.range(1, periods.every_week_max)" ng-init="calendarEvent.recurrence.every">
                                 </select>
                                 <i18n>calendar.recurrence.weeks</i18n>
                             </div>
@@ -116,7 +138,8 @@
                             </div>
                             <div class="row">
                                 <label class="cell horizontal-spacing-twice" ng-repeat="(key, value) in calendarEvent.recurrence.week_days">
-                                    <input type="checkbox" value="[[key]]" ng-model="calendarEvent.recurrence.week_days[key]" /> 
+                                    <input type="checkbox" value="[[key]]" ng-model="calendarEvent.recurrence.week_days[key]" 
+                                        ng-required="!someSelectedValue(calendarEvent.recurrence.week_days)"/> 
                                     <span>[[ model.recurrence.dayMap[key] ]]</span>
                                 </label>
                             </div>
@@ -152,24 +175,55 @@
                                 <label><i18n>calendar.recurrence.end.never</i18n></label>
                             </div>-->
                             <div class="row">
-                                <input type="radio" ng-model="calendarEvent.recurrence.end_type" value="after">
+                                <input type="radio" ng-model="calendarEvent.recurrence.end_type" value="after" name="calendarEvent.recurrence.end_type"
+                                    ng-required="!calendarEvent.recurrence.end_type">
                                 <label><i18n>calendar.recurrence.end.after</i18n></label>
-                                <input ng-model="calendarEvent.recurrence.end_after" type="text" />
+                                <input type="number" min="1" max="365" ng-disabled="calendarEvent.recurrence.end_type !== 'after'" ng-required="calendarEvent.recurrence.end_type === 'after'"
+                                    ng-model="calendarEvent.recurrence.end_after"/>
                                 <label><i18n>calendar.recurrence.occurrences</i18n></label>
                             </div>
                             <div class="row">
-                                <input type="radio" ng-model="calendarEvent.recurrence.end_type" value="on">
+                                <input type="radio" ng-model="calendarEvent.recurrence.end_type" value="on" name="calendarEvent.recurrence.end_type"
+                                    ng-required="!calendarEvent.recurrence.end_type">
                                 <label><i18n>calendar.recurrence.end.on</i18n></label>
-                                <date-picker-calendar disable='calendarEvent.recurrence.end_type !== "on"' ng-model="calendarEvent.recurrence.end_on"></date-picker-calendar>
+                                <date-picker-calendar ng-disabled='calendarEvent.recurrence.end_type !== "on"' ng-required="calendarEvent.recurrence.end_type === 'on'" 
+                                    ng-model="calendarEvent.recurrence.end_on">
+                                </date-picker-calendar>
                             </div>
+                        </div>
+                    </div>
+                    <div class="content" ng-if="calendarEvent.parentId && calendarEvent.isRecurrent">
+                        <div class="row">
+                            <label>La récurrence est: <i18n>calendar.recurrence.every</i18n> [[calendarEvent.recurrence.every]] <label>
+                            <label ng-if="calendarEvent.recurrence.type === 'every_day'"><i18n>calendar.recurrence.days</i18n>, </label>
+                            <label ng-if="calendarEvent.recurrence.type === 'every_week'"><i18n>calendar.recurrence.weeks</i18n>, <i18n>calendar.recurrence.repeat.on</i18n></label>
+                            
+                            <label ng-repeat="(key, value) in calendarEvent.recurrence.week_days">
+                                <span ng-if="value == true"> [[ model.recurrence.dayMap[key] ]], </span>
+                            </label> 
+
+                            <label><i18n>calendar.recurrence.end</i18n> </label>
+                            <label ng-if="calendarEvent.recurrence.end_type === 'after'">
+                                <i18n>calendar.recurrence.end.after</i18n> [[calendarEvent.recurrence.end_after]] <i18n>calendar.recurrence.occurrences</i18n>
+                            </label>
+                            <label ng-if="calendarEvent.recurrence.end_type === 'on'"><i18n>calendar.recurrence.end.on</i18n> [[calendarEvent.recurrence.end_on]]</label>
+                        </div> 
+                        <div class="row">
+                            <input type="checkbox" ng-model="calendarEvent.noMoreRecurrent"/>
+                            <label>Sortir cet évènement de la récurrence</label>
+                        </div>
+                        <div class="row" ng-if="calendarEvent.noMoreRecurrent">
+                            <input type="checkbox" ng-model="calendarEvent.noMoreRecurrence" ng-checked="!calendarEvent.noMoreRecurrent" />
+                            <label>Supprimer les autres évènements de la récurrence</label>
                         </div>
                     </div>
                 </div>
             </article>
         </div>
         
+        <button ng-if="calendarEvent._id" class="right-magnet" ng-click="confirmRemoveCalendarEvent(calendarEvent, $event)"><i18n>remove</i18n></button>   
         <button class="right-magnet" ng-click="saveCalendarEventEdit()" ng-disabled="form.$invalid"><i18n>save</i18n></button>
-        <button ng-if="calendarEvent._id" class="right-magnet" ng-click="confirmRemoveCalendarEvent(calendarEvent, $event)"><i18n>remove</i18n></button>
+        
         </form>
     </section>	
 </div>

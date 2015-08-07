@@ -16,6 +16,7 @@
     "calendar.event.error.cause": "Cause de l'erreur",
     "calendar.event.location": "Lieu",
     "calendar.event.allday": "Toute la journée",
+    "calendar.event.isrecurrent": "Evènement récurrent",
     "calendar.event.start.date": "Date de début",
     "calendar.event.end.date": "Date de fin",
     "calendar.event.start.time": "Heure de début",
@@ -68,7 +69,9 @@
     "calendar.recurrence.day.of.month": "jours du mois",
     "calendar.recurrence.day.of.week": "jours de la semaine",
 
-    "calendar.confirm.delete.recurrent.event": "Vous allez supprimer un évènement récurrent ainsi que toutes ses occurrences",
+    "calendar.confirm.delete.recurrent.event": "Confimer la suppression d'évènements récurrents",
+    "calendar.recurrent.event.thisOccurrence": "Pour cette occurrence",
+    "calendar.recurrent.event.allOccurrences": "Pour toutes les occurrences",
 
 	"group.AdminLocal": "Tous les administrateurs locaux",
     "group.Personnel": "Tous les personnels du groupe {0}.",
