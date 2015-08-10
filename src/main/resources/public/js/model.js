@@ -105,8 +105,48 @@ CalendarEvent.prototype.delete = function(callback) {
 
 CalendarEvent.prototype.calendarUpdate = function(cb, cbe) {
     if (this.beginning) {
-        this.startMoment = this.beginning;
-        this.endMoment = this.end;
+        var startMoment = moment(this.beginning).milliseconds(0);
+        var endMoment = moment(this.end).milliseconds(0);
+        var duration = endMoment.diff(startMoment, 'seconds');
+        var intervalMinute = model.timeConfig.interval;
+        var intervalSecond = intervalMinute * 60;
+        if (duration%intervalSecond <= (intervalSecond/2)) {
+            duration = ((duration/intervalSecond)>>0)*intervalSecond;
+        } else {
+            duration = (((duration+intervalSecond)/intervalSecond)>>0)*intervalSecond;
+        }
+        var startSecond = (startMoment.minutes() * 60) + startMoment.seconds();
+        
+        if (startSecond%intervalSecond <= (intervalSecond/2)) {
+            var startMinute = ((startSecond/intervalSecond)>>0)*intervalMinute;
+            startMoment.minutes(startMinute).seconds(0);
+            startSecond = startSecond%intervalSecond;
+        } else {
+            var startMinute = (((startSecond + intervalSecond)/intervalSecond)>>0)*intervalMinute;
+            startMoment.minutes(startMinute).seconds(0);
+            startSecond = intervalSecond - startSecond%intervalSecond;
+        }
+        var endSecond = (endMoment.minutes() * 60) + endMoment.seconds();
+        if (endSecond%intervalSecond <= (intervalSecond/2)) {
+            var endMinute = ((endSecond/intervalSecond)>>0)*intervalMinute; 
+            endMoment.minutes(endMinute).seconds(0);
+            endSecond = endSecond%intervalSecond;
+        } else {
+            var endMinute = (((endSecond + intervalSecond)/intervalSecond)>>0)*intervalMinute;
+            endMoment.minutes(endMinute).seconds(0);
+            endSecond = intervalSecond - endSecond%intervalSecond;
+        }
+        if (startSecond <= endSecond) {
+            endMoment =  moment(startMoment).add(duration, 'seconds'); 
+        } else {
+            startMoment = moment(endMoment).subtract(duration, 'seconds');
+        }
+        this.startMoment = startMoment;
+        this.endMoment = endMoment;
+        this.beginning = startMoment;
+        this.end = endMoment;
+        //this.startMoment = this.beginning;
+        //this.endMoment = this.end;
     }
     if(this._id) {
         this.update(function(){
