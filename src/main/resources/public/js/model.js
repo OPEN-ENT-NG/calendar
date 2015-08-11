@@ -178,7 +178,8 @@ CalendarEvent.prototype.toJSON = function(){
         allday: this.allday,
         recurrence: this.recurrence,
         parentId : this.parentId,
-        isRecurrent: this.isRecurrent
+        isRecurrent: this.isRecurrent,
+        index: this.index
 	}
 };
 
