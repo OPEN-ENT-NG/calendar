@@ -186,8 +186,7 @@
                                 <input type="radio" ng-model="calendarEvent.recurrence.end_type" value="on" name="calendarEvent.recurrence.end_type"
                                     ng-required="!calendarEvent.recurrence.end_type">
                                 <label><i18n>calendar.recurrence.end.on</i18n></label>
-                                <date-picker-calendar ng-disabled='calendarEvent.recurrence.end_type !== "on"' ng-required="calendarEvent.recurrence.end_type === 'on'" 
-                                    ng-model="calendarEvent.recurrence.end_on">
+                                <date-picker-calendar ng-required="calendarEvent.recurrence.end_type === 'on'" ng-model="calendarEvent.recurrence.end_on">
                                 </date-picker-calendar>
                             </div>
                         </div>
