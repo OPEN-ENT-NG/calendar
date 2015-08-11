@@ -12,13 +12,13 @@ model.recurrence = {
         7: false
     },
     dayMap: {
-        1: 'L',
-        2: 'M',
-        3: 'M',
-        4: 'J',
-        5: 'V',
-        6: 'S',
-        7: 'D',
+        1: 'Lu',
+        2: 'Ma',
+        3: 'Me',
+        4: 'Je',
+        5: 'Ve',
+        6: 'Sa',
+        7: 'Di',
     }
 };
 
@@ -61,10 +61,10 @@ function CalendarEvent() {
 
 CalendarEvent.prototype.save = function(callback){
     if (this.allday) {
-        this.startMoment.hours(7);
+        this.startMoment.hours(0);
         this.startMoment.minutes(0);
-        this.endMoment.hours(20);
-        this.endMoment.minutes(0);
+        this.endMoment.hours(23);
+        this.endMoment.minutes(59);
     }
 	if(this._id){
 		this.update(callback);
