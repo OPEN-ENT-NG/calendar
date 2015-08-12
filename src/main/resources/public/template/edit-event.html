@@ -81,16 +81,17 @@
                                 <input type="checkbox" ng-model="calendarEvent.allday"/>
                                 <label><i18n>calendar.event.allday</i18n></label>
                             </div>
-                            <!--
-                            <div class="six cell">
-                                <input type="checkbox" ng-model="calendarEvent.isRecurrent" ng-change="toggleIsRecurrent()" ng-init="toggleIsRecurrent()" 
-                                    ng-disabled="hasExistingRecurrence(calendarEvent)"/>
-                                <label><i18n>calendar.event.isrecurrent</i18n></label>
-                            </div> -->
-                            <div class="six cell" ng-if="calendarEvent.parentId">
-                                <input type="checkbox" ng-model="calendarEvent.dateToRecurrence"/> 
-                                <label>Appliquer la durée à toute la récurrence</label>
-                            </div>
+                        </div>
+                        <div class="row" ng-if="calendarEvent.parentId">
+                            <label>Appliquer à toute la récurrence : </label>
+                            <input type="checkbox" ng-model="calendarEvent.startDateToRecurrence"/>
+                            <label>Heure de début</label>
+                            <input type="checkbox" ng-model="calendarEvent.endDateToRecurrence"/>
+                            <label>Heure de fin</label>
+                            <span ng-if="!(calendarEvent.startDateToRecurrence && calendarEvent.endDateToRecurrence)">
+                                <input type="checkbox" ng-model="calendarEvent.durationToRecurrence" />
+                                <label>Durée</label>
+                            </span>
                         </div>
                     </div>
                 </div>

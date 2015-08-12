@@ -23,7 +23,7 @@ model.recurrence = {
 };
 
 model.timeConfig = { // 5min slots from 7h00 to 19h55, default 8h00
-	interval: 5, // in minutes
+	interval: 15, // in minutes
 	start_hour: 0,
 	end_hour: 23,
 	default_hour: 8
@@ -61,10 +61,10 @@ function CalendarEvent() {
 
 CalendarEvent.prototype.save = function(callback){
     if (this.allday) {
-        this.startMoment.hours(0);
+        this.startMoment.hours(7);
         this.startMoment.minutes(0);
-        this.endMoment.hours(23);
-        this.endMoment.minutes(59);
+        this.endMoment.hours(20);
+        this.endMoment.minutes(0);
     }
 	if(this._id){
 		this.update(callback);

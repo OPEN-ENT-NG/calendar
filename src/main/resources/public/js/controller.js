@@ -820,29 +820,49 @@ function CalendarController($scope, template, model, lang, date, route, $timeout
                     if (cle._id !== calendarEvent._id) {
                         cle.delete(function(){});
                     }
-                })
+                });
             }
 
-            if ((calendarEvent.detailToRecurrence || calendarEvent.dateToRecurrence) && calendarEvent.parentId) {
-                recurrentCalendarEvents.forEach(function(cle) {
+            if ((calendarEvent.detailToRecurrence || calendarEvent.durationToRecurrence || calendarEvent.startDateToRecurrence || calendarEvent.endDateToRecurrence) && calendarEvent.parentId) {
+                recurrentCalendarEvents.forEach (function(cle) {
                     if (cle._id !== calendarEvent._id) {
+                        var save = false;
                         if (calendarEvent.detailToRecurrence) {
                             cle.title = calendarEvent.title;
                             cle.description = calendarEvent.description;
                             cle.location = calendarEvent.location;
+                            save = true;
                         }
-                        if (calendarEvent.dateToRecurrence) {
-                            if (!calendarEvent.allday) {
-                                var diff = calendarEvent.endMoment.diff(calendarEvent.startMoment, 'minutes');
-                                if (cle.allday) {
-                                    cle.startMoment = moment(cle.startMoment).hours(calendarEvent.startMoment.hours()).minutes(calendarEvent.startMoment.minutes());
-                                } 
-                                cle.endMoment = moment(cle.startMoment).add(diff, 'minutes');
-                                
+                        if (calendarEvent.durationToRecurrence) {
+                            if (!calendarEvent.allday && !cle.allday) {
+                                var diff = calendarEvent.endMoment.diff(calendarEvent.startMoment, 'minutes'); 
+                                cle.endMoment = moment(cle.startMoment).add(diff, 'minutes'); 
+                                save = true;   
                             }
-                            cle.allday = calendarEvent.allday;
                         }
-                        cle.save(function(){});   
+                        if (calendarEvent.startDateToRecurrence) {
+                            if (!calendarEvent.allday && !cle.allday) {
+                                if (!moment(cle.startMoment).hours(calendarEvent.startMoment.hours()).minutes(calendarEvent.startMoment.minutes()).isAfter(cle.endMoment, 'minute')) {
+                                    cle.startMoment = moment(cle.startMoment).hours(calendarEvent.startMoment.hours()).minutes(calendarEvent.startMoment.minutes());
+                                    save = true;
+                                }                               
+                            }    
+                        }
+                        if (calendarEvent.endDateToRecurrence) {
+                            if (!calendarEvent.allday && !cle.allday) {
+                                if (!moment(cle.endMoment).hours(calendarEvent.endMoment.hours()).minutes(calendarEvent.endMoment.minutes()).isBefore(cle.startMoment, 'minute')) {
+                                    cle.endMoment = moment(cle.endMoment).hours(calendarEvent.endMoment.hours()).minutes(calendarEvent.endMoment.minutes());
+                                    save = true;
+                                }                               
+                            }    
+                        }
+                        if (calendarEvent.startDateToRecurrence && calendarEvent.endDateToRecurrence && calendarEvent.allday) {
+                            cle.allday = true;
+                            save = true;
+                        } 
+                        if (save) {
+                            cle.save(function(){});
+                        }   
                     }
 
                 });
@@ -860,8 +880,16 @@ function CalendarController($scope, template, model, lang, date, route, $timeout
                 calendarEvent.detailToRecurrence = false;
             }
 
-            if (calendarEvent.dateToRecurrence) {
-                calendarEvent.dateToRecurrence = false;
+            if (calendarEvent.startDateToRecurrence) {
+                calendarEvent.startDateToRecurrence = false;
+            }
+
+            if (calendarEvent.endDateToRecurrence) {
+                calendarEvent.endDateToRecurrence = false;
+            }
+
+            if (calendarEvent.durationToRecurrence) {
+                calendarEvent.durationToRecurrence = false;
             }
 
             $scope.calendarEvent.calendar.calendarEvents.sync(function() {
