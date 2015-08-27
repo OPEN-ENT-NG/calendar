@@ -194,7 +194,10 @@
                     </div>
                     <div class="content" ng-if="calendarEvent.parentId && calendarEvent.isRecurrent">
                         <div class="row">
-                            <label>La récurrence est: <i18n>calendar.recurrence.every</i18n> [[calendarEvent.recurrence.every]] <label>
+                            <label><i18n>calendar.recurrence</i18n>: </label>
+                            <label ng-if="calendarEvent.recurrence.type === 'every_day'"><i18n>calendar.recurrence.every</i18n></label>
+                            <label ng-if="calendarEvent.recurrence.type === 'every_week'"><i18n>calendar.recurrence.every.female</i18n></label>
+                            <label ng-if="calendarEvent.recurrence.every > 1"> [[ calendarEvent.recurrence.every ]] </label>
                             <label ng-if="calendarEvent.recurrence.type === 'every_day'"><i18n>calendar.recurrence.days</i18n>, </label>
                             <label ng-if="calendarEvent.recurrence.type === 'every_week'"><i18n>calendar.recurrence.weeks</i18n>, <i18n>calendar.recurrence.repeat.on</i18n></label>
                             
@@ -204,17 +207,17 @@
 
                             <label><i18n>calendar.recurrence.end</i18n> </label>
                             <label ng-if="calendarEvent.recurrence.end_type === 'after'">
-                                <i18n>calendar.recurrence.end.after</i18n> [[calendarEvent.recurrence.end_after]] <i18n>calendar.recurrence.occurrences</i18n>
+                                <i18n>calendar.recurrence.end.afterlc</i18n> [[calendarEvent.recurrence.end_after]] <i18n>calendar.recurrence.occurrences</i18n>
                             </label>
-                            <label ng-if="calendarEvent.recurrence.end_type === 'on'"><i18n>calendar.recurrence.end.on</i18n> [[calendarEvent.recurrence.end_on]]</label>
+                            <label ng-if="calendarEvent.recurrence.end_type === 'on'"><i18n>calendar.recurrence.end.onlc</i18n> [[calendarEvent.recurrence.end_on]]</label>
                         </div> 
                         <div class="row">
                             <input type="checkbox" ng-model="calendarEvent.noMoreRecurrent"/>
-                            <label>Sortir cet évènement de la récurrence</label>
+                            <label><i18n>calendar.recurrent.event.remove</i18n></label>
                         </div>
                         <div class="row" ng-if="calendarEvent.noMoreRecurrent">
                             <input type="checkbox" ng-model="calendarEvent.noMoreRecurrence" ng-checked="!calendarEvent.noMoreRecurrent" />
-                            <label>Supprimer les autres évènements de la récurrence</label>
+                            <label><i18n>calendar.recurrent.event.delete.others</i18n></label>
                         </div>
                     </div>
                 </div>
