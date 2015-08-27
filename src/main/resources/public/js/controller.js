@@ -6,7 +6,7 @@ routes.define(function($routeProvider) {
     });
 });
 
-function CalendarController($scope, template, model, lang, date, route, $timeout) {
+function CalendarController($scope, template, model, lang, date, route, $timeout, $q) {
 	
     this.initialize = function() {
         $scope._ = _;
@@ -122,7 +122,8 @@ function CalendarController($scope, template, model, lang, date, route, $timeout
  
     $scope.handleEveryDayRecurrence = function(calendarEvent) {
         var calendarRecurrentEvent;
-        var count = 0;
+        var list = [];
+        //var count = 0;
         if (calendarEvent.recurrence.end_type == 'after' && calendarEvent.recurrence.end_after) {
             for (i = 0; i < calendarEvent.recurrence.end_after; i++) {
                 calendarRecurrentEvent = $scope.createChildCalendarEvent(calendarEvent);
@@ -132,8 +133,10 @@ function CalendarController($scope, template, model, lang, date, route, $timeout
                 calendarRecurrentEvent.endMoment = moment(calendarEvent.endMoment).add(toAdd, 'days');
 
                 //$scope.saveCalendarEventEdit(calendarRecurrentEvent);
-                calendarRecurrentEvent.create(function(){});
-                count += 1;
+                //calendarRecurrentEvent.create(function(){});
+                var item = {'calEvent': calendarRecurrentEvent, 'action': 'save'};
+                list.push(item);
+                //count += 1;
             }
         } else if (calendarEvent.recurrence.end_type == 'on' && calendarEvent.recurrence.end_on) {
             var endOnMoment = moment(calendarEvent.recurrence.end_on);
@@ -149,12 +152,15 @@ function CalendarController($scope, template, model, lang, date, route, $timeout
                     break;
                 }
                 //$scope.saveCalendarEventEdit(calendarRecurrentEvent);
-                calendarRecurrentEvent.create(function(){});
-                count += 1;
+                //calendarRecurrentEvent.create(function(){});
+                var item = {'calEvent': calendarRecurrentEvent, 'action': 'save'};
+                list.push(item);
+                //count += 1;
                 startMoment = calendarRecurrentEvent.startMoment;
             }
         }
-        return count;
+        //return count;
+        return list;
     };
 
     $scope.handleEveryWeekRecurrence = function(calendarEvent) {
@@ -173,7 +179,8 @@ function CalendarController($scope, template, model, lang, date, route, $timeout
             startOn.isoWeekday(recurrenceDays[0]);
         }
         var endOn = moment(startOn);
-        var count = 0;
+        //var count = 0;
+        var list = [];
         if (calendarEvent.recurrence.end_type == 'after') {
             while (recurrenceDays.length < calendarEvent.recurrence.end_after) {
                 recurrenceDays = recurrenceDays.concat(weekDays);
@@ -192,8 +199,10 @@ function CalendarController($scope, template, model, lang, date, route, $timeout
                 calendarRecurrentEvent.startMoment = moment(endOn).hours(startHour).minutes(startMinute);
                 calendarRecurrentEvent.endMoment = moment(calendarRecurrentEvent.startMoment).add(duration, 'minutes');
                 //$scope.saveCalendarEventEdit(calendarRecurrentEvent);
-                calendarRecurrentEvent.create(function(){});
-                count += 1;
+                //calendarRecurrentEvent.create(function(){});
+                var item = {'calEvent': calendarRecurrentEvent, 'action': 'save'};
+                list.push(item);
+                //count += 1;
                 previousDay = day;
             });
         } else if (calendarEvent.recurrence.end_type == 'on') {
@@ -215,8 +224,10 @@ function CalendarController($scope, template, model, lang, date, route, $timeout
                         calendarRecurrentEvent.startMoment = moment(endOn).hours(startHour).minutes(startMinute);
                         calendarRecurrentEvent.endMoment = moment(calendarRecurrentEvent.startMoment).add(duration, 'minutes');
                         //$scope.saveCalendarEventEdit(calendarRecurrentEvent);
-                        calendarRecurrentEvent.create(function(){});
-                        count +=1;
+                        //calendarRecurrentEvent.create(function(){});
+                        var item = {'calEvent': calendarRecurrentEvent, 'action': 'save'};
+                        list.push(item);
+                        //count +=1;
                         previousDay = day;
                         return true;
                     } else {
@@ -225,7 +236,8 @@ function CalendarController($scope, template, model, lang, date, route, $timeout
                 });
             }           
         }
-        return count;
+        //return count;
+        return list;
     };
 
     $scope.handleEveryWeekDayRecurrence = function(calendarEvent) {
@@ -750,9 +762,76 @@ function CalendarController($scope, template, model, lang, date, route, $timeout
         reader.readAsBinaryString(file);
     };
 
-    $scope.saveCalendarEventEdit = function(calendarEvent) { 
+    $scope.saveCalendarEventEdit = function(calendarEvent) {
+
+        function doRecurrentCalendarEvent(items, count) {
+            if (items.length === count) {
+                if (calendarEvent.noMoreRecurrent) {
+                    calendarEvent.noMoreRecurrent = false;
+                }
+
+                if (calendarEvent.noMoreRecurrence) {
+                    calendarEvent.noMoreRecurrence = false;
+                }
+
+                if (calendarEvent.detailToRecurrence) {
+                    calendarEvent.detailToRecurrence = false;
+                }
+
+                if (calendarEvent.startDateToRecurrence) {
+                    calendarEvent.startDateToRecurrence = false;
+                }
+
+                if (calendarEvent.endDateToRecurrence) {
+                    calendarEvent.endDateToRecurrence = false;
+                }
+
+                if (calendarEvent.durationToRecurrence) {
+                    calendarEvent.durationToRecurrence = false;
+                }
+
+                $scope.calendarEvent.calendar.calendarEvents.sync(function() {
+                    $scope.refreshCalendarEventItems($scope.calendarEvent.calendar); 
+                    $scope.calendarEvents.applyFilters();  
+                });
+            } else {
+
+                var recurrentCalendarEvent = items[count].calEvent;
+                var action = items[count].action;
+
+                if (action === 'save') {
+                    if (recurrentCalendarEvent.isRecurrent && count!== 0) {
+                        var parentId = items[0].calEvent._id;
+                        if (items[0].calEvent.parentId) {
+                            parentId = items[0].calEvent.parentId;
+                        }
+                        recurrentCalendarEvent.parentId = parentId;            
+                    }
+                    recurrentCalendarEvent.save(function () {
+                        count++;
+                        doRecurrentCalendarEvent(items, count);
+                    });
+                        
+                } else {
+                    recurrentCalendarEvent.delete(function () {
+                        count++;
+                        doRecurrentCalendarEvent(items, count);
+                    });
+                }
+            }
+        }
+
+        var items = [];
+        
         if (!calendarEvent) {
             calendarEvent = $scope.calendarEvent;
+        }
+
+        var parentId = false;
+        if (calendarEvent.parentId) {
+            parentId = calendarEvent.parentId;
+        } else if (calendarEvent._id) {
+            parentId = calendarEvent._id;
         }
 
         var hasExistingRecurrence = false;
@@ -767,7 +846,6 @@ function CalendarController($scope, template, model, lang, date, route, $timeout
             if (calendarEvent.recurrence.end_on) {
                 calendarEvent.recurrence.end_on.hours(0).minutes(0).seconds(0).milliseconds(0);
             }
-            //calendarEvent.index = 0;
         }
 
         if (calendarEvent.noMoreRecurrent) {
@@ -792,113 +870,91 @@ function CalendarController($scope, template, model, lang, date, route, $timeout
         calendarEvent.startMoment.seconds(0).milliseconds(0);
         calendarEvent.endMoment.seconds(0).milliseconds(0);
 
-        $scope.display.showEventPanel = undefined;
-        
-        calendarEvent.save(function(){
-
-            var count = 0;
-            
-            if (calendarEvent.isRecurrent && !calendarEvent.parentId && !hasExistingRecurrence) {
-                count = $scope.handleRecurrence(calendarEvent);
-            }
-
-            if (calendarEvent.isRecurrent && !calendarEvent.parentId) {
-                //calendarEvent.parentId = calendarEvent._id;
-                //calendarEvent.save(function(){});
-                if (parentAction === 'create') {
-                    calendarEvent.delete(function(){});
-                } else if (count > 0) {
-                    calendarEvent.delete(function(){});
-                } else {
-                    calendarEvent.parentId = calendarEvent._id;
-                    calendarEvent.save(function(){});   
-                }
-            } 
-
-            if (calendarEvent.noMoreRecurrent && hasExistingRecurrence && calendarEvent.noMoreRecurrence) {
-                recurrentCalendarEvents.forEach(function(cle) {
-                    if (cle._id !== calendarEvent._id) {
-                        cle.delete(function(){});
-                    }
-                });
-            }
-
-            if ((calendarEvent.detailToRecurrence || calendarEvent.durationToRecurrence || calendarEvent.startDateToRecurrence || calendarEvent.endDateToRecurrence) && calendarEvent.parentId) {
-                recurrentCalendarEvents.forEach (function(cle) {
-                    if (cle._id !== calendarEvent._id) {
-                        var save = false;
-                        if (calendarEvent.detailToRecurrence) {
-                            cle.title = calendarEvent.title;
-                            cle.description = calendarEvent.description;
-                            cle.location = calendarEvent.location;
-                            save = true;
-                        }
-                        if (calendarEvent.durationToRecurrence) {
-                            if (!calendarEvent.allday && !cle.allday) {
-                                var diff = calendarEvent.endMoment.diff(calendarEvent.startMoment, 'minutes'); 
-                                cle.endMoment = moment(cle.startMoment).add(diff, 'minutes'); 
-                                save = true;   
-                            }
-                        }
-                        if (calendarEvent.startDateToRecurrence) {
-                            if (!calendarEvent.allday && !cle.allday) {
-                                if (!moment(cle.startMoment).hours(calendarEvent.startMoment.hours()).minutes(calendarEvent.startMoment.minutes()).isAfter(cle.endMoment, 'minute')) {
-                                    cle.startMoment = moment(cle.startMoment).hours(calendarEvent.startMoment.hours()).minutes(calendarEvent.startMoment.minutes());
-                                    save = true;
-                                }                               
-                            }    
-                        }
-                        if (calendarEvent.endDateToRecurrence) {
-                            if (!calendarEvent.allday && !cle.allday) {
-                                if (!moment(cle.endMoment).hours(calendarEvent.endMoment.hours()).minutes(calendarEvent.endMoment.minutes()).isBefore(cle.startMoment, 'minute')) {
-                                    cle.endMoment = moment(cle.endMoment).hours(calendarEvent.endMoment.hours()).minutes(calendarEvent.endMoment.minutes());
-                                    save = true;
-                                }                               
-                            }    
-                        }
-                        if (calendarEvent.startDateToRecurrence && calendarEvent.endDateToRecurrence && calendarEvent.allday) {
-                            cle.allday = true;
-                            save = true;
-                        } 
-                        if (save) {
-                            cle.save(function(){});
-                        }   
-                    }
-
-                });
-            }
-
-            if (calendarEvent.noMoreRecurrent) {
-                calendarEvent.noMoreRecurrent = false;
-            }
-
-            if (calendarEvent.noMoreRecurrence) {
-                calendarEvent.noMoreRecurrence = false;
-            }
-
-            if (calendarEvent.detailToRecurrence) {
-                calendarEvent.detailToRecurrence = false;
-            }
-
-            if (calendarEvent.startDateToRecurrence) {
-                calendarEvent.startDateToRecurrence = false;
-            }
-
-            if (calendarEvent.endDateToRecurrence) {
-                calendarEvent.endDateToRecurrence = false;
-            }
-
-            if (calendarEvent.durationToRecurrence) {
-                calendarEvent.durationToRecurrence = false;
-            }
-
-            $scope.calendarEvent.calendar.calendarEvents.sync(function() {
-                $scope.refreshCalendarEventItems($scope.calendarEvent.calendar); 
-                $scope.calendarEvents.applyFilters();   
-            });
-
+         //$scope.display.showEventPanel = undefined;
+        $scope.closeCalendarEvent(calendarEvent);
+        $scope.calendarEvent.calendar.calendarEvents.sync(function() {
+            $scope.refreshCalendarEventItems($scope.calendarEvent.calendar); 
+            $scope.calendarEvents.applyFilters();  
         });
-        //$scope.display.showEventPanel = undefined;
+
+        var item = {'calEvent': calendarEvent, 'action': 'save'};
+
+        items.push(item);
+
+        if (calendarEvent.isRecurrent && !calendarEvent.parentId && !hasExistingRecurrence) {
+            Array.prototype.push.apply(items, $scope.handleRecurrence(calendarEvent));
+        }
+
+        if (calendarEvent.isRecurrent && !calendarEvent.parentId) {
+            var item = {'calEvent': calendarEvent, 'action': 'delete'};
+            if (parentAction === 'create') {    
+                items.push(item);
+            } else if (items.length > 1) {
+                items.push(item);
+            } else {
+                calendarEvent.parentId = calendarEvent._id;
+                item.action = 'save';
+                items.push(item);  
+            }
+        } 
+
+        if (calendarEvent.noMoreRecurrent && hasExistingRecurrence && calendarEvent.noMoreRecurrence) {
+            recurrentCalendarEvents.forEach(function(cle) {
+                if (cle._id !== calendarEvent._id) {
+                    var item = {'calEvent': cle, 'action': 'delete'}; 
+                    items.push(item);
+                }
+            });
+        }
+
+        if ((calendarEvent.detailToRecurrence || calendarEvent.durationToRecurrence || calendarEvent.startDateToRecurrence || calendarEvent.endDateToRecurrence) && calendarEvent.parentId) {
+            recurrentCalendarEvents.forEach (function(cle) {
+                if (cle._id !== calendarEvent._id) {
+                    var save = false;
+                    if (calendarEvent.detailToRecurrence) {
+                        cle.title = calendarEvent.title;
+                        cle.description = calendarEvent.description;
+                        cle.location = calendarEvent.location;
+                        save = true;
+                    }
+                    if (calendarEvent.durationToRecurrence) {
+                        if (!calendarEvent.allday && !cle.allday) {
+                            var diff = calendarEvent.endMoment.diff(calendarEvent.startMoment, 'minutes'); 
+                            cle.endMoment = moment(cle.startMoment).add(diff, 'minutes'); 
+                            save = true;   
+                        }
+                    }
+                    if (calendarEvent.startDateToRecurrence) {
+                        if (!calendarEvent.allday && !cle.allday) {
+                            if (!moment(cle.startMoment).hours(calendarEvent.startMoment.hours()).minutes(calendarEvent.startMoment.minutes()).isAfter(cle.endMoment, 'minute')) {
+                                cle.startMoment = moment(cle.startMoment).hours(calendarEvent.startMoment.hours()).minutes(calendarEvent.startMoment.minutes());
+                                save = true;
+                            }                               
+                        }    
+                    }
+                    if (calendarEvent.endDateToRecurrence) {
+                        if (!calendarEvent.allday && !cle.allday) {
+                            if (!moment(cle.endMoment).hours(calendarEvent.endMoment.hours()).minutes(calendarEvent.endMoment.minutes()).isBefore(cle.startMoment, 'minute')) {
+                                cle.endMoment = moment(cle.endMoment).hours(calendarEvent.endMoment.hours()).minutes(calendarEvent.endMoment.minutes());
+                                save = true;
+                            }                               
+                        }    
+                    }
+                    if (calendarEvent.startDateToRecurrence && calendarEvent.endDateToRecurrence && calendarEvent.allday) {
+                        cle.allday = true;
+                        save = true;
+                    } 
+                    if (save) {
+                        var item = {'calEvent': cle, 'action': 'save'};
+                        items.push(item);
+                    }   
+                }
+
+            });
+        }
+
+        doRecurrentCalendarEvent(items, 0);
+
     };
 
 
