@@ -105,7 +105,7 @@
                 <div class="toggle">
                         <div class="row">
                             <input type="checkbox" ng-if="!calendarEvent.parentId" ng-model="calendarEvent.isRecurrent" ng-change="toggleIsRecurrent()"/>
-                            <label><i18n>calendar.event.isrecurrent</i18n></label>
+                            <label><i18n>calendar.event.recurrent</i18n></label>
                         </div>
                     <div class="content" ng-if="!calendarEvent.parentId && calendarEvent.isRecurrent">
 
@@ -197,19 +197,28 @@
                             <label><i18n>calendar.recurrence</i18n>: </label>
                             <label ng-if="calendarEvent.recurrence.type === 'every_day'"><i18n>calendar.recurrence.every</i18n></label>
                             <label ng-if="calendarEvent.recurrence.type === 'every_week'"><i18n>calendar.recurrence.every.female</i18n></label>
-                            <label ng-if="calendarEvent.recurrence.every > 1"> [[ calendarEvent.recurrence.every ]] </label>
+                            <label ng-if="calendarEvent.recurrence.every != '1'"> [[ calendarEvent.recurrence.every ]] </label>
                             <label ng-if="calendarEvent.recurrence.type === 'every_day'"><i18n>calendar.recurrence.days</i18n>, </label>
-                            <label ng-if="calendarEvent.recurrence.type === 'every_week'"><i18n>calendar.recurrence.weeks</i18n>, <i18n>calendar.recurrence.repeat.on</i18n></label>
-                            
+                            <label ng-if="calendarEvent.recurrence.type === 'every_week'"><i18n>calendar.recurrence.weeks</i18n>, </label>
+                        </div>
+                        <div class="row" ng-if="calendarEvent.recurrence.type === 'every_week'">
+                            <label><i18n>calendar.recurrence.repeat.on</i18n></label>
                             <label ng-repeat="(key, value) in calendarEvent.recurrence.week_days">
                                 <span ng-if="value == true"> [[ model.recurrence.dayMap[key] ]], </span>
                             </label> 
-
+                        </div>
+                        <div class="row">
+                            <label><i18n>calendar.recurrence.start</i18n> <i18n>calendar.recurrence.onlc</i18n></label>
+                            <label> [[getDate(calendarEvent.recurrence.start_on)]], </label>
+                        </div> 
+                        <div class="row">
                             <label><i18n>calendar.recurrence.end</i18n> </label>
                             <label ng-if="calendarEvent.recurrence.end_type === 'after'">
-                                <i18n>calendar.recurrence.end.afterlc</i18n> [[calendarEvent.recurrence.end_after]] <i18n>calendar.recurrence.occurrences</i18n>
+                                <i18n>calendar.recurrence.afterlc</i18n> [[calendarEvent.recurrence.end_after]] <i18n>calendar.recurrence.occurrences</i18n>
                             </label>
-                            <label ng-if="calendarEvent.recurrence.end_type === 'on'"><i18n>calendar.recurrence.end.onlc</i18n> [[calendarEvent.recurrence.end_on]]</label>
+                            <label ng-if="calendarEvent.recurrence.end_type === 'on'">
+                                <i18n>calendar.recurrence.onlc</i18n> [[getDate(calendarEvent.recurrence.end_on)]]
+                            </label>
                         </div> 
                         <div class="row">
                             <input type="checkbox" ng-model="calendarEvent.noMoreRecurrent"/>

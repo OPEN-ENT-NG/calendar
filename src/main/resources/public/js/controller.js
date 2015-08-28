@@ -59,8 +59,8 @@ function CalendarController($scope, template, model, lang, date, route, $timeout
         
     };
 
-    $scope.toggleIsRecurrent = function() {
-        if ($scope.calendarEvent.isRecurrent) {
+    $scope.toggleIsRecurrent = function(calendarEvent) {
+        if (calendarEvent.isRecurrent) {
 
             if (!$scope.calendarEvent.recurrence.end_on) {
                 $scope.calendarEvent.recurrence.end_on = moment($scope.calendarEvent.endMoment).add(1, 'days').hours(0).minutes(0).seconds(0).milliseconds(0);
@@ -79,6 +79,11 @@ function CalendarController($scope, template, model, lang, date, route, $timeout
             }
         }
     };
+
+    $scope.getDate = function(date) {    
+        return moment(date).format('DD/MM/YYYY');
+    };
+        
 
     $scope.changedRecurrenceType = function() {
 
@@ -870,7 +875,7 @@ function CalendarController($scope, template, model, lang, date, route, $timeout
         calendarEvent.startMoment.seconds(0).milliseconds(0);
         calendarEvent.endMoment.seconds(0).milliseconds(0);
 
-         //$scope.display.showEventPanel = undefined;
+        //$scope.display.showEventPanel = undefined;
         $scope.closeCalendarEvent(calendarEvent);
         $scope.calendarEvent.calendar.calendarEvents.sync(function() {
             $scope.refreshCalendarEventItems($scope.calendarEvent.calendar); 
