@@ -40,7 +40,7 @@ def configurePom(def pom) {
 		description 'Calendar'
 		inceptionYear '2015'
 		packaging 'zip'
-		url 'http://code.web-education.net/wse/calendar'
+        url 'https://github.com/web-education/calendar'
 
 		developers {
 			developer {
@@ -48,10 +48,15 @@ def configurePom(def pom) {
 				name 'Herve Devos'
 				email 'herve.devos@atos.net'
 			}
+            developer {
+                id 'morquea'
+                name 'Alain Morque'
+                email 'alain.morque@atos.net'
+            }
 		}
 
 		scm {
-			url 'git@code.web-education.net:wse/calendar.git'
+            url 'git@github.com:web-education/calendar.git'
 		}
 
 		properties {

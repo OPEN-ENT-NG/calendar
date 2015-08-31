@@ -57,23 +57,22 @@
                         <div class="row">
                             <div class="six cell">
                                 <label class="twelve cell form-label"><i18n>calendar.event.start.date</i18n></label>
-                                <date-picker-calendar ng-model="calendarEvent.startMoment" ng-change="changeEndMoment()"></date-picker-calendar> 
-                                <!-- <input type="text" ng-model="calendarEvent.startMoment" data-date-format="dd/MM/yyyy" data-autoclose="1" bs-datepicker> -->
+                                <date-picker-calendar ng-model="calendarEvent.startMoment" ng-change="changeStartMoment()"></date-picker-calendar> 
                             </div>
                             <div class="six cell" ng-if="!calendarEvent.allday">    
                                 <label class="twelve cell form-label"><i18n>calendar.event.start.time</i18n></label>
-                                <time-picker-calendar id="time-picker-start-moment" class="input-small two cell time-picker" ng-begin="true" ng-limit="calendarEvent.endMoment" ng-model="calendarEvent.startMoment" ng-change="changeEndMoment()"></time-picker-calendar>
+                                <time-picker-calendar id="time-picker-start-moment" class="input-small two cell time-picker" ng-begin="true" ng-limit="calendarEvent.endMoment" ng-model="calendarEvent.startMoment" ng-change="changeStartMoment()"></time-picker-calendar>
                             </div>
                         </div>
 
                         <div class="row">
                             <div class="six cell">
                                 <label class="twelve cell form-label"><i18n>calendar.event.end.date</i18n></label>
-                                <date-picker-calendar ng-model="calendarEvent.endMoment" ng-change="changeStartMoment()"></date-picker-calendar>
+                                <label> [[getDate(calendarEvent.startMoment)]]</label>
                             </div>
                             <div class="six cell" ng-if="!calendarEvent.allday">
                                 <label class="twelve cell form-label"><i18n>calendar.event.end.time</i18n></label>
-                                <time-picker-calendar id="time-picker-end-moment" class="input-small two cell" ng-end="true" ng-limit="calendarEvent.startMoment" ng-model="calendarEvent.endMoment" ng-change="changeStartMoment()"></time-picker-calendar>
+                                <time-picker-calendar id="time-picker-end-moment" class="input-small two cell" ng-end="true" ng-limit="calendarEvent.startMoment" ng-model="calendarEvent.endMoment" ng-change="changeEndMoment()"></time-picker-calendar>
                             </div>
                         </div>
                         <div class="row">
@@ -84,11 +83,19 @@
                         </div>
                         <div class="row" ng-if="calendarEvent.parentId">
                             <label>Appliquer à toute la récurrence : </label>
-                            <input type="checkbox" ng-model="calendarEvent.startDateToRecurrence"/>
-                            <label>Heure de début</label>
-                            <input type="checkbox" ng-model="calendarEvent.endDateToRecurrence"/>
-                            <label>Heure de fin</label>
-                            <span ng-if="!(calendarEvent.startDateToRecurrence && calendarEvent.endDateToRecurrence)">
+                            <span ng-if="calendarEvent.allday">
+                                <input type="checkbox" ng-model="calendarEvent.alldayToRecurrence"/>
+                                <label><i18n>calendar.event.allday</i18n></label>
+                            </span>
+                            <span ng-if="!calendarEvent.allday">
+                                <input type="checkbox" ng-model="calendarEvent.startDateToRecurrence" ng-click="toggleDateToRecurrence('start')" />
+                                <label>Heure de début</label>
+                            </span>
+                            <span ng-if="!calendarEvent.allday">
+                                <input type="checkbox" ng-model="calendarEvent.endDateToRecurrence" ng-click="toggleDateToRecurrence('end')" />
+                                <label>Heure de fin</label>
+                            </span>
+                            <span ng-if="!calendarEvent.allday">
                                 <input type="checkbox" ng-model="calendarEvent.durationToRecurrence" />
                                 <label>Durée</label>
                             </span>
@@ -104,7 +111,7 @@
                 </h2>
                 <div class="toggle">
                         <div class="row">
-                            <input type="checkbox" ng-if="!calendarEvent.parentId" ng-model="calendarEvent.isRecurrent" ng-change="toggleIsRecurrent()"/>
+                            <input type="checkbox" ng-if="!calendarEvent.parentId" ng-model="calendarEvent.isRecurrent" ng-change="toggleIsRecurrent(calendarEvent)"/>
                             <label><i18n>calendar.event.recurrent</i18n></label>
                         </div>
                     <div class="content" ng-if="!calendarEvent.parentId && calendarEvent.isRecurrent">
@@ -113,10 +120,7 @@
                             <label><i18n>calendar.reccurent</i18n></label>
                             <select ng-model="calendarEvent.recurrence.type" ng-change="changedRecurrenceType()">
                                 <option value="every_day">[[lang.translate("calendar.recurrence.every.day")]]</option>
-                                <!--<option value="every_week_day">[[lang.translate("calendar.recurrence.every.week.day")]]</option>-->
                                 <option value="every_week">[[lang.translate("calendar.recurrence.every.week")]]</option>
-                                <!--<option value="every_month">[[lang.translate("calendar.recurrence.every.month")]]</option>
-                                <option value="every_year">[[lang.translate("calendar.recurrence.every.year")]]</option>-->
                             </select>
                         </div>
 
@@ -171,10 +175,6 @@
 
                         <div class="row">
                             <label><i18n>calendar.recurrence.end</i18n></label>
-                            <!--<div class="row">
-                                <input type="radio" name="reccurence-end" ng-model="calendarEvent.recurrence.end" value="never"/>
-                                <label><i18n>calendar.recurrence.end.never</i18n></label>
-                            </div>-->
                             <div class="row">
                                 <input type="radio" ng-model="calendarEvent.recurrence.end_type" value="after" name="calendarEvent.recurrence.end_type"
                                     ng-required="!calendarEvent.recurrence.end_type">
