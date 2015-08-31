@@ -24,8 +24,8 @@ model.recurrence = {
 
 model.timeConfig = { // 5min slots from 7h00 to 19h55, default 8h00
 	interval: 15, // in minutes
-	start_hour: 0,
-	end_hour: 23,
+	start_hour: 7,
+	end_hour: 20,
 	default_hour: 8
 };
 

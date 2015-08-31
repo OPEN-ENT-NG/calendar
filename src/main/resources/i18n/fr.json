@@ -70,6 +70,7 @@
     "calendar.recurrence.repeat.each": "Répéter tous les",
     "calendar.recurrence.day.of.month": "jours du mois",
     "calendar.recurrence.day.of.week": "jours de la semaine",
+    "calendar.recurrence.apply": "Appliquer à toute la récurrence",
     "calendar.confirm.delete.recurrent.event": "Confimer la suppression d'évènements récurrents",
     "calendar.recurrent.event.remove": "Sortir cet évènement de la récurrence",
     "calendar.recurrent.event.delete.others": "Supprimer les autres évènements de la récurrence",
