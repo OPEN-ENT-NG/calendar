@@ -198,7 +198,7 @@ function CalendarController($scope, template, model, lang, date, route, $timeout
             }
             var previousDay = recurrenceDays[0];
             recurrenceDays.forEach(function(day, idx, arr) {
-                if (day < previousDay) {
+                if (day <= previousDay && idx > 0) {
                     endOn.isoWeekday(1).add(dayJump, 'days');
                 }
                 endOn.isoWeekday(day);
@@ -219,7 +219,7 @@ function CalendarController($scope, template, model, lang, date, route, $timeout
             if (recurrenceDays.length) {
                 var previousDay = recurrenceDays[0];
                 recurrenceDays.every(function(day, idx, arr) {
-                    if (day < previousDay) {
+                    if (day <= previousDay && idx > 0) {
                         endOn.isoWeekday(1).add(dayJump, 'days');
                     }
                     endOn.isoWeekday(day);
