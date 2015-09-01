@@ -730,6 +730,10 @@ function CalendarController($scope, template, model, lang, date, route, $timeout
                     calendarEvent.durationToRecurrence = false;
                 }
 
+                if (calendarEvent.alldayToRecurrence) {
+                    calendarEvent.alldayToRecurrence = false;
+                }
+
                 $scope.calendarEvent.calendar.calendarEvents.sync(function() {
                     $scope.refreshCalendarEventItems($scope.calendarEvent.calendar); 
                     $scope.calendarEvents.applyFilters();  
