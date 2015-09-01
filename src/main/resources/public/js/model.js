@@ -105,8 +105,8 @@ CalendarEvent.prototype.delete = function(callback) {
 
 CalendarEvent.prototype.calendarUpdate = function(cb, cbe) {
     if (this.beginning) {
-        var startMoment = moment(this.beginning).milliseconds(0);
-        var endMoment = moment(this.end).milliseconds(0);
+        var startMoment = moment(this.beginning).utc().milliseconds(0);
+        var endMoment = moment(this.end).utc().milliseconds(0);
         var duration = endMoment.diff(startMoment, 'seconds');
         var intervalMinute = model.timeConfig.interval;
         var intervalSecond = intervalMinute * 60;
