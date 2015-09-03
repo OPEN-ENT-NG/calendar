@@ -190,12 +190,16 @@ function Calendar() {
  	this.collection(CalendarEvent, {
 		sync: function(callback){
 			http().get('/calendar/' + calendar._id + '/events').done(function(calendarEvents){
+                var locked = true;
+                if (calendar.myRights.contrib) {
+                    locked = false;
+                }
 				_.each(calendarEvents, function(calendarEvent){
 					calendarEvent.calendar = calendar;
 					calendarEvent.startMoment = moment(calendarEvent.startMoment).utc().second(0).millisecond(0);
 					calendarEvent.endMoment = moment(calendarEvent.endMoment).utc().second(0).millisecond(0);
 					calendarEvent.is_periodic = false;
-                    calendarEvent.locked = false;
+                    calendarEvent.locked = locked;
                     calendarEvent.color = calendar.color;
 				});
 				this.load(calendarEvents);
