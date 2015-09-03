@@ -421,7 +421,7 @@ function CalendarController($scope, template, model, lang, date, route, $timeout
                 if ($scope.display.list) {
                     //$scope.calendarEvents.applyFilters();
                 } else {
-                    //template.open('calendar', 'read-calendar');
+                    template.open('calendar', 'read-calendar');
                 }
             });
             if (savePreferences) {
