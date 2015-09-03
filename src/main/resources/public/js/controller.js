@@ -14,6 +14,7 @@ function CalendarController($scope, template, model, lang, date, route, $timeout
         $scope.template = template;
         $scope.display = {};
         $scope.display.list = false;
+        $scope.display.calendar = false;
         $scope.model = model;
         $scope.me = model.me;
         $scope.date = date;
@@ -344,12 +345,14 @@ function CalendarController($scope, template, model, lang, date, route, $timeout
 
     $scope.showList = function() {
         $scope.display.list = true;
+        $scope.display.calendar = false;
         $scope.calendarEvents.applyFilters();
         template.open('calendar', 'events-list');
     };
 
     $scope.showCalendar = function() {
         $scope.display.list = false;
+        $scope.display.calendar = true;
         template.open('calendar', 'read-calendar');
     };
 
@@ -418,10 +421,9 @@ function CalendarController($scope, template, model, lang, date, route, $timeout
                 } 
                 $scope.refreshCalendarEventItems();
                 $scope.calendarEvents.applyFilters();
-                if ($scope.display.list) {
-                    //$scope.calendarEvents.applyFilters();
-                } else {
+                if (!$scope.display.list && !$scope.display.calendar) {
                     template.open('calendar', 'read-calendar');
+                    $scope.display.calendar = true;
                 }
             });
             if (savePreferences) {
