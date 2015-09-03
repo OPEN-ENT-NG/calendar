@@ -6,8 +6,8 @@
   </li>
 </filters>
 
-<div class="row">
-	<calendar ng-if="hasContribRight()"
+<div class="row" ng-if="display.editEventRight">
+	<calendar
 		display-template="display-calendar-item" 
 		create-template="edit-event"
 		on-create-open="createCalendarEvent(newItem)"
@@ -15,7 +15,10 @@
 		items="calendarEvents.all">
 	</calendar>
 
-    <calendar ng-if="!hasContribRight()"
+</div>
+
+<div class="row" ng-if="!display.editEventRight">
+    <calendar
         display-template="display-calendar-item" 
         items="calendarEvents.all">
     </calendar>

@@ -15,6 +15,7 @@ function CalendarController($scope, template, model, lang, date, route, $timeout
         $scope.display = {};
         $scope.display.list = false;
         $scope.display.calendar = false;
+        $scope.display.editEventRight = false;
         $scope.model = model;
         $scope.me = model.me;
         $scope.date = date;
@@ -419,6 +420,7 @@ function CalendarController($scope, template, model, lang, date, route, $timeout
                 if (calendar.selected) {
                     $scope.calendar = calendar;
                 } 
+                $scope.display.editEventRight = $scope.hasContribRight();
                 $scope.refreshCalendarEventItems();
                 $scope.calendarEvents.applyFilters();
                 if (!$scope.display.list && !$scope.display.calendar) {
