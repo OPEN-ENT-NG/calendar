@@ -6,7 +6,7 @@
             <li ng-if="ownCalendars()">
                 <a class="selected"><i18n>calendar.my.calendars</i18n></a>
                 <ul>
-                    <li ng-repeat="cl in calendars.all | filter:isMyCalendar">
+                    <li ng-repeat="cl in calendars.all | filter:isMyCalendar | orderBy: '+title'">
                         <a class="[[cl.color]]" ng-class="{'selected': cl.selected}" ng-click="openOrCloseCalendar(cl, true)">
                             <span>[[cl.title]]</span>
                             <input type="checkbox" class="calendar-checkbox" ng-click="$event.stopPropagation();" ng-model="cl.showButtons" ng-change="hideOtherCalendarCheckboxes(cl)"/>
@@ -18,7 +18,7 @@
             <li ng-if="hasSharedCalendars()">
                 <a class="selected"><i18n>calendar.shared.calendars</i18n></a>
                 <ul>
-                    <li ng-repeat="cl in calendars.all | filter:isCalendarSharedWithMe">
+                    <li ng-repeat="cl in calendars.all | filter:isCalendarSharedWithMe | orderBy: '+title'">
                         <a class="[[cl.color]]" ng-class="{'selected': cl.selected}" ng-click="openOrCloseCalendar(cl, true)">
                             <span>[[cl.title]]</span>
                             <input ng-if="cl.myRights.manage" type="checkbox" class="calendar-checkbox" ng-click="$event.stopPropagation();" ng-model="cl.showButtons" ng-change="hideOtherCalendarCheckboxes(cl)"/>

@@ -286,7 +286,7 @@ function CalendarController($scope, template, model, lang, date, route, $timeout
                     template.open('error', '404');
                 } else {
                     $scope.notFound = false;
-                    $scope.openOrCloseCalendar(calendar);
+                    $scope.openOrCloseCalendar(calendar, true);
                 }
             });
         },
@@ -417,10 +417,11 @@ function CalendarController($scope, template, model, lang, date, route, $timeout
                     $scope.calendar = calendar;
                 } 
                 $scope.refreshCalendarEventItems();
+                $scope.calendarEvents.applyFilters();
                 if ($scope.display.list) {
-                    $scope.calendarEvents.applyFilters();
+                    //$scope.calendarEvents.applyFilters();
                 } else {
-                    template.open('calendar', 'read-calendar');
+                    //template.open('calendar', 'read-calendar');
                 }
             });
             if (savePreferences) {

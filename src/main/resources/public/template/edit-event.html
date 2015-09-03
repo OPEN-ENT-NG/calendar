@@ -19,7 +19,7 @@
                         <div class="row">
                             <label><i18n>calendar.event.calendar</i18n></label><span ng-if="calendarEvent._id"> [[calendarEvent.calendar.title]]</span>
                             <select ng-if="!calendarEvent._id" class="twelve cell" ng-model="calendarEvent.calendar" ng-change="changeCalendarEventCalendar()" 
-                            ng-options="opt as opt.title for opt in calendars.selection() | filter:hasContribRight" />
+                            ng-options="opt as opt.title for opt in calendars.selection() | filter:hasContribRight | orderBy: '+title'" />
                         </div>
 
                         <div class="row" ng-if="calendarEvent._id">
