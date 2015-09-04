@@ -3,9 +3,9 @@
     <nav class="vertical row">
         <ul class="colored">
             <!-- My calendars -->
-            <li ng-if="ownCalendars()">
+            <li>
                 <a class="selected"><i18n>calendar.my.calendars</i18n></a>
-                <ul>
+                <ul ng-if="ownCalendars()">
                     <li ng-repeat="cl in calendars.all | filter:isMyCalendar | orderBy: '+title'">
                         <a class="[[cl.color]]" ng-class="{'selected': cl.selected}" ng-click="openOrCloseCalendar(cl, true)">
                             <span>[[cl.title]]</span>
@@ -13,11 +13,12 @@
                         </a>
                     </li>
                 </ul>
+                <ul ng-if="!ownCalendars()"><li>Aucun agenda personnel</li></ul>
             </li>
             <!-- Shared calendars -->
-            <li ng-if="hasSharedCalendars()">
+            <li>
                 <a class="selected"><i18n>calendar.shared.calendars</i18n></a>
-                <ul>
+                <ul ng-if="hasSharedCalendars()">
                     <li ng-repeat="cl in calendars.all | filter:isCalendarSharedWithMe | orderBy: '+title'">
                         <a class="[[cl.color]]" ng-class="{'selected': cl.selected}" ng-click="openOrCloseCalendar(cl, true)">
                             <span>[[cl.title]]</span>
@@ -25,8 +26,9 @@
                         </a>
                     </li>
                 </ul>
+                <ul ng-if="!hasSharedCalendars()"><li>Aucun agenda partagé</li></ul>
             </li> 
-            <div ng-if="calendars.empty() === true"><i18n>calendar.calendars.empty</i18n></div>
+            <div ng-if="calendars.empty() === true && !display.list && !display.calendar"><[[showCalendar()]]</div>
         </ul>
     <hr />
     </nav>
