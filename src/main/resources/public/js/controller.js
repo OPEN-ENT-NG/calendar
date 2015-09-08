@@ -415,6 +415,7 @@ function CalendarController($scope, template, model, lang, date, route, $timeout
 
     $scope.openOrCloseCalendar = function(calendar, savePreferences) {
         if ($scope.calendars.selection().length > 1 || !calendar.selected) {
+            $scope.display.calendar = false;
             calendar.selected = !calendar.selected;
             calendar.open(function(){
                 if (calendar.selected) {
@@ -422,11 +423,13 @@ function CalendarController($scope, template, model, lang, date, route, $timeout
                 } 
                 $scope.display.editEventRight = $scope.hasContribRight();
                 $scope.refreshCalendarEventItems();
+
                 $scope.calendarEvents.applyFilters();
                 if (!$scope.display.list && !$scope.display.calendar) {
-                    template.open('calendar', 'read-calendar');
-                    $scope.display.calendar = true;
-                }
+                    $scope.showCalendar();
+                    //template.open('calendar', 'read-calendar');
+                    //$scope.display.calendar = true;
+                } 
             });
             if (savePreferences) {
                 $scope.calendarPreferences.selectedCalendars = _.map($scope.calendars.selection(), function(calendar) {
@@ -741,7 +744,8 @@ function CalendarController($scope, template, model, lang, date, route, $timeout
 
                 $scope.calendarEvent.calendar.calendarEvents.sync(function() {
                     $scope.refreshCalendarEventItems($scope.calendarEvent.calendar); 
-                    $scope.calendarEvents.applyFilters();  
+                    $scope.calendarEvents.applyFilters(); 
+                    $scope.display.calendar = true;
                 });
             } else {
 
@@ -775,6 +779,8 @@ function CalendarController($scope, template, model, lang, date, route, $timeout
         if (!calendarEvent) {
             calendarEvent = $scope.calendarEvent;
         }
+
+        $scope.display.calendar = false;
 
         var parentId = false;
         if (calendarEvent.parentId) {
@@ -821,10 +827,12 @@ function CalendarController($scope, template, model, lang, date, route, $timeout
 
         //$scope.display.showEventPanel = undefined;
         $scope.closeCalendarEvent(calendarEvent);
+        /*
         $scope.calendarEvent.calendar.calendarEvents.sync(function() {
             $scope.refreshCalendarEventItems($scope.calendarEvent.calendar); 
             $scope.calendarEvents.applyFilters();  
         });
+        */
 
         var item = {'calEvent': calendarEvent, 'action': 'save'};
 
