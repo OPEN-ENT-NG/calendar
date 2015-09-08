@@ -6,7 +6,7 @@
   </li>
 </filters>
 
-<div class="row" ng-if="display.editEventRight">
+<div class="row" ng-if="display.editEventRight && display.calendar">
 	<calendar
 		display-template="display-calendar-item" 
 		create-template="edit-event"
@@ -17,7 +17,7 @@
 
 </div>
 
-<div class="row" ng-if="!display.editEventRight">
+<div class="row" ng-if="!display.editEventRight && display.calendar">
     <calendar
         display-template="display-calendar-item" 
         items="calendarEvents.all">
