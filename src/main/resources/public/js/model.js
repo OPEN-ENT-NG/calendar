@@ -141,6 +141,19 @@ CalendarEvent.prototype.calendarUpdate = function(cb, cbe) {
         } else {
             startMoment = moment(endMoment).subtract(duration, 'seconds');
         }
+        if (startMoment.hours() < model.timeConfig.start_hour) {
+            startMoment.hours(model.timeConfig.start_hour).minutes(0);
+            endMoment = moment(startMoment).add(duration, 'seconds');
+        }
+        if (endMoment.hours() == model.timeConfig.end_hour && endMoment.minutes() > 0) {
+            endMoment.hours(model.timeConfig.end_hour).minutes(0);
+            startMoment = moment(endMoment).subtract(duration, 'seconds');
+        }
+        if (endMoment.hours() > model.timeConfig.end_hour) {
+            endMoment.hours(model.timeConfig.end_hour).minutes(0);
+            startMoment = moment(endMoment).subtract(duration, 'seconds');
+        }
+
         this.startMoment = startMoment;
         this.endMoment = endMoment;
         this.beginning = startMoment;
