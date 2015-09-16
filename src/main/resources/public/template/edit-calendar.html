@@ -1,20 +1,21 @@
 <div class="row">
+    <form name="form">
+        <h2>
+            <i18n ng-if="!calendar._id">calendar.new</i18n>
+            <i18n ng-if="calendar._id">calendar.edit</i18n>
+        </h2>
 
-    <h2>
-        <i18n ng-if="!calendar._id">calendar.new</i18n>
-        <i18n ng-if="calendar._id">calendar.edit</i18n>
-    </h2>
+        <div class="row">
+            <label class="twelve cell"><i18n>calendar.title</i18n></label>
+            <input class="twelve cell" required ng-model="calendar.title" type="text"/>
+        </div>
 
-    <div class="row">
-        <label class="twelve cell"><i18n>calendar.title</i18n></label>
-        <input class="twelve cell" required ng-model="calendar.title" type="text"/>
-    </div>
+        <div class="row">
+            <label class="twelve cell"><i18n>calendar.color</i18n></label>
+            <color-selector ng-model='calendar.color'></color-selector>
+        </div>
 
-    <div class="row">
-        <label class="twelve cell"><i18n>calendar.color</i18n></label>
-        <color-selector ng-model='calendar.color'></color-selector>
-    </div>
-
-    <button class="right-magnet" ng-click="saveCalendarEdit()"><i18n>save</i18n></button>
-    <button class="cancel right-magnet" ng-click="cancelCalendarEdit()"><i18n>cancel</i18n></button>
+        <button class="right-magnet" ng-disabled="form.$invalid" ng-click="saveCalendarEdit()"><i18n>save</i18n></button>
+        <button class="cancel right-magnet" ng-click="cancelCalendarEdit()"><i18n>cancel</i18n></button>
+    </form>
 </div>
