@@ -497,6 +497,7 @@ function CalendarController($scope, template, model, lang, date, route, $timeout
     $scope.closeCalendarEvent = function(calendarEvent) {
 
         template.close('lightbox');
+        $scope.showCalendarEventTimePicker = false;
         $scope.display.showEventPanel = false;
     };
 
@@ -659,6 +660,7 @@ function CalendarController($scope, template, model, lang, date, route, $timeout
             $scope.calendarEvent.endMoment.hour($scope.calendarEvent.startMoment.hour() + 1);
         }
         $scope.initEventDates($scope.calendarEvent.startMoment, $scope.calendarEvent.endMoment);
+        $scope.showCalendarEventTimePicker = true;
     };
 
     $scope.displayImportIcsPanel = function() {
@@ -825,14 +827,7 @@ function CalendarController($scope, template, model, lang, date, route, $timeout
         calendarEvent.startMoment.seconds(0).milliseconds(0);
         calendarEvent.endMoment.seconds(0).milliseconds(0);
 
-        //$scope.display.showEventPanel = undefined;
         $scope.closeCalendarEvent(calendarEvent);
-        /*
-        $scope.calendarEvent.calendar.calendarEvents.sync(function() {
-            $scope.refreshCalendarEventItems($scope.calendarEvent.calendar); 
-            $scope.calendarEvents.applyFilters();  
-        });
-        */
 
         var item = {'calEvent': calendarEvent, 'action': 'save'};
 
@@ -921,7 +916,6 @@ function CalendarController($scope, template, model, lang, date, route, $timeout
         }
 
         doItemCalendarEvent(items, 0);
-
     };
 
 
@@ -981,6 +975,27 @@ function CalendarController($scope, template, model, lang, date, route, $timeout
         var prevEnd = moment(model.calendarEvents.filters.endMoment).subtract(7, 'day');
         updateCalendarList(prevStart,prevEnd);
     };
+
+    $scope.switchCalendarEventTab = function(tab) {
+        if (tab === 'dates') {
+            $scope.calendarEvent.showRecurrence = false;
+            $scope.calendarEvent.showDetails = false;
+            $scope.calendarEvent.showDates = true;
+            $scope.showCalendarEventTimePicker = true;
+
+        } else if (tab === 'details') {
+            $scope.calendarEvent.showRecurrence = false;
+            $scope.calendarEvent.showDetails = true;
+            $scope.calendarEvent.showDates = false;
+            $scope.showCalendarEventTimePicker = false;
+
+        } else if (tab === 'recurrence') {
+            $scope.calendarEvent.showRecurrence = true;
+            $scope.calendarEvent.showDetails = false;
+            $scope.calendarEvent.showDates = false;
+            $scope.showCalendarEventTimePicker = false;
+        }
+    }
 
     var updateCalendarList = function(start, end){
         model.calendarEvents.filters.startMoment.date(start.date());

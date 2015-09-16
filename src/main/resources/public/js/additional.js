@@ -48,15 +48,15 @@ module.directive('datePickerCalendar', function($compile){
 			past: '=',
 			expObject: '=',
 			exp: '=',
-			disable: '='
+			disable: '=',
+			showPanel: '='
 		},
 		transclude: true,
 		replace: true,
 		restrict: 'E',
 		template: '<input ng-transclude type="text" data-date-format="dd/mm/yyyy" />',
 		link: function($scope, $element, $attributes){
-			//console.log('disabled = ' + $scope.disable);
-			//$element.prop('disabled', $scope.disable);
+			var datePickerElement = null;
 
 			function setNewDate(){
 				var date = $element.val().split('/');
@@ -87,26 +87,6 @@ module.directive('datePickerCalendar', function($compile){
 				}
 				$element.val($scope.ngModel.format('DD/MM/YYYY'));	
 			});
-			loader.asyncLoad('/calendar/public/js/bootstrap-datepicker.js', function(){
-				$element.datepicker({
-						dates: {
-							months: moment.months(),
-							monthsShort: moment.monthsShort(),
-							days: moment.weekdays(),
-							daysShort: moment.weekdaysShort(),
-							daysMin: moment.weekdaysMin()
-						},
-						format: 'dd/mm/yyyy',
-                        weekStart: 1
-					})
-					.on('changeDate', function(){
-						setTimeout(setNewDate, 10);
-
-						$(this).datepicker('hide');
-					});
-				$element.datepicker('hide');
-			});
-
 
 			$element.on('focus', function(){
 				var that = this;
@@ -118,8 +98,40 @@ module.directive('datePickerCalendar', function($compile){
 
 			$element.on('change', setNewDate);
 
+			$scope.$watch('showPanel', function(newVal) {
+				if (!newVal) {
+					if (datePickerElement != null) {
+						datePickerElement.datepicker('destroy');
+						datePickerElement = null;
+					}
+				}
+				else {
+					loader.asyncLoad('/calendar/public/js/bootstrap-datepicker.js', function(){
+						datePickerElement = $element.datepicker({
+							dates: {
+								months: moment.months(),
+								monthsShort: moment.monthsShort(),
+								days: moment.weekdays(),
+								daysShort: moment.weekdaysShort(),
+								daysMin: moment.weekdaysMin()
+							},
+							format: 'dd/mm/yyyy',
+		                    weekStart: 1
+						})
+						.on('changeDate', function(){
+							setTimeout(setNewDate, 10);
+
+							$(this).datepicker('hide');
+						});
+						$element.datepicker('hide');
+					});
+				}
+			});
+
 			$element.on('$destroy', function() {
-				$element.datepicker('destroy');			
+				if (datePickerElement != null) {
+	       			datePickerElement.datepicker('destroy');
+	       		}
 			});
 		}
 	}
@@ -132,7 +144,9 @@ module.directive('timePickerCalendar', function($compile){
 			ngBegin: '=',
 			ngEnd: '=',
 			ngLimit: '=',
-			ngChange: '&'
+			ngChange: '&',
+			appendTo: '=',
+			showPanel: '='
 		},
 		transclude: true,
 		replace: true,
@@ -140,19 +154,7 @@ module.directive('timePickerCalendar', function($compile){
 		template: "<input type='text'/>",
 
 		link: function($scope, $element, $attributes){
-			loader.asyncLoad('/calendar/public/js/jquery.timepicker.js', function(){
-				$element.timepicker({
-					'timeFormat': 'H:i',
-					'step': 15
-				}).on('changeTime', function(){
-					var time = $element.val().split(':');
-					$scope.ngModel.set('hour', time[0]);
-					$scope.ngModel.set('minute', time[1]);
-					$scope.$apply('ngModel');
-					$scope.$parent.$eval($scope.ngChange);
-					$scope.$parent.$apply();
-				});
-			});
+			
 			$scope.$watch('ngModel', function(newVal){
 				if (newVal) {
 					$scope.ngModel = newVal;
@@ -167,7 +169,31 @@ module.directive('timePickerCalendar', function($compile){
 					}
 				}
 			});
-			
+
+			$scope.$watch('showPanel', function(newVal) {
+				if (!newVal) {
+					console.log('destroy timepicker');
+					if (typeof($element.timepicker) === 'function') {
+						$element.timepicker('remove');							
+					}
+				} else {
+					loader.asyncLoad('/calendar/public/js/jquery.timepicker.js', function(){
+						$element.timepicker({
+							'timeFormat': 'H:i',
+							'step': 15,
+							'appendTo' : $scope.appendTo
+						}).on('changeTime', function(){
+							var time = $element.val().split(':');
+							$scope.ngModel.set('hour', time[0]);
+							$scope.ngModel.set('minute', time[1]);
+							$scope.$apply('ngModel');
+							$scope.$parent.$eval($scope.ngChange);
+							$scope.$parent.$apply();
+						});
+					});
+				}
+			});
+
 		}
 	}
 });
