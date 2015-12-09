@@ -47,18 +47,8 @@ function CalendarController($scope, template, model, lang, date, route, $timeout
 
     $scope.changeEndMoment = function() {
 
-        if ($scope.calendarEvent.endMoment.hours() == model.timeConfig.end_hour && $scope.calendarEvent.endMoment.minutes() > 0) {
-            $scope.calendarEvent.endMoment.hours(model.timeConfig.end_hour).minutes(0);
-        }
-        if ($scope.calendarEvent.endMoment.hours() > model.timeConfig.end_hour) {
-            $scope.calendarEvent.endMoment.hours(model.timeConfig.end_hour).minutes(0);
-        }
         if ($scope.calendarEvent.startMoment.isAfter($scope.calendarEvent.endMoment)) {
             $scope.calendarEvent.endMoment = moment($scope.calendarEvent.startMoment).add(1, 'hours');
-        }
-
-        if ($scope.calendarEvent.endMoment.hours() == model.timeConfig.end_hour && $scope.calendarEvent.endMoment.minutes() > 0) {
-            $scope.calendarEvent.endMoment.hours(model.timeConfig.end_hour).minutes(0);
         }
         
     };
@@ -67,15 +57,11 @@ function CalendarController($scope, template, model, lang, date, route, $timeout
 
         $scope.calendarEvent.endMoment.years($scope.calendarEvent.startMoment.years()).months($scope.calendarEvent.startMoment.months()).days($scope.calendarEvent.startMoment.days());
 
-        if ($scope.calendarEvent.startMoment.hours() < model.timeConfig.start_hour) {
-            $scope.calendarEvent.startMoment.hours(model.timeConfig.start_hour).minutes(0);
-        }
+       
         if ($scope.calendarEvent.startMoment.isAfter($scope.calendarEvent.endMoment)) {
             $scope.calendarEvent.startMoment = moment($scope.calendarEvent.endMoment).subtract(1, 'hours');
         }
-        if ($scope.calendarEvent.startMoment.hours() < model.timeConfig.start_hour) {
-            $scope.calendarEvent.startMoment.hours(model.timeConfig.start_hour).minutes(0);
-        }
+
         
     };
 
@@ -397,7 +383,6 @@ function CalendarController($scope, template, model, lang, date, route, $timeout
             event.startMoment = startMoment;
         }
         else{
-            event.startMoment = minTime;
             if(startMoment.isAfter(maxTime)){
                 startMoment.add(1, 'days');
                 endMoment.add(1, 'days');
@@ -407,10 +392,7 @@ function CalendarController($scope, template, model, lang, date, route, $timeout
         if(endMoment.isBefore(maxTime)){
             event.endMoment = endMoment;
         }
-        else{
-            event.endMoment = maxTime;
-        }
-
+        
     };
 
     $scope.openOrCloseCalendar = function(calendar, savePreferences) {
