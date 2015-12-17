@@ -1,0 +1,93 @@
+<div class="row" id="editEventForm">
+
+    <!-- Event details -->
+    <h2 ng-click="switchCalendarEventTab('details')">
+        <i18n>calendar.event.header.details</i18n>
+
+    </h2>
+    <div class="toggle">
+        <div class="content">
+
+            <div class="row">
+                <label><i18n>calendar.event.calendar</i18n></label><span ng-if="calendarEvent._id"> [[calendarEvent.calendar.title]]</span>
+                <select ng-if="!calendarEvent._id" class="twelve cell" ng-model="calendarEvent.calendar" ng-change="changeCalendarEventCalendar()"
+                        ng-options="opt as opt.title for opt in calendars.selection() | filter:hasContribRight | orderBy: '+title'" />
+            </div>
+
+            <div class="row" ng-if="calendarEvent._id">
+                <div class="twelve cell form-element">
+                    <label><i18n>calendar.event.owner</i18n></label><span> [[calendarEvent.owner.displayName]]</span>
+                </div>
+            </div>
+
+            <label class="twelve cell"><i18n>calendar.event.title</i18n></label>
+            <input class="twelve cell" required ng-model="calendarEvent.title" type="text"/>
+
+            <label class="twelve cell"><i18n>calendar.event.description</i18n></label>
+            <textarea class="twelve cell" readonly="readonly" ng-model="calendarEvent.description" />
+
+            <label class="twelve cell"><i18n>calendar.event.location</i18n></label>
+            <input class="twelve cell" ng-model="calendarEvent.location" type="text"/>
+
+            <div class="row" ng-if="calendarEvent.parentId">
+                <input type="checkbox" ng-model="calendarEvent.detailToRecurrence"/>
+                <label>Appliquer à toute la récurrence</label>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Event Dates -->
+
+    <div class="row">
+        <div class="six cell">
+            <label class="twelve cell form-label"><i18n>calendar.event.start.date</i18n></label>
+            <label>[[calendarEvent.startMomentDate]]</label>
+
+            <!-- <input type="text" ng-model="calendarEvent.startMoment" data-date-format="dd/MM/yyyy" data-autoclose="1" bs-datepicker> -->
+        </div>
+        <div class="six cell" ng-if="!calendarEvent.allday">
+            <label class="twelve cell form-label"><i18n>calendar.event.start.time</i18n></label>
+            <label>[[calendarEvent.startMomentTime]]</label>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="six cell">
+            <label class="twelve cell form-label"><i18n>calendar.event.end.date</i18n></label>
+            <label>[[calendarEvent.endMomentDate]]</label>
+        </div>
+        <div class="six cell" ng-if="!calendarEvent.allday">
+            <label class="twelve cell form-label"><i18n>calendar.event.end.time</i18n></label>
+            <label>[[calendarEvent.endMomentTime]]</label>
+        </div>
+    </div>
+    <div class="row">
+        <div class="six cell">
+            <input type="checkbox" ng-show="calendarEvent.allday"/>
+            <label><i18n>calendar.event.allday</i18n></label>
+        </div>
+    </div>
+    <div class="row" ng-if="calendarEvent.parentId">
+        <label>Appliquer à toute la récurrence : </label>
+        <input type="checkbox" ng-model="calendarEvent.startDateToRecurrence"/>
+        <label>Heure de début</label>
+        <label ng-model="calendarEvent.endDateToRecurrence"/>
+        <label>Heure de fin</label>
+                            <span ng-if="!(calendarEvent.startDateToRecurrence && calendarEvent.endDateToRecurrence)">
+                                <label ng-model="calendarEvent.durationToRecurrence" />[[calendarEvent.durationToRecurrence]]</label>
+                                <label>Durée</label>
+                            </span>
+    </div>
+
+
+    <!-- Event Recurrence -->
+
+    <div class="row">
+        <input type="checkbox" ng-if="!calendarEvent.parentId" ng-model="calendarEvent.isRecurrent" ng-change="toggleIsRecurrent()"/>
+        <label><i18n>calendar.event.isrecurrent</i18n></label>
+    </div>
+
+
+
+</div>
