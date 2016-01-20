@@ -6,6 +6,11 @@
     overflow:hidden;
 }
 
+.backgroundOrangeTitle {
+    background: #ff8500;
+    color: #fff;
+}
+
 .color-selector .green, .row .green, nav.vertical ul li a.green {
     background-color: #28c7a9 !important;
 }

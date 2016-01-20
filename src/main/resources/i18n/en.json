@@ -1,6 +1,7 @@
 {
     "calendar.title": "Calendar",
     "calendar.new": "New calendar",
+    "calendar.view.event": "View event",
     "calendar.edit": "Edit calendar",
     "calendar.color": "Calendar color",
     "calendar.confirm.delete.event": "Confirm event deletion",

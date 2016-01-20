@@ -1,6 +1,76 @@
 <div class="row" id="editEventForm">
+    <h2>
+        <i18n>calendar.view.event</i18n>
+    </h2>
 
-    <!-- Event details -->
+    <h3 class="backgroundOrangeTitle">
+        <i18n>calendar.event.header.details</i18n>
+    </h3>
+
+                <div class="toggle">
+                    <div class="content">
+
+                        <div class="row">
+                            <label><i18n>calendar.event.calendar</i18n>:</label><span> [[calendarEvent.calendar.title]]</span>
+                        </div>
+
+                        <div class="row" ng-if="calendarEvent._id">
+                            <div class="twelve cell form-element">
+                                <label><i18n>calendar.event.owner</i18n>:</label><span> [[calendarEvent.owner.displayName]]</span>
+                            </div>
+                        </div>
+
+                        <label class="twelve cell"><i18n>calendar.event.title</i18n>:</label>
+                        <label class="twelve cell" ng-model="calendarEvent.title" type="text"/>
+
+                        <label class="twelve cell"><i18n>calendar.event.description</i18n></label>
+                        <textarea class="twelve cell" ng-model="calendarEvent.description" disabled/>
+
+                        <label class="twelve cell"><i18n>calendar.event.location</i18n></label>
+                        <label class="twelve cell" ng-model="calendarEvent.location" type="text"/>
+
+                    </div>
+                    <div class="row">
+                    </div>
+
+                    <div class="content dates">
+
+                        <div class="row">
+                            <div class="six cell">
+                                <label class="twelve cell form-label"><i18n>calendar.event.start.date</i18n></label>
+                                <label>[[calendarEvent.startMomentDate]]</label>
+
+                                <!-- <input type="text" ng-model="calendarEvent.startMoment" data-date-format="dd/MM/yyyy" data-autoclose="1" bs-datepicker> -->
+                            </div>
+                            <div class="six cell" ng-if="!calendarEvent.allday">
+                                <label class="twelve cell form-label"><i18n>calendar.event.start.time</i18n></label>
+                                <label>[[calendarEvent.startMomentTime]]</label>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="six cell">
+                                <label class="twelve cell form-label"><i18n>calendar.event.end.date</i18n></label>
+                                <label>[[calendarEvent.endMomentDate]]</label>
+                            </div>
+                            <div class="six cell" ng-if="!calendarEvent.allday">
+                                <label class="twelve cell form-label"><i18n>calendar.event.end.time</i18n></label>
+                                <label>[[calendarEvent.endMomentTime]]</label>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+
+
+
+<!--
+
+
+<div class="row" id="editEventForm">
+
+    &lt;!&ndash; Event details &ndash;&gt;
     <h2 ng-click="switchCalendarEventTab('details')">
         <i18n>calendar.event.header.details</i18n>
 
@@ -37,14 +107,14 @@
         </div>
     </div>
 
-    <!-- Event Dates -->
+    &lt;!&ndash; Event Dates &ndash;&gt;
 
     <div class="row">
         <div class="six cell">
             <label class="twelve cell form-label"><i18n>calendar.event.start.date</i18n></label>
             <label>[[calendarEvent.startMomentDate]]</label>
 
-            <!-- <input type="text" ng-model="calendarEvent.startMoment" data-date-format="dd/MM/yyyy" data-autoclose="1" bs-datepicker> -->
+            &lt;!&ndash; <input type="text" ng-model="calendarEvent.startMoment" data-date-format="dd/MM/yyyy" data-autoclose="1" bs-datepicker> &ndash;&gt;
         </div>
         <div class="six cell" ng-if="!calendarEvent.allday">
             <label class="twelve cell form-label"><i18n>calendar.event.start.time</i18n></label>
@@ -81,7 +151,7 @@
     </div>
 
 
-    <!-- Event Recurrence -->
+    &lt;!&ndash; Event Recurrence &ndash;&gt;
 
     <div class="row">
         <input type="checkbox" ng-if="!calendarEvent.parentId" ng-model="calendarEvent.isRecurrent" ng-change="toggleIsRecurrent()"/>
@@ -90,4 +160,4 @@
 
 
 
-</div>
+</div>-->

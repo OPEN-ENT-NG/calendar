@@ -174,7 +174,7 @@ CalendarEvent.prototype.toJSON = function(){
         description: this.description,
         location: this.location,
 		startMoment: this.startMoment.second(0).millisecond(0),
-		endMoment: this.endMoment.second(0).millisecond(0),
+        endMoment: this.endMoment.second(0).millisecond(0),
         allday: this.allday,
         recurrence: this.recurrence,
         parentId : this.parentId,
@@ -197,8 +197,12 @@ function Calendar() {
 				_.each(calendarEvents, function(calendarEvent){
 					calendarEvent.calendar = calendar;
 					calendarEvent.startMoment = moment(calendarEvent.startMoment).utc().second(0).millisecond(0);
-					calendarEvent.endMoment = moment(calendarEvent.endMoment).utc().second(0).millisecond(0);
-					calendarEvent.is_periodic = false;
+                    calendarEvent.startMomentDate = moment(calendarEvent.startMoment).format('DD/MM/YYYY');
+                    calendarEvent.startMomentTime = moment(calendarEvent.startMoment).format('hh:mm');
+                    calendarEvent.endMoment = moment(calendarEvent.endMoment).utc().second(0).millisecond(0);
+                    calendarEvent.endMomentDate = moment(calendarEvent.endMoment).format('DD/MM/YYYY');
+                    calendarEvent.endMomentTime = moment(calendarEvent.endMoment).format('hh:mm');
+                    calendarEvent.is_periodic = false;
                     calendarEvent.locked = locked;
                     calendarEvent.color = calendar.color;
 				});

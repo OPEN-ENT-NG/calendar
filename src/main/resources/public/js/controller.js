@@ -471,7 +471,11 @@ function CalendarController($scope, template, model, lang, date, route, $timeout
             }
         }
 
-        template.open('lightbox', 'edit-event');
+        if ($scope.hasContribRight(calendarEvent.calendar)){
+            template.open('lightbox', 'edit-event');
+        } else {
+            template.open('lightbox', 'view-event');
+        }
 
         $scope.display.showEventPanel = true;
     };
@@ -568,6 +572,20 @@ function CalendarController($scope, template, model, lang, date, route, $timeout
              var contribRight = $scope.calendars.selection().some(function(cl) {
                 if (cl.myRights.contrib) {
                    return true;
+                }
+            });
+        }
+        return contribRight;
+    };
+
+    $scope.hasReadRight = function(calendar) {
+        var readRight = false;
+        if (calendar) {
+            readRight = calendar.myRights.contrib;
+        } else {
+            var readRight = $scope.calendars.selection().some(function(cl) {
+                if (cl.myRights.contrib) {
+                    return true;
                 }
             });
         }
