@@ -100,15 +100,14 @@ function CalendarController($scope, template, model, lang, date, route, $timeout
     };
         
     $scope.changedRecurrenceType = function() {
-
+        $scope.calendarEvent.recurrence.week_days = {1: false,2: false,3: false,4: false,5: false,6: false,7: false};
         if ($scope.calendarEvent.recurrence.type === 'every_week') {
             if (!$scope.someSelectedValue($scope.calendarEvent.recurrence.week_days)) {
                 var dayOfWeek = $scope.calendarEvent.startMoment.day();
                 if (dayOfWeek === 0) {
                     dayOfWeek = 7;
                 }
-                $scope.calendarEvent.recurrence.week_days[dayOfWeek] = true;                
-
+                $scope.calendarEvent.recurrence.week_days[dayOfWeek] = true;
             }
         }
     };
