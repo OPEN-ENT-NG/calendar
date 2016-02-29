@@ -57,7 +57,6 @@ module.directive('datePickerCalendar', function($compile){
 		template: '<input ng-transclude type="text" data-date-format="dd/mm/yyyy" />',
 		link: function($scope, $element, $attributes){
 			var datePickerElement = null;
-			console.log('datepicker');
 
 			function setNewDate(){
 				var date = $element.val().split('/');
@@ -66,7 +65,6 @@ module.directive('datePickerCalendar', function($compile){
 				date[1] = temp;
 				date = date.join('/');
 				var newMoment = moment(new Date(date));
-				console.log('datepicker1');
 
 				if ($scope.ngModel) {
 					$scope.ngModel.dayOfYear(newMoment.dayOfYear());
@@ -82,13 +80,11 @@ module.directive('datePickerCalendar', function($compile){
 			}
 
 			$scope.$watch('disable', function(newVal){
-				console.log('datepicker2');
 
 				$element.prop('disabled', newVal);
 			});
 
 			$scope.$watch('ngModel', function(newVal){
-				console.log('datepicker3');
 
 				if ($scope.ngModel === undefined || $scope.ngModel === null) {
 					$scope.ngModel = moment().startOf('day');
@@ -97,7 +93,6 @@ module.directive('datePickerCalendar', function($compile){
 			});
 
 			$element.on('focus', function(){
-				console.log('datepicker4');
 
 				var that = this;
 				$(this).parents('form').on('submit', function(){
@@ -111,7 +106,6 @@ module.directive('datePickerCalendar', function($compile){
 			$element.on('change', setNewDate);
 
 			$scope.$watch('showPanel', function(newVal) {
-				console.log('datepicker5');
 
 				if (!newVal && newVal!=undefined) {
 					if (datePickerElement != null) {
@@ -143,10 +137,8 @@ module.directive('datePickerCalendar', function($compile){
 			});
 
 			$element.on('$destroy', function() {
-				console.log('before destroy datepicker');
 
 				if (datePickerElement != null) {
-					console.log('destroy datepicker');
 					datePickerElement.datepicker('destroy');
 				}
 			});
@@ -188,8 +180,7 @@ module.directive('timePickerCalendar', function($compile){
 			});
 
 			$scope.$watch('showPanel', function(newVal) {
-				if (!newVal) {
-					console.log('destroy timepicker');
+				if (!newVal && newVal!=undefined) {
 					if (typeof($element.timepicker) === 'function') {
 						$element.timepicker('remove');
 					}
