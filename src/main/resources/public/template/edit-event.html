@@ -104,7 +104,7 @@
                     </h2>
                     <div class="toggle">
                         <div class="row">
-                            <input type="checkbox" ng-if="!calendarEvent.parentId" ng-model="calendarEvent.isRecurrent" ng-change="toggleIsRecurrent()"/>
+                            <input type="checkbox" ng-if="!calendarEvent.parentId" ng-model="calendarEvent.isRecurrent" ng-change="toggleIsRecurrent(calendarEvent)"/>
                             <label><i18n>calendar.event.recurrence</i18n></label>
                         </div>
                         <div class="content" ng-if="!calendarEvent.parentId && calendarEvent.isRecurrent">
@@ -194,7 +194,7 @@
                         </div>
                         <div class="content" ng-if="calendarEvent.parentId && calendarEvent.isRecurrent">
                             <div class="row">
-                                <label>La récurrence est: <i18n>calendar.recurrence.every</i18n> [[calendarEvent.recurrence.every]] <label>
+                                <label>La récurrence est: <i18n>calendar.recurrence.every</i18n> [[calendarEvent.recurrence.every]] </label>
                                     <label ng-if="calendarEvent.recurrence.type === 'every_day'"><i18n>calendar.recurrence.days</i18n>, </label>
                                     <label ng-if="calendarEvent.recurrence.type === 'every_week'"><i18n>calendar.recurrence.weeks</i18n>, <i18n>calendar.recurrence.repeat.on</i18n></label>
 
