@@ -711,6 +711,33 @@ function CalendarController($scope, template, model, lang, date, route, $timeout
         reader.readAsBinaryString(file);
     };
 
+    $scope.verifyInputDates = function() {
+        if($scope.calendarEvent.title){
+            $scope.calendarEvent.showDates = true;
+        }
+        else{
+            $scope.calendarEvent.showDetails = true;
+        }
+    };
+
+    $scope.verifyInputCheck = function() {
+        var $myForm = $('#form')
+        if (!$myForm[0].checkValidity()) {
+            // If the form is invalid, submit it. The form won't actually submit;
+            // this will just cause the browser to display the native HTML5 error messages.
+            $myForm.find(':submit').click()
+        }
+    }
+
+        $scope.verifyInputRec = function() {
+        if($scope.calendarEvent.title){
+            $scope.calendarEvent.showRecurrence = true;
+        }
+        else{
+            $scope.calendarEvent.showDetails = true;
+        }
+    };
+
     $scope.saveCalendarEventEdit = function(calendarEvent) {
 
         function doItemCalendarEvent(items, count) {

@@ -29,7 +29,7 @@
                             </div>
 
                             <label class="twelve cell"><i18n>calendar.event.title</i18n></label>
-                            <input class="twelve cell" required ng-model="calendarEvent.title" type="text"/>
+                            <input name="titleInput" class="twelve cell" required ng-model="calendarEvent.title" type="text"/>
 
                             <label class="twelve cell"><i18n>calendar.event.description</i18n></label>
                             <textarea class="twelve cell" ng-model="calendarEvent.description" />
@@ -48,8 +48,10 @@
 
                 <!-- Event Dates -->
                 <article class="accordion" ng-class="{ opened: calendarEvent.showDates  && calendarEvent.showDetails !== true }">
-                    <h2 ng-click="calendarEvent.showRecurrence = false; calendarEvent.showDetails = false; calendarEvent.showDates = true;">
-                        <i18n>calendar.event.header.dates</i18n>
+                    <h2>
+                        <button id="special" ng-click="form.$valid; calendarEvent.showRecurrence = false; calendarEvent.showDetails = false; calendarEvent.showDates = false;verifyInputDates();">
+                            <i18n>calendar.event.header.dates</i18n>
+                        </button>
                     </h2>
                     <div class="toggle">
                         <div class="content">
@@ -99,8 +101,10 @@
 
                 <!-- Event Recurrence -->
                 <article class="accordion" ng-class="{ opened: calendarEvent.showRecurrence && calendarEvent.showDetails !== true }">
-                    <h2 ng-click="calendarEvent.showRecurrence = true; calendarEvent.showDates = false; calendarEvent.showDetails = false;">
-                        <i18n>calendar.event.header.recurrence</i18n>
+                    <h2>
+                        <button id="special" ng-click="form.$valid; calendarEvent.showRecurrence = false; calendarEvent.showDates = false; calendarEvent.showDetails = false; verifyInputRec()">
+                            <i18n>calendar.event.header.recurrence</i18n>
+                        </button>
                     </h2>
                     <div class="toggle">
                         <div class="row">
