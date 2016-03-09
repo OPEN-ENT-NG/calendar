@@ -172,7 +172,7 @@ module.directive('timePickerCalendar', function($compile){
 				$element.timepicker({
 					showMeridian: false,
 					defaultTime: 'current',
-					minuteStep: model.timeConfig.interval,
+					minuteStep: model.timeConfig.intervalTime,
 					minHour: model.timeConfig.start_hour,
 					maxHour: model.timeConfig.end_hour
 				});
