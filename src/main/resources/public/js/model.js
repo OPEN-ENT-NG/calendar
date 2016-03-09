@@ -358,8 +358,8 @@ model.build = function(){
         },
         applyFilters: function() {
             this.filtered = _.filter(this.all, function(calendarEvent){
-                return calendarEvent.startMoment.isBefore(model.calendarEvents.filters.endMoment) && 
-                        calendarEvent.endMoment.isAfter(model.calendarEvents.filters.startMoment);
+                return calendarEvent.startMoment.isBefore(moment(model.calendarEvents.filters.endMoment).add(1,'day')) &&
+                    calendarEvent.endMoment.isAfter(model.calendarEvents.filters.startMoment);
             });
         },
        

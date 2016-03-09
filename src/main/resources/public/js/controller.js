@@ -61,7 +61,6 @@ function CalendarController($scope, template, model, lang, date, route, $timeout
         if ($scope.calendarEvent.startMoment.isAfter($scope.calendarEvent.endMoment)) {
             $scope.calendarEvent.startMoment = moment($scope.calendarEvent.endMoment).subtract(1, 'hours');
         }
-
         
     };
 
@@ -719,15 +718,6 @@ function CalendarController($scope, template, model, lang, date, route, $timeout
             $scope.calendarEvent.showDetails = true;
         }
     };
-
-    $scope.verifyInputCheck = function() {
-        var $myForm = $('#form')
-        if (!$myForm[0].checkValidity()) {
-            // If the form is invalid, submit it. The form won't actually submit;
-            // this will just cause the browser to display the native HTML5 error messages.
-            $myForm.find(':submit').click()
-        }
-    }
 
         $scope.verifyInputRec = function() {
         if($scope.calendarEvent.title){
