@@ -168,6 +168,7 @@ module.directive('timePickerCalendar', function($compile){
 			};
 			$('body, lightbox').on('click', hideFunction);
 			$('body, lightbox').on('focusin', hideFunction);
+
 			loader.asyncLoad('/' + infraPrefix + '/public/js/bootstrap-timepicker.js', function(){
 				$element.timepicker({
 					showMeridian: false,
