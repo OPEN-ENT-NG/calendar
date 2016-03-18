@@ -2,9 +2,10 @@ package net.atos.entng.calendar;
 
 import net.atos.entng.calendar.controllers.CalendarController;
 import net.atos.entng.calendar.controllers.EventController;
+import net.atos.entng.calendar.event.CalendarRepositoryEvents;
+import net.atos.entng.calendar.event.CalendarSearchingEvents;
 import net.atos.entng.calendar.ical.ICalHandler;
 import net.atos.entng.calendar.services.impl.EventServiceMongoImpl;
-
 import org.entcore.common.http.BaseServer;
 import org.entcore.common.http.filter.ShareAndOwner;
 import org.entcore.common.mongodb.MongoDbConf;
@@ -34,6 +35,7 @@ public class Calendar extends BaseServer {
         container.deployWorkerVerticle(ICalHandler.class.getName(), config);
 
         setRepositoryEvents(new CalendarRepositoryEvents());
+        setSearchingEvents(new CalendarSearchingEvents());
         
         addController(new CalendarController(CALENDAR_COLLECTION));
         addController(new EventController(CALENDAR_EVENT_COLLECTION, eventService));

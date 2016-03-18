@@ -93,5 +93,11 @@
     "group.school.Relative": "Tous les parents de l'{0}.",
     "group.school.Student": "Tous les élèves de l'{0}.",
     "group.school.Teacher": "Tous les enseignants de l'{0}.",
-    "group.school.Guest": "Tous les invités de l'{0}."
+    "group.school.Guest": "Tous les invités de l'{0}.",
+
+    "calendar.search.description.full" : "Evènement, {0}, du {1} au {2}, a lieu à {3} : {4}",
+    "calendar.search.description.location" : "Evènement, {0}, du {1} au {2}, a lieu à {3}.",
+    "calendar.search.description.desc" : "Evènement, {0}, du {1} au {2} : {3}",
+    "calendar.search.description.min" : "Evènement, {0}, du {1} au {2}",
+    "calendar.search.date.to" : "à"
 }

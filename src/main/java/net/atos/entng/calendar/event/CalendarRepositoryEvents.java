@@ -1,5 +1,6 @@
-package net.atos.entng.calendar;
+package net.atos.entng.calendar.event;
 
+import net.atos.entng.calendar.Calendar;
 import org.entcore.common.mongodb.MongoDbResult;
 import org.entcore.common.service.impl.MongoDbRepositoryEvents;
 import org.vertx.java.core.Handler;
