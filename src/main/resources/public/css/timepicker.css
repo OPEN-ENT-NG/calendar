@@ -132,11 +132,3 @@
     width: 100%;
   }  
 }
-
-.icon-chevron-up{
-	background-image: url("../img/glyphicons_223_chevron-top.png");
-}
-
-.icon-chevron-down{
-	background-image: url("../img/glyphicons_223_chevron-bottom.png");
-}
