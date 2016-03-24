@@ -1,7 +1,3 @@
-.dropdown-menu {
-	z-index: 11000 !important;
-}
-
 .color-selector .grey, .row .grey, nav.vertical ul li a {
     overflow:hidden;
 }
@@ -60,10 +56,6 @@
     z-index:1000 !important;
 }
 
-.lightbox-background {
-    z-index:9000 !important;
-}
-
 .colored li a {
     opacity:0.4;
     color:black;
@@ -91,14 +83,6 @@ nav.vertical ul li a input.calendar-checkbox {
 
 .toggle-buttons{
     z-index:1000 !important;
-}
-
-.remove-calendar-event .lightbox-background {
-    z-index:12000 !important;
-}
-
-.remove-calendar-event .lightbox-view {
-    z-index:12001 !important;
 }
 
 button#special {
