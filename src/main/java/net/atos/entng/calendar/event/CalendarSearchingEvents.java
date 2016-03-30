@@ -190,8 +190,7 @@ public class CalendarSearchingEvents implements SearchingEvents {
 			worldsOrQuery.or(new QueryBuilder().and(words.toArray(new DBObject[words.size()])).get());
 		}
 
-		final QueryBuilder calendarQuery = new QueryBuilder();
-		calendarQuery.start("calendar").in(mapIdTitle.keySet());
+		final QueryBuilder calendarQuery = new QueryBuilder().start("calendar").in(mapIdTitle.keySet());
 
 		final QueryBuilder query = new QueryBuilder().and(worldsOrQuery.get(), calendarQuery.get());
 
