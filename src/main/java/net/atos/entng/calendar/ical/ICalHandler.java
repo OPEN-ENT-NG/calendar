@@ -1,5 +1,18 @@
 package net.atos.entng.calendar.ical;
 
+import net.atos.entng.calendar.exception.CalendarException;
+import net.atos.entng.calendar.exception.UnhandledEventException;
+import net.fortuna.ical4j.data.CalendarBuilder;
+import net.fortuna.ical4j.data.ParserException;
+import net.fortuna.ical4j.model.*;
+import net.fortuna.ical4j.model.component.VEvent;
+import net.fortuna.ical4j.model.property.*;
+import org.vertx.java.core.Handler;
+import org.vertx.java.core.eventbus.Message;
+import org.vertx.java.core.json.JsonArray;
+import org.vertx.java.core.json.JsonObject;
+import org.vertx.java.platform.Verticle;
+
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -8,27 +21,6 @@ import java.nio.CharBuffer;
 import java.nio.charset.Charset;
 import java.text.SimpleDateFormat;
 import java.util.GregorianCalendar;
-
-import net.atos.entng.calendar.exception.CalendarException;
-import net.atos.entng.calendar.exception.UnhandledEventException;
-import net.fortuna.ical4j.data.CalendarBuilder;
-import net.fortuna.ical4j.data.ParserException;
-import net.fortuna.ical4j.model.Calendar;
-import net.fortuna.ical4j.model.ComponentList;
-import net.fortuna.ical4j.model.Date;
-import net.fortuna.ical4j.model.DateTime;
-import net.fortuna.ical4j.model.Parameter;
-import net.fortuna.ical4j.model.component.VEvent;
-import net.fortuna.ical4j.model.property.CalScale;
-import net.fortuna.ical4j.model.property.ProdId;
-import net.fortuna.ical4j.model.property.Uid;
-import net.fortuna.ical4j.model.property.Version;
-
-import org.vertx.java.core.Handler;
-import org.vertx.java.core.eventbus.Message;
-import org.vertx.java.core.json.JsonArray;
-import org.vertx.java.core.json.JsonObject;
-import org.vertx.java.platform.Verticle;
 
 /**
  * ICal worker to handle ICS parsing and generation
@@ -85,14 +77,16 @@ public class ICalHandler extends Verticle implements Handler<Message<JsonObject>
             String endMoment = ce.getString("endMoment");
             String title = ce.getString("title");
             String icsUid = ce.getString("icsUid");
+            String location = ce.getString("location");
+            String description = ce.getString("description");
             boolean allDay = ce.containsField("allday") && ce.getBoolean("allday");
             try {
                 java.util.Date startDate = MOMENT_FORMAT.parse(startMoment);
                 java.util.Date endDate = MOMENT_FORMAT.parse(endMoment);
                 if (allDay) {
-                    addAllDayEvent(calendar, startDate, title, icsUid);
+                    addAllDayEvent(calendar, startDate, title, icsUid, location, description);
                 } else {
-                    addEvent(calendar, startDate, endDate, title, icsUid);
+                    addEvent(calendar, startDate, endDate, title, icsUid, location, description);
                 }
             } catch (Exception e) {
                 e.printStackTrace();
@@ -243,12 +237,18 @@ public class ICalHandler extends Verticle implements Handler<Message<JsonObject>
      * @param title Event title
      * @throws CalendarException
      */
-    private void addAllDayEvent(Calendar calendar, java.util.Date date, String title, String icsUid) throws CalendarException {
+    private void addAllDayEvent(Calendar calendar, java.util.Date date, String title, String icsUid, String location, String description) throws CalendarException {
         VEvent event = new VEvent(new Date(date.getTime()), title);
         try {
             Uid uid = new Uid();
             uid.setValue(icsUid);
             event.getProperties().add(uid);
+            if( location != null )  {
+                event.getProperties().add(new Location(location));
+            }
+            if( description != null ) {
+                event.getProperties().add(new Description(description));
+            }
             calendar.getComponents().add(event);
         } catch (Exception e) {
             throw new CalendarException(e);
@@ -263,7 +263,7 @@ public class ICalHandler extends Verticle implements Handler<Message<JsonObject>
      * @param title Event title
      * @throws CalendarException
      */
-    private void addEvent(Calendar calendar, java.util.Date startDate, java.util.Date endDate, String title, String icsUid) throws CalendarException {
+    private void addEvent(Calendar calendar, java.util.Date startDate, java.util.Date endDate, String title, String icsUid, String location, String description) throws CalendarException {
         DateTime startDateTime = new DateTime(startDate);
         DateTime endDateTime = new DateTime(endDate);
         VEvent event = new VEvent(startDateTime, endDateTime, title);
@@ -272,6 +272,12 @@ public class ICalHandler extends Verticle implements Handler<Message<JsonObject>
             Uid uid = new Uid();
             uid.setValue(icsUid);
             event.getProperties().add(uid);
+            if( location != null )  {
+                event.getProperties().add(new Location(location));
+            }
+            if( description != null ) {
+                event.getProperties().add(new Description(description));
+            }
             calendar.getComponents().add(event);
         } catch (Exception e) {
             throw new CalendarException(e);
