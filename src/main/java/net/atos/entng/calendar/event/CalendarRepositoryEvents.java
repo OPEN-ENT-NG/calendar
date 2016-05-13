@@ -1,19 +1,17 @@
 package net.atos.entng.calendar.event;
 
+import com.mongodb.BasicDBObject;
+import com.mongodb.DBObject;
+import com.mongodb.QueryBuilder;
+import fr.wseduc.mongodb.MongoQueryBuilder;
+import fr.wseduc.mongodb.MongoUpdateBuilder;
+import fr.wseduc.webutils.Either;
 import net.atos.entng.calendar.Calendar;
 import org.entcore.common.mongodb.MongoDbResult;
 import org.entcore.common.service.impl.MongoDbRepositoryEvents;
 import org.vertx.java.core.Handler;
 import org.vertx.java.core.json.JsonArray;
 import org.vertx.java.core.json.JsonObject;
-
-import com.mongodb.BasicDBObject;
-import com.mongodb.DBObject;
-import com.mongodb.QueryBuilder;
-
-import fr.wseduc.mongodb.MongoQueryBuilder;
-import fr.wseduc.mongodb.MongoUpdateBuilder;
-import fr.wseduc.webutils.Either;
 
 public class CalendarRepositoryEvents extends MongoDbRepositoryEvents {
 
@@ -55,7 +53,7 @@ public class CalendarRepositoryEvents extends MongoDbRepositoryEvents {
 
     @Override
     public void deleteUsers(JsonArray users) {
-        // TODO : make the user anonymous
+        //FIXME: anonymization is not relevant
         if (users == null || users.size() == 0) {
             log.warn("[CalendarRepositoryEvents][deleteUsers] JsonArray users is null or empty");
             return;
@@ -178,7 +176,7 @@ public class CalendarRepositoryEvents extends MongoDbRepositoryEvents {
 
     /**
      * Tag as deleted a list of users in their own calendars
-     * @param userIds users identifiers
+     * @param usersIds users identifiers
      */
     private void tagUsersAsDeleted(final String[] usersIds) {
         final JsonObject criteria = MongoQueryBuilder.build(QueryBuilder.start("owner.userId").in(usersIds));
