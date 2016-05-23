@@ -653,8 +653,8 @@ function CalendarController($scope, template, model, lang, date, route, $timeout
             $scope.calendarEvent.endMoment.minutes(0);
         }
         else {
-            $scope.calendarEvent.startMoment = moment();
-            $scope.calendarEvent.endMoment = moment();
+            $scope.calendarEvent.startMoment = moment().utc();
+            $scope.calendarEvent.endMoment = moment().utc();
             $scope.calendarEvent.endMoment.hour($scope.calendarEvent.startMoment.hour() + 1);
         }
         $scope.initEventDates($scope.calendarEvent.startMoment, $scope.calendarEvent.endMoment);
@@ -782,7 +782,7 @@ function CalendarController($scope, template, model, lang, date, route, $timeout
                         count++;
                         doItemCalendarEvent(items, count);
                     });
-                        
+
                 } else {
                     itemCalendarEvent.delete(function () {
                         count++;
