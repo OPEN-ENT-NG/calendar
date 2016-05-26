@@ -60,6 +60,8 @@ L’Agenda permet la création et la visualisation d’événements sous forme d
 Des permissions sur les différentes actions possibles sur les agendas, dont la contribution et la gestion, sont configurées dans l'agenda (via des partages Ent-core).
 Le droit de lecture, correspondant à qui peut consulter l'agenda est également configuré de cette manière.
 
+L'Agenda met en œuvre un comportement de recherche sur le titre, la description et le lieu des événements.
+
 ## Modèle de persistance
 
 Les données du module sont stockées dans deux collections Mongo :
@@ -76,6 +78,11 @@ Le module serveur utilise 2 contrôleurs de déclaration :
 Les contrôleurs étendent les classes du framework Ent-core exploitant les CrudServices de base. Pour des manipulations spécifiques, des classes de Service sont utilisées :
 
 * `EventService` : Concernant les évènements de l'Agenda
+
+Le module serveur met en œuvre deux évènements issus du framework Ent-core :
+
+* `CalendarRepositoryEvents` : Logique de changement d'année scolaire
+* `CalendarSearchingEvents` : Logique de recherche
 
 Des jsonschemas permettent de vérifier les données reçues par le serveur, ils se trouvent dans le dossier "src/main/resources/jsonschema".
 
