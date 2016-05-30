@@ -29,6 +29,7 @@ import fr.wseduc.webutils.I18n;
 import net.atos.entng.calendar.Calendar;
 import org.entcore.common.search.SearchingEvents;
 import org.entcore.common.service.VisibilityFilter;
+import org.entcore.common.service.impl.MongoDbSearchService;
 import org.vertx.java.core.Handler;
 import org.vertx.java.core.eventbus.Message;
 import org.vertx.java.core.json.JsonArray;
@@ -199,7 +200,7 @@ public class CalendarSearchingEvents implements SearchingEvents {
 		for (String field : searchFields) {
 			final List<DBObject> listDb = new ArrayList<DBObject>();
 			for (String word : searchWords) {
-				listDb.add(QueryBuilder.start(field).regex(Pattern.compile(".*" + word + ".*", Pattern.CASE_INSENSITIVE)).get());
+				listDb.add(QueryBuilder.start(field).regex(Pattern.compile(".*" + MongoDbSearchService.accentTreating(word) + ".*", Pattern.CASE_INSENSITIVE)).get());
 			}
 			wordsMap.put(field, listDb);
 		}
