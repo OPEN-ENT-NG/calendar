@@ -54,7 +54,10 @@ public class Calendar extends BaseServer {
         container.deployWorkerVerticle(ICalHandler.class.getName(), config);
 
         setRepositoryEvents(new CalendarRepositoryEvents());
-        setSearchingEvents(new CalendarSearchingEvents());
+
+        if (config.getBoolean("searching-event", true)) {
+            setSearchingEvents(new CalendarSearchingEvents());
+        }
         
         addController(new CalendarController(CALENDAR_COLLECTION));
         addController(new EventController(CALENDAR_EVENT_COLLECTION, eventService));
