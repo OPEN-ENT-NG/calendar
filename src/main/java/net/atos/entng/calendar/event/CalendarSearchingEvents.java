@@ -41,7 +41,6 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.regex.Pattern;
 
 import static org.entcore.common.mongodb.MongoDbResult.validResults;
 import static org.entcore.common.mongodb.MongoDbResult.validResultsHandler;
@@ -191,28 +190,12 @@ public class CalendarSearchingEvents implements SearchingEvents {
 		returnFields.add("owner.userId");
 		returnFields.add("owner.displayName");
 
-		final List<String> searchFields = new ArrayList<String>();
-		searchFields.add("title");
-		searchFields.add("description");
-		searchFields.add("location");
-
-		final Map<String,List<DBObject>> wordsMap = new HashMap<String, List<DBObject>>();
-		for (String field : searchFields) {
-			final List<DBObject> listDb = new ArrayList<DBObject>();
-			for (String word : searchWords) {
-				listDb.add(QueryBuilder.start(field).regex(Pattern.compile(".*" + MongoDbSearchService.accentTreating(word) + ".*", Pattern.CASE_INSENSITIVE)).get());
-			}
-			wordsMap.put(field, listDb);
-		}
-
-		final QueryBuilder worldsOrQuery = new QueryBuilder();
-		for (final List<DBObject> words : wordsMap.values()) {
-			worldsOrQuery.or(new QueryBuilder().and(words.toArray(new DBObject[words.size()])).get());
-		}
+		final QueryBuilder worldsQuery = new QueryBuilder();
+		//Set locale to "none", allows to use simple tokenization with no list of stop words and no stemming (in fact, stemming works only with words)
+		worldsQuery.text(MongoDbSearchService.textSearchedComposition(searchWords), "none");
 
 		final QueryBuilder calendarQuery = new QueryBuilder().start("calendar").in(mapIdTitle.keySet());
-
-		final QueryBuilder query = new QueryBuilder().and(worldsOrQuery.get(), calendarQuery.get());
+		final QueryBuilder query = new QueryBuilder().and(worldsQuery.get(), calendarQuery.get());
 
 		JsonObject sort = new JsonObject().putNumber("modified", -1);
 		final JsonObject projection = new JsonObject();

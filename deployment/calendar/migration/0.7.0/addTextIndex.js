@@ -1,0 +1,1 @@
+db.calendarevent.createIndex({ "title": "text", "description": "text", "location": "text"});
