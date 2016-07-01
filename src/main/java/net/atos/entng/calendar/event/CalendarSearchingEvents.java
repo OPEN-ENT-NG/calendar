@@ -191,8 +191,8 @@ public class CalendarSearchingEvents implements SearchingEvents {
 		returnFields.add("owner.displayName");
 
 		final QueryBuilder worldsQuery = new QueryBuilder();
-		//Set locale to "none", allows to use simple tokenization with no list of stop words and no stemming (in fact, stemming works only with words)
-		worldsQuery.text(MongoDbSearchService.textSearchedComposition(searchWords), "none");
+		//Set locale to "", allows to use advanced tokenization with no stemming (in fact, stemming works only with words and for a given language)
+		worldsQuery.text(MongoDbSearchService.textSearchedComposition(searchWords), "");
 
 		final QueryBuilder calendarQuery = new QueryBuilder().start("calendar").in(mapIdTitle.keySet());
 		final QueryBuilder query = new QueryBuilder().and(worldsQuery.get(), calendarQuery.get());
