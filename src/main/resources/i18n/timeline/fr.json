@@ -6,5 +6,7 @@
     "timeline.calendar.from": "du",
     "timeline.calendar.to": "au",
     "timeline.calendar.shared": "vous a donné accès à l'agenda",
+    "timeline.calendar.add": "a ajouté un évènement à l'agenda",
+    "timeline.calendar.update": "a mis à jour un évènement dans l'agenda",
     "timeline.calendar.of.calendar": "du module de gestion d'agendas"
 }

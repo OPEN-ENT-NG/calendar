@@ -19,6 +19,7 @@
 
 package net.atos.entng.calendar.services;
 
+import com.mongodb.QueryBuilder;
 import org.entcore.common.user.UserInfos;
 import org.vertx.java.core.Handler;
 import org.vertx.java.core.eventbus.Message;
@@ -27,7 +28,7 @@ import org.vertx.java.core.json.JsonObject;
 
 import fr.wseduc.webutils.Either;
 
-public interface EventService {
+public interface EventServiceMongo {
 
     void list(String calendarId, UserInfos user, Handler<Either<String, JsonArray>> handler);
 
@@ -45,4 +46,7 @@ public interface EventService {
     
     void importIcal(String calendarId, String ics, UserInfos user, Handler<Either<String, JsonObject>> handler);
 
+    void findOne(String Collection, QueryBuilder query, Handler<Either<String, JsonObject>> handler);
+
+    void getCalendarEventById(String eventId, Handler<Either<String, JsonObject>> handler);
 }

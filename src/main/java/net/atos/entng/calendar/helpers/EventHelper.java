@@ -28,16 +28,26 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.text.ParseException;
+import java.util.*;
 
-import net.atos.entng.calendar.services.EventService;
+import com.mongodb.QueryBuilder;
+import fr.wseduc.webutils.Either;
+import fr.wseduc.webutils.collections.Joiner;
+import net.atos.entng.calendar.services.EventServiceMongo;
 
 import org.entcore.common.mongodb.MongoDbControllerHelper;
+import org.entcore.common.neo4j.Neo4j;
+import org.entcore.common.notification.TimelineHelper;
 import org.entcore.common.service.CrudService;
 import org.entcore.common.user.UserInfos;
 import org.entcore.common.user.UserUtils;
+import org.entcore.common.utils.Config;
+import org.entcore.common.utils.DateUtils;
 import org.vertx.java.core.Handler;
 import org.vertx.java.core.eventbus.Message;
 import org.vertx.java.core.http.HttpServerRequest;
+import org.vertx.java.core.json.JsonArray;
 import org.vertx.java.core.json.JsonObject;
 
 import fr.wseduc.webutils.http.Renders;
@@ -47,112 +57,144 @@ public class EventHelper extends MongoDbControllerHelper {
 
     private static final String EVENT_CREATED_EVENT_TYPE = CALENDAR_NAME + "_EVENT_CREATED";
     private static final String EVENT_UPDATED_EVENT_TYPE = CALENDAR_NAME + "_EVENT_UPDATED";
-    private static final String EVENT_DELETED_EVENT_TYPE = CALENDAR_NAME + "_EVENT_DELETED";
-    
-	private static final String CALENDAR_ID_PARAMETER = "id";
-	private static final String ICS_PARAMETER = "id";
 
-	private static final String EVENT_ID_PARAMETER = "eventid";
+    private static final String CALENDAR_ID_PARAMETER = "id";
 
-	private final EventService eventService;
+    private Neo4j neo4j = Neo4j.getInstance();
 
-	
-	public EventHelper(String collection, CrudService eventService) {
-		super(collection, null);
-		this.eventService = (EventService) eventService;
-		this.crudService = eventService;
-	}
+    private static final String EVENT_ID_PARAMETER = "eventid";
 
-	@Override
-	public void list(final HttpServerRequest request) {
-		
-		UserUtils.getUserInfos(eb, request, new Handler<UserInfos>() {
-			@Override
-			public void handle(final UserInfos user) {
-				String calendarId = request.params().get(CALENDAR_ID_PARAMETER);
-				eventService.list(calendarId, user, arrayResponseHandler(request));
-			}
-		});
+    private final EventServiceMongo eventService;
 
-	}
+    private final TimelineHelper notification;
 
-	@Override
-	public void create(final HttpServerRequest request) {
-		UserUtils.getUserInfos(eb, request, new Handler<UserInfos>() {		
-			@Override
-			public void handle(final UserInfos user) {
-				final String calendarId = request.params().get(CALENDAR_ID_PARAMETER);
-				if (user != null) {
-					RequestUtils.bodyToJson(request, new Handler<JsonObject>() {
-						@Override
-						public void handle(JsonObject object) {
-							eventService.create(calendarId, object, user, notEmptyResponseHandler(request));
-						}
-					});
-				} else {
-					log.debug("User not found in session.");
-					Renders.unauthorized(request);
-				}
-			}
-		});
-	}
+    public EventHelper(String collection, CrudService eventService, TimelineHelper timelineHelper) {
+        super(collection, null);
+        this.eventService = (EventServiceMongo) eventService;
+        this.crudService = eventService;
+        notification = timelineHelper;
+    }
 
-	@Override
-	public void update(final HttpServerRequest request) {
-		UserUtils.getUserInfos(eb, request, new Handler<UserInfos>() {
-			@Override
-			public void handle(final UserInfos user) {
-				if (user != null) {
-					RequestUtils.bodyToJson(request, new Handler<JsonObject>() {
-						@Override
-						public void handle(JsonObject object) {
-							String id = request.params().get(EVENT_ID_PARAMETER);
-							crudService.update(id, object, user, notEmptyResponseHandler(request));
-						}
-					});
-				} else {
-					log.debug("User not found in session.");
-					Renders.unauthorized(request);
-				}
-			}
-		});
-	}
+    @Override
+    public void list(final HttpServerRequest request) {
 
-	@Override
-	public void retrieve(final HttpServerRequest request) {
-		UserUtils.getUserInfos(eb, request, new Handler<UserInfos>() {
-			@Override
-			public void handle(final UserInfos user) {
-				String calendarId = request.params().get(CALENDAR_ID_PARAMETER);
-				String eventId = request.params().get(EVENT_ID_PARAMETER);
+        UserUtils.getUserInfos(eb, request, new Handler<UserInfos>() {
+            @Override
+            public void handle(final UserInfos user) {
+                String calendarId = request.params().get(CALENDAR_ID_PARAMETER);
+                eventService.list(calendarId, user, arrayResponseHandler(request));
+            }
+        });
 
-				eventService.retrieve(calendarId, eventId, user, notEmptyResponseHandler(request));
-			}
-		});
-	}
+    }
 
-	@Override
-	public void delete(final HttpServerRequest request) {
+    @Override
+    public void create(final HttpServerRequest request) {
+        UserUtils.getUserInfos(eb, request, new Handler<UserInfos>() {
+            @Override
+            public void handle(final UserInfos user) {
+                final String calendarId = request.params().get(CALENDAR_ID_PARAMETER);
+                if (user != null) {
+                    RequestUtils.bodyToJson(request, new Handler<JsonObject>() {
+                        @Override
+                        public void handle(JsonObject object) {
+                            eventService.create(calendarId, object, user, new Handler<Either<String, JsonObject>>() {
+                                public void handle(Either<String, JsonObject> event) {
+                                    if (event.isRight()) {
+                                        JsonObject eventId = event.right().getValue();
+                                        final JsonObject message = new JsonObject();
+                                        message.putString("id", calendarId);
+                                        message.putString("eventId", eventId.getString("_id"));
+                                        message.putString("start_date", null);
+                                        message.putString("end_date", null);
+                                        notifyEventCreatedOrUpdated(request, user, message, true);
+                                        renderJson(request, event.right().getValue(), 200);
+                                    } else if (event.isLeft()) {
+                                        log.error("Error when getting notification informations.");
+                                    }
+                                }
+                            });
+                        }
+                    });
+                } else {
+                    log.debug("User not found in session.");
+                    Renders.unauthorized(request);
+                }
+            }
+        });
+    }
 
-		UserUtils.getUserInfos(eb, request, new Handler<UserInfos>() {
-			@Override
-			public void handle(final UserInfos user) {
-				final String calendarId = request.params().get(CALENDAR_ID_PARAMETER);
-				final String eventId = request.params().get(EVENT_ID_PARAMETER);
+    @Override
+    public void update(final HttpServerRequest request) {
+        UserUtils.getUserInfos(eb, request, new Handler<UserInfos>() {
+            @Override
+            public void handle(final UserInfos user) {
+                if (user != null) {
+                    RequestUtils.bodyToJson(request, new Handler<JsonObject>() {
+                        @Override
+                        public void handle(JsonObject object) {
+                            final String eventId = request.params().get(EVENT_ID_PARAMETER);
+                            final String calendarId = request.params().get(CALENDAR_ID_PARAMETER);
+                            crudService.update(eventId, object, user, new Handler<Either<String, JsonObject>>() {
+                                public void handle(Either<String, JsonObject> event) {
+                                    if (event.isRight()) {
+                                        final JsonObject message = new JsonObject();
+                                        message.putString("id", calendarId);
+                                        message.putString("eventId", eventId);
+                                        message.putString("start_date", null);
+                                        message.putString("end_date", null);
+                                        notifyEventCreatedOrUpdated(request, user, message, false);
+                                        renderJson(request, event.right().getValue(), 200);
+                                    } else if (event.isLeft()) {
+                                        log.error("Error when getting notification informations.");
+                                    }
+                                }
+                            });
+                        }
+                    });
+                } else {
+                    log.debug("User not found in session.");
+                    Renders.unauthorized(request);
+                }
+            }
+        });
+    }
 
-				eventService.delete(calendarId, eventId, user, defaultResponseHandler(request));
-			}
-		});
-	}
-	
-	
-	public void getIcal(final HttpServerRequest request) {
+    @Override
+    public void retrieve(final HttpServerRequest request) {
+        UserUtils.getUserInfos(eb, request, new Handler<UserInfos>() {
+            @Override
+            public void handle(final UserInfos user) {
+                String calendarId = request.params().get(CALENDAR_ID_PARAMETER);
+                String eventId = request.params().get(EVENT_ID_PARAMETER);
+
+                eventService.retrieve(calendarId, eventId, user, notEmptyResponseHandler(request));
+            }
+        });
+    }
+
+    @Override
+    public void delete(final HttpServerRequest request) {
 
         UserUtils.getUserInfos(eb, request, new Handler<UserInfos>() {
             @Override
             public void handle(final UserInfos user) {
                 final String calendarId = request.params().get(CALENDAR_ID_PARAMETER);
-                eventService.getIcal(calendarId, user, new Handler<Message<JsonObject>>(){
+                final String eventId = request.params().get(EVENT_ID_PARAMETER);
+
+                eventService.delete(calendarId, eventId, user, defaultResponseHandler(request));
+            }
+        });
+    }
+
+
+    public void getIcal(final HttpServerRequest request) {
+
+        UserUtils.getUserInfos(eb, request, new Handler<UserInfos>() {
+            @Override
+            public void handle(final UserInfos user) {
+                final String calendarId = request.params().get(CALENDAR_ID_PARAMETER);
+                eventService.getIcal(calendarId, user, new Handler<Message<JsonObject>>() {
                     @Override
                     public void handle(Message<JsonObject> reply) {
                         log.warn("Handling response");
@@ -163,9 +205,9 @@ public class EventHelper extends MongoDbControllerHelper {
                             Files.write(Paths.get(f.getAbsolutePath()), content.getBytes());
                             request.response().putHeader("Content-Type", "text/calendar");
                             request.response().putHeader("Content-disposition", "attachment; filename=\"" + calendarId + ".ics\"");
-                            
+
                             request.response().sendFile(f.getAbsolutePath());
-                            
+
                         } catch (IOException e) {
                             // TODO Auto-generated catch block
                             e.printStackTrace();
@@ -175,8 +217,8 @@ public class EventHelper extends MongoDbControllerHelper {
             }
         });
     }
-	
-	
+
+
     public void importIcal(final HttpServerRequest request) {
         UserUtils.getUserInfos(eb, request, new Handler<UserInfos>() {
             @Override
@@ -189,53 +231,167 @@ public class EventHelper extends MongoDbControllerHelper {
                         eventService.importIcal(calendarId, icsContent, user, defaultResponseHandler(request));
                     }
                 });
-                
+
             }
         });
     }
-    
+
     /**
      * Notify moderators that an event has been created or updated
      */
     private void notifyEventCreatedOrUpdated(final HttpServerRequest request, final UserInfos user, final JsonObject message, final boolean isCreated) {
 
-        final long id = message.getLong("id", 0L);
+        final String calendarId = message.getString("id", null);
+        final String eventId = message.getString("eventId", null);
         final String startDate = message.getString("start_date", null);
         final String endDate = message.getString("end_date", null);
 
         final String eventType = isCreated ? EVENT_CREATED_EVENT_TYPE : EVENT_UPDATED_EVENT_TYPE;
-        final String template = isCreated ? "notify-booking-created.html" : "notify-booking-updated.html";
 
-        if (id == 0L || startDate == null || endDate == null) {
+        if (calendarId == null || eventId == null /*|| startDate == null || endDate == null*/) {
             log.error("Could not get eventId, start_date or end_date from response. Unable to send timeline " + eventType + " notification.");
             return;
         }
-        final String eventId = Long.toString(id);
 
-        
-        /* eventService.retrieve(calendarId, eventId, user, handler);
-        bookingService.getResourceName(bookingId, new Handler<Either<String, JsonObject>>() {
+        // get calendarEvent
+        eventService.getCalendarEventById(eventId, new Handler<Either<String, JsonObject>>() {
             @Override
             public void handle(Either<String, JsonObject> event) {
-                if (event.isRight() && event.right().getValue() != null && event.right().getValue().size() > 0) {
-
-                    final String resourceName = event.right().getValue().getString("resource_name");
-
-                    bookingService.getModeratorsIds(bookingId, user, new Handler<Either<String, JsonArray>>() {
-                        @Override
-                        public void handle(Either<String, JsonArray> event) {
-                            if (event.isRight() && event.right() != null) {
-                                notifyModerators(request, user, event.right().getValue(), bookingId, startDate, endDate, resourceName, eventType, template);
-                            } else {
-                                log.error("Error when calling service getModeratorsIds. Unable to send timeline " + eventType + " notification.");
-                            }
-                        }
-                    });
-
-                } else {
-                    log.error("Error when calling service getResourceName. Unable to send timeline " + eventType + " notification.");
+                if( event.isRight()) {
+                    // notify users
+                    JsonObject calendarEvent = event.right().getValue();
+                    notifyUsersSharing(request, user, calendarId, calendarEvent, isCreated);
                 }
             }
-        });*/
+        });
     }
+
+    /**
+     *
+     * @param request
+     * @param user
+     * @param calendarId
+     * @param calendarEvent
+     */
+    public void notifyUsersSharing(final HttpServerRequest request, final UserInfos user, final String calendarId, final JsonObject calendarEvent, final boolean isCreated ){
+        QueryBuilder query = QueryBuilder.start("_id").is(calendarId);
+        JsonObject keys = new JsonObject().putNumber("calendar", 1);
+        JsonArray fetch = new JsonArray().addString("shared");
+
+        findRecipiants("calendar", query, keys, fetch, user, new Handler<Map<String, Object>>() {
+            @Override
+            public void handle(Map<String, Object> event) {
+                if (event != null) {
+                    List<String> recipients = (List<String>) event.get("recipients");
+                    String calendarTitle = (String) event.get("calendarTitle");
+                    if (recipients != null) {
+                        String template = isCreated ? "calendar.create" : "calendar.update";
+
+                        Date startDate = null;
+                        Date endDate = null;
+                        try {
+                            startDate = DateUtils.parseTimestampWithoutTimezone(calendarEvent.getString("startMoment"));
+                            endDate = DateUtils.parseTimestampWithoutTimezone(calendarEvent.getString("endMoment"));
+                        } catch (ParseException e) {
+                            e.printStackTrace();
+                        }
+                        JsonObject p = new JsonObject()
+                                .putString("uri", Config.getInstance().getConfig().getString("host", "http://localhost:8090") +
+                                        "/userbook/annuaire#" + user.getUserId() + "#" + user.getType())
+                                .putString("username", user.getUsername())
+                                .putString("CalendarTitle", calendarTitle)
+                                .putString("postTitle", calendarEvent.getString("title"))
+                                .putString("profilUri", Config.getInstance().getConfig().getString("host", "http://localhost:8090") +
+                                "/userbook/annuaire#" + user.getUserId() + "#" + user.getType())
+                                .putString("calendarUri", Config.getInstance().getConfig().getString("host", "http://localhost:8090") +
+                                        "/calendar#/view/" + calendarId)
+                                .putString("startMoment", DateUtils.format(startDate, "dd/MM/yyyy HH:mm"))
+                                .putString("endMoment", DateUtils.format(endDate, "dd/MM/yyyy HH:mm"))
+                                .putString("eventTitle", calendarEvent.getString("title"));
+                        notification.notifyTimeline(request, template, user, recipients, calendarId, calendarEvent.getString("id"), p);
+                    }
+                }
+            }
+        });
+    }
+
+    private void findRecipiants(String collection, QueryBuilder query, JsonObject keys,
+                                final JsonArray fetch, final UserInfos user, final Handler<Map<String, Object>> handler) {
+        findRecipiants(collection, query, keys, fetch, null, user, handler);
+    }
+    private void findRecipiants(String collection, QueryBuilder query, JsonObject keys,
+                                final JsonArray fetch, final String filterRights, final UserInfos user,
+                                final Handler<Map<String, Object>> handler) {
+        // getting the calendar id
+        eventService.findOne(collection, query, new Handler<Either<String, JsonObject>>() {
+            public void handle(Either<String, JsonObject> event) {
+                if (event.isRight()) {
+                    final JsonObject calendar = event.right().getValue();
+                    JsonArray shared = calendar.getArray("shared", new JsonObject().getArray("groupId")); //.getObject("calendar", new JsonObject()).getArray("shared");
+                    if (shared != null) {
+                        List<String> shareIds = getSharedIds(shared, filterRights);
+                        if (!shareIds.isEmpty()) {
+                            Map<String, Object> params = new HashMap<>();
+                            params.put("userId", user.getUserId());
+                            neo4j.execute(getNeoQuery(shareIds), params, new Handler<Message<JsonObject>>() {
+                                @Override
+                                public void handle(Message<JsonObject> res) {
+                                    if ("ok".equals(res.body().getString("status"))) {
+                                        JsonArray listOfUsers = res.body().getArray("result");
+                                        List<String> recipients = new ArrayList<>();
+                                        for (Object attr : listOfUsers ) {
+                                            JsonObject obj = (JsonObject) attr;
+                                            String id = obj.getString("id");
+                                            if (id != null) {
+                                                recipients.add(id);
+                                            }
+                                        }
+                                        Map<String, Object> t = new HashMap<>();
+                                        t.put("recipients", recipients);
+                                        t.put("calendarTitle", calendar.getString("title"));
+                                        handler.handle(t);
+                                    } else {
+                                        handler.handle(null);
+                                    }
+                                }
+                            }); // end neo4j.execute
+                        } // end if (!shareIds.isEmpty())
+                        else {
+                            handler.handle(null);
+                        }
+                    } // end if shared != null
+                } // end  if (event.isRight())
+            } // end handle
+        });
+    }
+
+    private List<String> getSharedIds(JsonArray shared){
+        return getSharedIds(shared, null);
+    }
+    private List<String> getSharedIds(JsonArray shared, String filterRights) {
+        List<String> shareIds = new ArrayList<>();
+        for (Object o : shared) {
+            if (!(o instanceof JsonObject)) continue;
+            JsonObject userShared = (JsonObject) o;
+
+            if(filterRights != null && !userShared.getBoolean(filterRights, false))
+                continue;
+
+            String userOrGroupId = userShared.getString("groupId",
+                    userShared.getString("userId"));
+            if (userOrGroupId != null && !userOrGroupId.trim().isEmpty()) {
+                shareIds.add(userOrGroupId);
+            }
+        }
+        return shareIds;
+    }
+
+    private String getNeoQuery(List<String> shareIds) {
+        return "MATCH n<-[:IN*0..1]-(u:User) " +
+                "WHERE (n:User OR n:ProfileGroup OR n:ManualGroup OR n:CommunityGroup) AND n.id IN ['" +
+                Joiner.on("','").join(shareIds) + "'] AND u.id <> {userId} " +
+                "RETURN distinct u.id as id ";
+    }
+
+
 }

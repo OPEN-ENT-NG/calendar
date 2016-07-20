@@ -26,7 +26,7 @@ import static org.entcore.common.mongodb.MongoDbResult.validResultsHandler;
 import java.net.SocketException;
 
 import net.atos.entng.calendar.ical.ICalHandler;
-import net.atos.entng.calendar.services.EventService;
+import net.atos.entng.calendar.services.EventServiceMongo;
 import net.fortuna.ical4j.util.UidGenerator;
 
 import org.apache.commons.lang.mutable.MutableInt;
@@ -45,7 +45,7 @@ import fr.wseduc.mongodb.MongoQueryBuilder;
 import fr.wseduc.mongodb.MongoUpdateBuilder;
 import fr.wseduc.webutils.Either;
 
-public class EventServiceMongoImpl extends MongoDbCrudService implements EventService {
+public class EventServiceMongoImpl extends MongoDbCrudService implements EventServiceMongo {
 
     private final EventBus eb;
 
@@ -228,5 +228,18 @@ public class EventServiceMongoImpl extends MongoDbCrudService implements EventSe
                 }
             }
         });
+    }
+
+    @Override
+    public void findOne(String collection, QueryBuilder query, Handler<Either<String, JsonObject>> handler){
+        JsonObject projection = new JsonObject();
+        mongo.findOne(collection, MongoQueryBuilder.build(query), validResultHandler(handler));
+    }
+
+    @Override
+    public void getCalendarEventById(String eventId, Handler<Either<String, JsonObject>> handler){
+        JsonObject projection = new JsonObject();
+        QueryBuilder query = QueryBuilder.start("_id").is(eventId);
+        mongo.findOne("calendarevent", MongoQueryBuilder.build(query), validResultHandler(handler));
     }
 }

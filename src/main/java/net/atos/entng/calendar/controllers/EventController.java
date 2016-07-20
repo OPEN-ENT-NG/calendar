@@ -21,6 +21,7 @@ package net.atos.entng.calendar.controllers;
 
 import net.atos.entng.calendar.helpers.EventHelper;
 
+import org.entcore.common.notification.TimelineHelper;
 import org.entcore.common.service.CrudService;
 import org.vertx.java.core.Handler;
 import org.vertx.java.core.http.HttpServerRequest;
@@ -34,13 +35,17 @@ import fr.wseduc.security.ActionType;
 import fr.wseduc.security.SecuredAction;
 import fr.wseduc.webutils.http.BaseController;
 import fr.wseduc.webutils.request.RequestUtils;
+import org.vertx.java.platform.Container;
+
+import java.util.Calendar;
+import java.util.Map;
 
 public class EventController extends BaseController {
 
     private final EventHelper eventHelper;
 
-    public EventController(String collection, CrudService eventService) {
-        eventHelper = new EventHelper(collection, eventService);
+    public EventController(String collection, CrudService eventService, TimelineHelper timelineHelper) {
+        eventHelper = new EventHelper(collection, eventService, timelineHelper);
     }
 
     @Get("/:id/events")

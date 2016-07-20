@@ -19,6 +19,7 @@
 
 package net.atos.entng.calendar;
 
+import fr.wseduc.webutils.Server;
 import net.atos.entng.calendar.controllers.CalendarController;
 import net.atos.entng.calendar.controllers.EventController;
 import net.atos.entng.calendar.event.CalendarRepositoryEvents;
@@ -28,7 +29,9 @@ import net.atos.entng.calendar.services.impl.EventServiceMongoImpl;
 import org.entcore.common.http.BaseServer;
 import org.entcore.common.http.filter.ShareAndOwner;
 import org.entcore.common.mongodb.MongoDbConf;
+import org.entcore.common.notification.TimelineHelper;
 import org.entcore.common.service.CrudService;
+import org.vertx.java.core.eventbus.EventBus;
 
 
 public class Calendar extends BaseServer {
@@ -58,9 +61,10 @@ public class Calendar extends BaseServer {
         if (config.getBoolean("searching-event", true)) {
             setSearchingEvents(new CalendarSearchingEvents());
         }
-        
+        EventBus eb = Server.getEventBus(vertx);
+        final TimelineHelper timelineHelper = new TimelineHelper(vertx, eb, container);
         addController(new CalendarController(CALENDAR_COLLECTION));
-        addController(new EventController(CALENDAR_EVENT_COLLECTION, eventService));
+        addController(new EventController(CALENDAR_EVENT_COLLECTION, eventService, timelineHelper));
     }
     
 }
