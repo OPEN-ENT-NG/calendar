@@ -125,10 +125,10 @@ public class CalendarController extends MongoDbControllerHelper {
                     }
 
                     JsonObject params = new JsonObject();
-                    params.putString("profilUri", container.config().getString("host", "http://localhost:8090") +
+                    params.putString("profilUri", getScheme(request) + "://" + getHost(request) +
                     		"/userbook/annuaire#" + user.getUserId() + "#" + user.getType());
                     params.putString("username", user.getUsername());
-                    params.putString("calendarUri", container.config().getString("host", "http://localhost:8090") +
+                    params.putString("calendarUri", getScheme(request) + "://" + getHost(request) +
                     		"/calendar#/view/" + id);
                     params.putString("resourceUri", params.getString("calendarUri"));
 
