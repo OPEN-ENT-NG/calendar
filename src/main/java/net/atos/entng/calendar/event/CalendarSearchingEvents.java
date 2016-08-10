@@ -155,7 +155,7 @@ public class CalendarSearchingEvents implements SearchingEvents {
 			log.error("can't parse date", e);
 		}
 
-		final String dateFormatRes = "EEEEE dd MMMMM yyyy " + i18n.translate("calendar.search.date.to", locale) + " HH:mm";
+		final String dateFormatRes = "EEEEE dd MMMMM yyyy " + i18n.translate("calendar.search.date.to", I18n.DEFAULT_DOMAIN, locale) + " HH:mm";
 		final String sDateRes = new SimpleDateFormat(dateFormatRes).format(sDate);
 		final String eDateRes = new SimpleDateFormat(dateFormatRes).format(eDate);
 
