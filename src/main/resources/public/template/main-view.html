@@ -13,7 +13,7 @@
                         </a>
                     </li>
                 </ul>
-                <ul ng-if="!ownCalendars()"><li>Aucun agenda personnel</li></ul>
+                <ul ng-if="!ownCalendars()"><li><i18n>calendar.calendars.empty</i18n></li></ul>
             </li>
             <!-- Shared calendars -->
             <li>
@@ -26,7 +26,7 @@
                         </a>
                     </li>
                 </ul>
-                <ul ng-if="!hasSharedCalendars()"><li>Aucun agenda partagé</li></ul>
+                <ul ng-if="!hasSharedCalendars()"><li><i18n>calendar.calendars.empty</i18n></li></ul>
             </li> 
             <!-- <div ng-if="calendars.empty() === true && !display.list && !display.calendar"><[[showCalendar()]]</div> -->
         </ul>
