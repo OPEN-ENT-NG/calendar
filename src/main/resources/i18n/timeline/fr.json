@@ -1,6 +1,8 @@
 {
     "calendar": "Agenda",
     "calendar.share": "Partage d'un agenda",
+    "calendar.create": "Création d'un événement",
+    "calendar.update": "Mise-à-jour d'un événement",
     "timeline.calendar.has.created": "a créé un",
     "timeline.calendar.event": "évènement",
     "timeline.calendar.from": "du",
