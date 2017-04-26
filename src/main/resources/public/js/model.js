@@ -197,12 +197,15 @@ function Calendar() {
                 }
 				_.each(calendarEvents, function(calendarEvent){
 					calendarEvent.calendar = calendar;
-					calendarEvent.startMoment = moment(calendarEvent.startMoment).utc().second(0).millisecond(0);
-                    calendarEvent.startMomentDate = moment(calendarEvent.startMoment).format('DD/MM/YYYY');
-                    calendarEvent.startMomentTime = moment(calendarEvent.startMoment).format('hh:mm');
-                    calendarEvent.endMoment = moment(calendarEvent.endMoment).utc().second(0).millisecond(0);
-                    calendarEvent.endMomentDate = moment(calendarEvent.endMoment).format('DD/MM/YYYY');
-                    calendarEvent.endMomentTime = moment(calendarEvent.endMoment).format('hh:mm');
+                    //don't use timezone
+                    var startDate = moment(calendarEvent.startMoment.substring(0, calendarEvent.startMoment.length-5)).second(0).millisecond(0);
+                    calendarEvent.startMoment = startDate;
+                    calendarEvent.startMomentDate = startDate.format('DD/MM/YYYY');
+                    calendarEvent.startMomentTime = startDate.format('hh:mm');
+                    var endDate = moment(calendarEvent.endMoment.substring(0, calendarEvent.endMoment.length-5)).second(0).millisecond(0);
+                    calendarEvent.endMoment = endDate;
+                    calendarEvent.endMomentDate = endDate.format('DD/MM/YYYY');
+                    calendarEvent.endMomentTime = endDate.format('hh:mm');
                     calendarEvent.is_periodic = false;
                     calendarEvent.locked = locked;
                     calendarEvent.color = calendar.color;
