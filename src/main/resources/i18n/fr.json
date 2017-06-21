@@ -99,5 +99,6 @@
     "calendar.search.description.location" : "Evènement, {0}, du {1} au {2}, a lieu à {3}.",
     "calendar.search.description.desc" : "Evènement, {0}, du {1} au {2} : {3}",
     "calendar.search.description.min" : "Evènement, {0}, du {1} au {2}",
-    "calendar.search.date.to" : "à"
+    "calendar.search.date.to" : "à",
+	"import.browse" : "Parcourir"
 }
