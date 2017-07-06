@@ -12,13 +12,13 @@ model.recurrence = {
         7: false
     },
     dayMap: {
-        1: 'Lu',
-        2: 'Ma',
-        3: 'Me',
-        4: 'Je',
-        5: 'Ve',
-        6: 'Sa',
-        7: 'Di',
+        1: "calendar.recurrence.daymap.mon",
+        2: "calendar.recurrence.daymap.tue",
+        3: "calendar.recurrence.daymap.wed",
+        4: "calendar.recurrence.daymap.thu",
+        5: "calendar.recurrence.daymap.fri",
+        6: "calendar.recurrence.daymap.sat",
+        7: "calendar.recurrence.daymap.sun"
     }
 };
 

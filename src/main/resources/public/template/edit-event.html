@@ -145,7 +145,7 @@
                                     <label class="cell horizontal-spacing-twice" ng-repeat="(key, value) in calendarEvent.recurrence.week_days">
                                         <input type="checkbox" value="[[key]]" ng-model="calendarEvent.recurrence.week_days[key]"
                                                ng-required="!someSelectedValue(calendarEvent.recurrence.week_days)"/>
-                                        <span>[[ model.recurrence.dayMap[key] ]]</span>
+                                        <span>[[ lang.translate(model.recurrence.dayMap[key]) ]]</span>
                                     </label>
                                 </div>
                             </div>
