@@ -198,11 +198,11 @@ function Calendar() {
 				_.each(calendarEvents, function(calendarEvent){
 					calendarEvent.calendar = calendar;
                     //don't use timezone
-                    var startDate = moment(calendarEvent.startMoment.substring(0, calendarEvent.startMoment.length-5)).second(0).millisecond(0);
+                    var startDate = moment.utc(calendarEvent.startMoment).second(0).millisecond(0);
                     calendarEvent.startMoment = startDate;
                     calendarEvent.startMomentDate = startDate.format('DD/MM/YYYY');
                     calendarEvent.startMomentTime = startDate.format('hh:mm');
-                    var endDate = moment(calendarEvent.endMoment.substring(0, calendarEvent.endMoment.length-5)).second(0).millisecond(0);
+                    var endDate = moment.utc(calendarEvent.endMoment).second(0).millisecond(0);
                     calendarEvent.endMoment = endDate;
                     calendarEvent.endMomentDate = endDate.format('DD/MM/YYYY');
                     calendarEvent.endMomentTime = endDate.format('hh:mm');

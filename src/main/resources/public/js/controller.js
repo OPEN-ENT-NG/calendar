@@ -647,9 +647,11 @@ function CalendarController($scope, template, model, lang, date, route, $timeout
 
         // dates
         if (model.calendar.newItem !== undefined) {
-            $scope.calendarEvent.startMoment = model.calendar.newItem.beginning;
+            $scope.calendarEvent.startMoment = moment.utc(
+                model.calendar.newItem.beginning.format('YYYY-MM-DD HH'));
             $scope.calendarEvent.startMoment.minutes(0);
-            $scope.calendarEvent.endMoment = model.calendar.newItem.end;
+            $scope.calendarEvent.endMoment = moment.utc(
+                model.calendar.newItem.end.format('YYYY-MM-DD HH'));
             $scope.calendarEvent.endMoment.minutes(0);
         }
         else {
