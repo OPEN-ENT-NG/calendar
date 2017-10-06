@@ -1,13 +1,13 @@
 <section class="cell three">
     <button workflow="calendar.admin" ng-click="newCalendar()"><i18n>calendar.new</i18n></button>
     <nav class="vertical row">
-        <ul class="colored">
+        <ul>
             <!-- My calendars -->
             <li>
                 <a class="selected"><i18n>calendar.my.calendars</i18n></a>
-                <ul ng-if="ownCalendars()">
+                <ul ng-if="ownCalendars()" class="colored">
                     <li ng-repeat="cl in calendars.all | filter:isMyCalendar | orderBy: '+title'">
-                        <a class="[[cl.color]]" ng-class="{'selected': cl.selected}" ng-click="openOrCloseCalendar(cl, true)">
+                        <a class="[[cl.color]]" ng-class="{'selected': cl.selected, 'notselected': !cl.selected}" ng-click="openOrCloseCalendar(cl, true)">
                             <span>[[cl.title]]</span>
                             <input type="checkbox" class="calendar-checkbox" ng-click="$event.stopPropagation();" ng-model="cl.showButtons" ng-change="hideOtherCalendarCheckboxes(cl)"/>
                         </a>
@@ -18,9 +18,9 @@
             <!-- Shared calendars -->
             <li>
                 <a class="selected"><i18n>calendar.shared.calendars</i18n></a>
-                <ul ng-if="hasSharedCalendars()">
+                <ul ng-if="hasSharedCalendars()" class="colored">
                     <li ng-repeat="cl in calendars.all | filter:isCalendarSharedWithMe | orderBy: '+title'">
-                        <a class="[[cl.color]]" ng-class="{'selected': cl.selected}" ng-click="openOrCloseCalendar(cl, true)">
+                        <a class="[[cl.color]]" ng-class="{'selected': cl.selected, 'notselected': !cl.selected}" ng-click="openOrCloseCalendar(cl, true)">
                             <span>[[cl.title]]</span>
                             <input ng-if="cl.myRights.manage" type="checkbox" class="calendar-checkbox" ng-click="$event.stopPropagation();" ng-model="cl.showButtons" ng-change="hideOtherCalendarCheckboxes(cl)"/>
                         </a>
