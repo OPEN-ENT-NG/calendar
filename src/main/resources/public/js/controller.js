@@ -1069,4 +1069,12 @@ function CalendarController($scope, template, model, lang, date, route, $timeout
 
 
     this.initialize();
+    model.calendarEvents.on('refresh', function () {
+        template.close('calendar');
+        $scope.calendar.calendarEvents.sync(function() {
+            $scope.refreshCalendarEventItems($scope.calendar);
+            template.open('calendar', 'read-calendar');
+        });
+        $scope.viewCalendarEvent(model.currentEvent);
+    });
 }
