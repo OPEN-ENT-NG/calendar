@@ -126,3 +126,7 @@ ul.colored a.notselected:hover {
 ul.colored a.selected {
 	color : #fff !important;
 }
+
+.down-open {
+	padding-left :5px;
+}

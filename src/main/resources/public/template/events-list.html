@@ -16,14 +16,14 @@
     <thead>
         <tr>
             <th class="one" colspan="2"><input type="checkbox" ng-model="display.selectAllCalendarEvents" ng-change="switchSelectAllCalendarEvents()" /></th>
-            <th><i18n>calendar.title</i18n></th>
-            <th><i18n>calendar.event.title</i18n></th>
-            <th><i18n>calendar.event.start.date</i18n></th>
-            <th><i18n>calendar.event.end.date</i18n></th>
+            <th ng-click="sortBy('calendar.title')"><i18n>calendar.title</i18n><span class="down-open" ng-show="propertyName === 'calendar.title'" ng-class="{reverse: reverse}"></span></th>
+            <th ng-click="sortBy('title')"><i18n>calendar.event.title</i18n><span class="down-open" ng-show="propertyName === 'title'" ng-class="{reverse: reverse}"></span></th>
+            <th ng-click="sortBy('startMoment')"><i18n>calendar.event.start.date</i18n><span class="down-open" ng-show="propertyName === 'startMoment'" ng-class="{reverse: reverse}"></span></th>
+            <th ng-click="sortBy('endMoment')"><i18n>calendar.event.end.date</i18n><span class="down-open" ng-show="propertyName === 'endMoment'" ng-class="{reverse: reverse}"></span></th>
         </tr>
     </thead>
     <tbody>
-        <tr ng-repeat="calendarEvent in calendarEvents.filtered">
+        <tr ng-repeat="calendarEvent in calendarEvents.filtered | orderBy:propertyName:reverse">
             <td class="one" colspan="2">
                 <input ng-if="calendarEvent.myRights.manage" type="checkbox" ng-model="calendarEvent.selected"/>
             </td>

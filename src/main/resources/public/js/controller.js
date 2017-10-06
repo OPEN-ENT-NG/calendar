@@ -26,6 +26,8 @@ function CalendarController($scope, template, model, lang, date, route, $timeout
         $scope.calendarEvents = model.calendarEvents;
         $scope.periods = model.periods;
         $scope.newFile = {};
+        $scope.propertyName = 'startMoment';
+        $scope.reverse = true;
 
         model.calendarEvents.filters.startMoment = moment().startOf('day');
         model.calendarEvents.filters.endMoment = moment().add(2, 'months').startOf('day');
@@ -331,8 +333,15 @@ function CalendarController($scope, template, model, lang, date, route, $timeout
     $scope.showList = function() {
         $scope.display.list = true;
         $scope.display.calendar = false;
+        $scope.display.propertyName = 'startMoment';
+        $scope.reverse = true;
         $scope.calendarEvents.applyFilters();
         template.open('calendar', 'events-list');
+    };
+
+    $scope.sortBy = function(propertyName) {
+        $scope.reverse = ($scope.propertyName === propertyName) ? !$scope.reverse : false;
+        $scope.propertyName = propertyName;
     };
 
     $scope.showCalendar = function() {
