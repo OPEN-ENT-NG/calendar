@@ -518,23 +518,39 @@ function CalendarController($scope, template, model, lang, date, route, $timeout
 
     $scope.removeCalendarEvents = function(event) {
         var count = $scope.calendarEvents.selection().length;
+        var countReccurent = 0;
         $scope.calendarEvents.selection().forEach(function(calendarEvent) {
-            calendarEvent.delete(function(){
+            if(calendarEvent.detailToRecurrence === true && calendarEvent.parentId !== undefined){
+                var recurrentEvents = $scope.calendarEvents.getRecurrenceEvents(calendarEvent);
+                countReccurent = recurrentEvents.length;
                 count--;
-                calendarEvent.calendar.calendarEvents.sync(function() {
-                    if (count === 0) {
-                        $scope.display.confirmDeleteCalendarEvent = undefined;
-                        $scope.closeCalendarEvent();
-                        $scope.refreshCalendarEventItems();
-                        $scope.calendarEvents.applyFilters();
-                        if ($scope.display.list && $scope.display.selectAllCalendarEvents) {
-                            $scope.display.selectAllCalendarEvents = undefined;
-                        }
-                    }
+                recurrentEvents.forEach(function(calEventRecurrent) {
+                    calEventRecurrent.delete(function(){
+                        countReccurent--;
+                        $scope.resetCalendarAfterRemoveEvent(count,countReccurent,calendarEvent);
+                    });
                 });
-            });
+            }else {
+                calendarEvent.delete(function(){
+                    count--;
+                    $scope.resetCalendarAfterRemoveEvent(count,countReccurent,calendarEvent);
+                });
+            }
         });
-        
+    };
+
+    $scope.resetCalendarAfterRemoveEvent = function(count,countRecurrent,calendarEvent) {
+        if (count === 0 && countRecurrent === 0) {
+            calendarEvent.calendar.calendarEvents.sync(function () {
+                $scope.display.confirmDeleteCalendarEvent = undefined;
+                $scope.closeCalendarEvent();
+                $scope.refreshCalendarEventItems();
+                $scope.calendarEvents.applyFilters();
+                if ($scope.display.list && $scope.display.selectAllCalendarEvents) {
+                    $scope.display.selectAllCalendarEvents = undefined;
+                }
+            });
+        }
     };
 
     $scope.cancelRemoveCalendarEvent = function() {
