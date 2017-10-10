@@ -57,7 +57,9 @@ function CalendarController($scope, template, model, lang, date, route, $timeout
 
     $scope.changeStartMoment = function() {
 
-        $scope.calendarEvent.endMoment.years($scope.calendarEvent.startMoment.years()).months($scope.calendarEvent.startMoment.months()).days($scope.calendarEvent.startMoment.days());
+        if($scope.calendarEvent.isRecurrent){
+            $scope.calendarEvent.endMoment.years($scope.calendarEvent.startMoment.years()).months($scope.calendarEvent.startMoment.months()).days($scope.calendarEvent.startMoment.days());
+        }
 
        
         if ($scope.calendarEvent.startMoment.isAfter($scope.calendarEvent.endMoment)) {
@@ -84,6 +86,8 @@ function CalendarController($scope, template, model, lang, date, route, $timeout
             if ($scope.calendarEvent.recurrence.type === 'every_week') {
                 $scope.changedRecurrenceType();
             }
+
+            $scope.changeStartMoment();
         }
     };
 
