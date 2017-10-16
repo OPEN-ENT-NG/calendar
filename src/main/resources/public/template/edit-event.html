@@ -70,11 +70,11 @@
 
                             <div class="row">
                                 <div class="six cell">
-                                    <div  ng-if="!calendarEvent.isRecurrent">
+                                    <div ng-show="!calendarEvent.isRecurrent">
                                         <label class="twelve cell form-label"><i18n>calendar.event.end.date</i18n></label>
                                         <date-picker-calendar ng-model="calendarEvent.endMoment" ng-change="changeStartMoment()"></date-picker-calendar>
                                     </div>
-                                    <div  ng-if="calendarEvent.isRecurrent">
+                                    <div ng-show="calendarEvent.isRecurrent">
                                         &nbsp;
                                     </div>
                                 </div>
