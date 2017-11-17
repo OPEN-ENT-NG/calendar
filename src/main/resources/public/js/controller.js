@@ -934,20 +934,23 @@ function CalendarController($scope, template, model, lang, date, route, $timeout
                                 save = true;
                             }   
                         }
-                    } else if (calendarEvent.startDateToRecurrence) {
-                        if (!calendarEvent.allday && !cle.allday) {
-                            if (!moment(cle.startMoment).hours(calendarEvent.startMoment.hours()).minutes(calendarEvent.startMoment.minutes()).isAfter(cle.endMoment, 'minute')) {
-                                cle.startMoment = moment(cle.startMoment).hours(calendarEvent.startMoment.hours()).minutes(calendarEvent.startMoment.minutes());
-                                save = true;
-                            }                               
-                        }    
-                    } else if (calendarEvent.endDateToRecurrence) {
-                        if (!calendarEvent.allday && !cle.allday) {
-                            if (!moment(cle.endMoment).hours(calendarEvent.endMoment.hours()).minutes(calendarEvent.endMoment.minutes()).isBefore(cle.startMoment, 'minute')) {
-                                cle.endMoment = moment(cle.endMoment).hours(calendarEvent.endMoment.hours()).minutes(calendarEvent.endMoment.minutes());
-                                save = true;
-                            }                               
-                        }    
+                    } else {
+                        if (calendarEvent.startDateToRecurrence) {
+                            if (!calendarEvent.allday && !cle.allday) {
+                                if (!moment(cle.startMoment).hours(calendarEvent.startMoment.hours()).minutes(calendarEvent.startMoment.minutes()).isAfter(cle.endMoment, 'minute')) {
+                                    cle.startMoment = moment(cle.startMoment).hours(calendarEvent.startMoment.hours()).minutes(calendarEvent.startMoment.minutes());
+                                    save = true;
+                                }
+                            }
+                        }
+                        if (calendarEvent.endDateToRecurrence) {
+                            if (!calendarEvent.allday && !cle.allday) {
+                                if (!moment(cle.endMoment).hours(calendarEvent.endMoment.hours()).minutes(calendarEvent.endMoment.minutes()).isBefore(cle.startMoment, 'minute')) {
+                                    cle.endMoment = moment(cle.endMoment).hours(calendarEvent.endMoment.hours()).minutes(calendarEvent.endMoment.minutes());
+                                    save = true;
+                                }
+                            }
+                        }
                     }
                     if (calendarEvent.alldayToRecurrence && calendarEvent.allday) {
                         cle.allday = true;
