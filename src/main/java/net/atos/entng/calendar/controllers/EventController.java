@@ -21,6 +21,8 @@ package net.atos.entng.calendar.controllers;
 
 import net.atos.entng.calendar.helpers.EventHelper;
 
+import net.atos.entng.calendar.security.CustomWidgetFilter;
+import org.entcore.common.http.filter.ResourceFilter;
 import org.entcore.common.notification.TimelineHelper;
 import org.entcore.common.service.CrudService;
 import org.vertx.java.core.Handler;
@@ -35,10 +37,8 @@ import fr.wseduc.security.ActionType;
 import fr.wseduc.security.SecuredAction;
 import fr.wseduc.webutils.http.BaseController;
 import fr.wseduc.webutils.request.RequestUtils;
-import org.vertx.java.platform.Container;
 
-import java.util.Calendar;
-import java.util.Map;
+import java.util.List;
 
 public class EventController extends BaseController {
 
@@ -101,5 +101,21 @@ public class EventController extends BaseController {
 
     }
 
-
+    /**
+     * Get nb events from a list of calendars (widget)
+     * @param request request
+     */
+    @Get("/widget/events")
+    @SecuredAction(value = "", type = ActionType.RESOURCE)
+    @ResourceFilter(CustomWidgetFilter.class)
+    public void getWidgetEvents (HttpServerRequest request) {
+        List<String> calendarIds = request.params().getAll("calendarId");
+        int nbLimit;
+        try {
+            nbLimit = Integer.parseInt(request.params().get("nb"));
+        } catch(NumberFormatException e) {
+            nbLimit = 5;
+        }
+        eventHelper.listWidgetEvents(request, calendarIds.toArray(new String[0]), nbLimit);
+    }
 }

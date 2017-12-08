@@ -417,5 +417,13 @@ public class EventHelper extends MongoDbControllerHelper {
         return query;
     }
 
+    public void listWidgetEvents(final HttpServerRequest request, final String[] calendarIds, final int nbLimit) {
+        UserUtils.getUserInfos(eb, request, new Handler<UserInfos>() {
+            @Override
+            public void handle(final UserInfos user) {
+                eventService.getEventsByCalendarAndDate(calendarIds, nbLimit, arrayResponseHandler(request));
+            }
+        });
+    }
 
 }

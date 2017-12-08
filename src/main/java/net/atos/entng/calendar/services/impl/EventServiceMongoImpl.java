@@ -24,6 +24,9 @@ import static org.entcore.common.mongodb.MongoDbResult.validResultHandler;
 import static org.entcore.common.mongodb.MongoDbResult.validResultsHandler;
 
 import java.net.SocketException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 import net.atos.entng.calendar.ical.ICalHandler;
 import net.atos.entng.calendar.services.EventServiceMongo;
@@ -241,5 +244,21 @@ public class EventServiceMongoImpl extends MongoDbCrudService implements EventSe
         JsonObject projection = new JsonObject();
         QueryBuilder query = QueryBuilder.start("_id").is(eventId);
         mongo.findOne("calendarevent", MongoQueryBuilder.build(query), validResultHandler(handler));
+    }
+
+    @Override
+    public void getEventsByCalendarAndDate(String[] calendars, int nbLimit, Handler<Either<String, JsonArray>> handler)
+    {
+        QueryBuilder query;
+        DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSX");
+        String dateToIso = df.format(new Date());
+        JsonObject sort = new JsonObject().putNumber("startMoment", 1);
+
+        query = new QueryBuilder().and(QueryBuilder.start("calendar").in(calendars).get(),
+                QueryBuilder.start("startMoment").greaterThanEquals(dateToIso).get());
+
+        mongo.find("calendarevent", MongoQueryBuilder.build(query),
+                sort, null, -1, nbLimit, 2147483647,
+                validResultsHandler(handler));
     }
 }

@@ -49,4 +49,12 @@ public interface EventServiceMongo {
     void findOne(String Collection, QueryBuilder query, Handler<Either<String, JsonObject>> handler);
 
     void getCalendarEventById(String eventId, Handler<Either<String, JsonObject>> handler);
+
+    /**
+     * Get nbLimit events from calendars where startMoment is greater than now
+     * @param calendars Calendars to extract events
+     * @param nbLimit nb of events to extract
+     * @param handler handler
+     */
+    void getEventsByCalendarAndDate(String[] calendars, int nbLimit,  Handler<Either<String, JsonArray>> handler);
 }

@@ -1,0 +1,34 @@
+<div class="calendar widget" style="height: auto;">
+
+    <div class="row">
+        <h1>
+            <i18n>calendar.widget.title</i18n>
+        </h1>
+    </div>
+
+    <div class="row">
+        <div class="four cell current-day">
+            <h1>[[widget.today('dddd')]]</h1>
+            <h2>[[widget.today('D')]]</h2>
+            <h3>[[widget.today('MMM')]]</h3>
+        </div>
+
+        <div class="eight cell">
+            <span>
+                <i18n>calendar.next.events</i18n> :
+            </span>
+            <ul>
+                <li ng-repeat="event in widget.userEvents" ng-class="{ 'border': $last === false }">
+                    <span>[[event.title]] ([[widget.dateToString(event.startMoment)]])</span>
+                </li>
+
+                <li ng-if="widget.userEvents === undefined || widget.userEvents.length === 0"><i18n>calendar.widget.empty</i18n></li>
+            </ul>
+        </div>
+    </div>
+    <div class="row">
+        <a href="/calendar" class="horizontal-spacing right-magnet">
+            <i18n>calendar.access.module</i18n>
+        </a>
+    </div>
+</div>
