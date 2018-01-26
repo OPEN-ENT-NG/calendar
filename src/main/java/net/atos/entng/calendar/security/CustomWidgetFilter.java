@@ -21,14 +21,20 @@ public class CustomWidgetFilter implements ResourcesProvider {
 
         request.pause();
         if (ids != null && !ids.isEmpty()) {
+            QueryBuilder queryShared = QueryBuilder.start().or(
+                    QueryBuilder.start("shared.userId").is(user.getUserId()).get(),
+                    QueryBuilder.start("shared.groupId").in(user.getGroupsIds().toArray(new String[0])).get()
+            );
 
             QueryBuilder queryOr = QueryBuilder.start().or(
-                    QueryBuilder.start("owner.userId").is(user.getUserId()).get(),
-                    QueryBuilder.start("shared.userId").is(user.getUserId()).get());
+                    queryShared.get(),
+                    QueryBuilder.start("owner.userId").is(user.getUserId()).get()
+            );
 
             QueryBuilder queryAnd = QueryBuilder.start().and(
                     queryOr.get(),
-                    QueryBuilder.start("_id").in(ids.toArray(new String[0])).get());
+                    QueryBuilder.start("_id").in(ids.toArray(new String[0])).get()
+            );
 
             MongoAppFilter.executeCountQuery(request, "calendar",
                     MongoQueryBuilder.build(queryAnd), ids.size(), new Handler<Boolean>() {
@@ -39,6 +45,7 @@ public class CustomWidgetFilter implements ResourcesProvider {
                         }
                     });
         } else {
+            request.resume();
             handler.handle(false);
         }
     }
