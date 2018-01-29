@@ -255,7 +255,7 @@ public class EventServiceMongoImpl extends MongoDbCrudService implements EventSe
         JsonObject sort = new JsonObject().putNumber("startMoment", 1);
 
         query = new QueryBuilder().and(QueryBuilder.start("calendar").in(calendars).get(),
-                QueryBuilder.start("startMoment").greaterThanEquals(dateToIso).get());
+                QueryBuilder.start("endMoment").greaterThanEquals(dateToIso).get());
 
         mongo.find("calendarevent", MongoQueryBuilder.build(query),
                 sort, null, -1, nbLimit, 2147483647,

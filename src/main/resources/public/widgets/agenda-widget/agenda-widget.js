@@ -5,27 +5,30 @@ calendarWidget.today = function(format){
 };
 
 calendarWidget.dateToString = function(date) {
-    return moment(date).format('DD/MM HH:mm');
+    return moment.utc(date).format('DD/MM HH:mm');
 };
 
 calendarWidget.userEvents = [];
 calendarWidget.numberEvents = 5;
 
 http().get('/calendar/calendars').done(function(calendars){
-
-    var filter = '';
-    calendars.map(function (calendar) {
-       return filter += 'calendarId=' + calendar._id + '&';
-    });
-    filter = filter.slice(0, -1);
-
-    model.widgets.apply();
-
-    http().get('/calendar/widget/events?'+ filter + '&nb=' + calendarWidget.numberEvents)
-        .done(function (events) {
-            calendarWidget.userEvents = events;
-            model.widgets.apply();
+    if(calendars !== null && calendars !== undefined
+        && calendars.length > 0) {
+        var filter = '';
+        calendars.map(function (calendar) {
+            return filter += 'calendarId=' + calendar._id + '&';
         });
+        console.log('filter calendarWidget : ' + filter);
+        model.widgets.apply();
+
+        http().get('/calendar/widget/events?' + filter + 'nb=' + calendarWidget.numberEvents)
+            .done(function (events) {
+                calendarWidget.userEvents = events;
+                model.widgets.apply();
+            });
+    } else {
+        calendarWidget.userEvents = undefined;
+    }
 });
 
 model.widgets.apply();

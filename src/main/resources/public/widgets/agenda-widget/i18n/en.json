@@ -1,7 +1,7 @@
 {
     "calendar-widget": "Calendar",
     "calendar.widget.title": "Calendar",
-    "calendar.widget.empty": "Empty",
+    "calendar.widget.empty": "No event scheduled",
     "calendar.next.events": "Next events",
     "calendar.access.module": "To calendar application"
 }

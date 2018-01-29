@@ -19,7 +19,10 @@
             </span>
             <ul>
                 <li ng-repeat="event in widget.userEvents" ng-class="{ 'border': $last === false }">
-                    <span>[[event.title]] ([[widget.dateToString(event.startMoment)]])</span>
+                    <span tooltip="[[widget.dateToString(event.startMoment)]] : [[event.title]]"
+                          style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: inline-block; max-width: 100%;">
+                        [[widget.dateToString(event.startMoment)]] : [[event.title]]
+                    </span>
                 </li>
 
                 <li ng-if="widget.userEvents === undefined || widget.userEvents.length === 0"><i18n>calendar.widget.empty</i18n></li>
