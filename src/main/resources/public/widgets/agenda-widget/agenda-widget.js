@@ -21,7 +21,7 @@ http().get('/calendar/calendars').done(function(calendars){
         console.log('filter calendarWidget : ' + filter);
         model.widgets.apply();
 
-        http().get('/calendar/widget/events?' + filter + 'nb=' + calendarWidget.numberEvents)
+        http().get('/calendar/events/widget?' + filter + 'nb=' + calendarWidget.numberEvents)
             .done(function (events) {
                 calendarWidget.userEvents = events;
                 model.widgets.apply();

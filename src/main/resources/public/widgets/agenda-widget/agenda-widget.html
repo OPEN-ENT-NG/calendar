@@ -1,5 +1,4 @@
-<div class="calendar widget" style="height: auto;">
-
+<div class="calendar widget">
     <div class="row">
         <h1>
             <i18n>calendar.widget.title</i18n>
@@ -7,20 +6,19 @@
     </div>
 
     <div class="row">
-        <div class="four cell current-day">
+        <div class="three cell current-day">
             <h1>[[widget.today('dddd')]]</h1>
             <h2>[[widget.today('D')]]</h2>
             <h3>[[widget.today('MMM')]]</h3>
         </div>
 
-        <div class="eight cell">
+        <div class="nine cell widget-list">
             <span>
                 <i18n>calendar.next.events</i18n> :
             </span>
             <ul>
                 <li ng-repeat="event in widget.userEvents" ng-class="{ 'border': $last === false }">
-                    <span tooltip="[[widget.dateToString(event.startMoment)]] : [[event.title]]"
-                          style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: inline-block; max-width: 100%;">
+                    <span tooltip="[[widget.dateToString(event.startMoment)]] : [[event.title]]" class="last-events-widget">
                         [[widget.dateToString(event.startMoment)]] : [[event.title]]
                     </span>
                 </li>

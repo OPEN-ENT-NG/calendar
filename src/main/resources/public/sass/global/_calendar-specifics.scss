@@ -1,0 +1,16 @@
+.calendar.widget {
+
+  height: auto;
+
+  span.last-events-widget {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: inline-block;
+    max-width: 100%;
+  }
+
+  .widget-list {
+    padding-right: 10px;
+  }
+}

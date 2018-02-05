@@ -105,7 +105,7 @@ public class EventController extends BaseController {
      * Get nb events from a list of calendars (widget)
      * @param request request
      */
-    @Get("/widget/events")
+    @Get("/events/widget")
     @SecuredAction(value = "", type = ActionType.RESOURCE)
     @ResourceFilter(CustomWidgetFilter.class)
     public void getWidgetEvents (HttpServerRequest request) {
