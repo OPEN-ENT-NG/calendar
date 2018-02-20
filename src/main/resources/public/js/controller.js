@@ -338,7 +338,7 @@ function CalendarController($scope, template, model, lang, date, route, $timeout
         $scope.display.list = true;
         $scope.display.calendar = false;
         $scope.display.propertyName = 'startMoment';
-        $scope.reverse = true;
+        $scope.reverse = false;
         $scope.calendarEvents.applyFilters();
         template.open('calendar', 'events-list');
     };
