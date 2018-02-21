@@ -19,6 +19,7 @@
 
 package net.atos.entng.calendar.ical;
 
+import io.vertx.core.AbstractVerticle;
 import net.atos.entng.calendar.exception.CalendarException;
 import net.atos.entng.calendar.exception.UnhandledEventException;
 import net.fortuna.ical4j.data.CalendarBuilder;
@@ -26,11 +27,10 @@ import net.fortuna.ical4j.data.ParserException;
 import net.fortuna.ical4j.model.*;
 import net.fortuna.ical4j.model.component.VEvent;
 import net.fortuna.ical4j.model.property.*;
-import org.vertx.java.core.Handler;
-import org.vertx.java.core.eventbus.Message;
-import org.vertx.java.core.json.JsonArray;
-import org.vertx.java.core.json.JsonObject;
-import org.vertx.java.platform.Verticle;
+import io.vertx.core.Handler;
+import io.vertx.core.eventbus.Message;
+import io.vertx.core.json.JsonArray;
+import io.vertx.core.json.JsonObject;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -45,7 +45,7 @@ import java.util.GregorianCalendar;
  * ICal worker to handle ICS parsing and generation
  * @author Atos
  */
-public class ICalHandler extends Verticle implements Handler<Message<JsonObject>> {
+public class ICalHandler extends AbstractVerticle implements Handler<Message<JsonObject>> {
 
     public static final String ICAL_HANDLER_ADDRESS = "ical.handler";
 
@@ -61,9 +61,9 @@ public class ICalHandler extends Verticle implements Handler<Message<JsonObject>
     private static final SimpleDateFormat MOMENT_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
 
     @Override
-    public void start() {
+    public void start() throws Exception {
         super.start();
-        vertx.eventBus().registerHandler(ICAL_HANDLER_ADDRESS, this);
+        vertx.eventBus().localConsumer(ICAL_HANDLER_ADDRESS, this);
     }
 
     @Override
@@ -89,7 +89,7 @@ public class ICalHandler extends Verticle implements Handler<Message<JsonObject>
         JsonObject body = message.body();
         Calendar calendar = new Calendar();
         initCalendarProperties(calendar);
-        JsonArray calendarEvents = body.getArray("events");
+        JsonArray calendarEvents = body.getJsonArray("events");
         for (Object calendarEvent : calendarEvents) {
             JsonObject ce = (JsonObject) calendarEvent;
             String startMoment = ce.getString("startMoment");
@@ -98,7 +98,7 @@ public class ICalHandler extends Verticle implements Handler<Message<JsonObject>
             String icsUid = ce.getString("icsUid");
             String location = ce.getString("location");
             String description = ce.getString("description");
-            boolean allDay = ce.containsField("allday") && ce.getBoolean("allday");
+            boolean allDay = ce.containsKey("allday") && ce.getBoolean("allday");
             try {
                 java.util.Date startDate = MOMENT_FORMAT.parse(startMoment);
                 java.util.Date endDate = MOMENT_FORMAT.parse(endMoment);
@@ -111,8 +111,8 @@ public class ICalHandler extends Verticle implements Handler<Message<JsonObject>
                 e.printStackTrace();
             }
         }
-        results.putString("ics", calendar.toString());
-        results.putNumber("status", 200);
+        results.put("ics", calendar.toString());
+        results.put("status", 200);
         message.reply(results);
     }
 
@@ -142,17 +142,17 @@ public class ICalHandler extends Verticle implements Handler<Message<JsonObject>
                         validateEvent(event);
                         events.add(jsonEvent);
                     } catch (UnhandledEventException uee) {
-                        jsonEvent.putString("errorCause", uee.getMessage());
+                        jsonEvent.put("errorCause", uee.getMessage());
                         invalidEvents.add(jsonEvent);
                     }
                 }
             }
-            results.putArray("events", events);
-            results.putArray("invalidEvents", invalidEvents);
+            results.put("events", events);
+            results.put("invalidEvents", invalidEvents);
             message.reply(results);
         } catch (IOException | ParserException e) {
             e.printStackTrace();
-            results.putString("status", "ko");
+            results.put("status", "ko");
             message.reply(results);
         }
     }
@@ -177,16 +177,16 @@ public class ICalHandler extends Verticle implements Handler<Message<JsonObject>
         String uid = event.getUid() != null ? event.getUid().getValue() : "";
 
         if (!title.isEmpty()) {
-            jsonEvent.putString("title", title);
+            jsonEvent.put("title", title);
         }
         if (!location.isEmpty()) {
-            jsonEvent.putString("location", location);
+            jsonEvent.put("location", location);
         }
         if (!description.isEmpty()) {
-            jsonEvent.putString("description", description);
+            jsonEvent.put("description", description);
         }
         if (!uid.isEmpty()) {
-            jsonEvent.putString("icsUid", uid);
+            jsonEvent.put("icsUid", uid);
         }
 
     }
@@ -232,11 +232,11 @@ public class ICalHandler extends Verticle implements Handler<Message<JsonObject>
             calendar.setTime(endDate);
             calendar.set(java.util.Calendar.HOUR_OF_DAY, 0);
             endMoment = MOMENT_FORMAT.format(calendar.getTime());
-            jsonEvent.putBoolean("allday", allDay);
+            jsonEvent.put("allday", allDay);
         }
         // Put dates to jsonEvent
-        jsonEvent.putString("startMoment", startMoment);
-        jsonEvent.putString("endMoment", endMoment);
+        jsonEvent.put("startMoment", startMoment);
+        jsonEvent.put("endMoment", endMoment);
     }
 
     /**

@@ -44,11 +44,11 @@ import org.entcore.common.user.UserInfos;
 import org.entcore.common.user.UserUtils;
 import org.entcore.common.utils.Config;
 import org.entcore.common.utils.DateUtils;
-import org.vertx.java.core.Handler;
-import org.vertx.java.core.eventbus.Message;
-import org.vertx.java.core.http.HttpServerRequest;
-import org.vertx.java.core.json.JsonArray;
-import org.vertx.java.core.json.JsonObject;
+import io.vertx.core.Handler;
+import io.vertx.core.eventbus.Message;
+import io.vertx.core.http.HttpServerRequest;
+import io.vertx.core.json.JsonArray;
+import io.vertx.core.json.JsonObject;
 
 import fr.wseduc.webutils.http.Renders;
 import fr.wseduc.webutils.request.RequestUtils;
@@ -103,10 +103,10 @@ public class EventHelper extends MongoDbControllerHelper {
                                     if (event.isRight()) {
                                         JsonObject eventId = event.right().getValue();
                                         final JsonObject message = new JsonObject();
-                                        message.putString("id", calendarId);
-                                        message.putString("eventId", eventId.getString("_id"));
-                                        message.putString("start_date", null);
-                                        message.putString("end_date", null);
+                                        message.put("id", calendarId);
+                                        message.put("eventId", eventId.getString("_id"));
+                                        message.put("start_date", (String) null);
+                                        message.put("end_date", (String) null);
                                         notifyEventCreatedOrUpdated(request, user, message, true);
                                         renderJson(request, event.right().getValue(), 200);
                                     } else if (event.isLeft()) {
@@ -139,10 +139,10 @@ public class EventHelper extends MongoDbControllerHelper {
                                 public void handle(Either<String, JsonObject> event) {
                                     if (event.isRight()) {
                                         final JsonObject message = new JsonObject();
-                                        message.putString("id", calendarId);
-                                        message.putString("eventId", eventId);
-                                        message.putString("start_date", null);
-                                        message.putString("end_date", null);
+                                        message.put("id", calendarId);
+                                        message.put("eventId", eventId);
+                                        message.put("start_date", (String) null);
+                                        message.put("end_date", (String)  null);
                                         notifyEventCreatedOrUpdated(request, user, message, false);
                                         renderJson(request, event.right().getValue(), 200);
                                     } else if (event.isLeft()) {
@@ -275,8 +275,8 @@ public class EventHelper extends MongoDbControllerHelper {
      */
     public void notifyUsersSharing(final HttpServerRequest request, final UserInfos user, final String calendarId, final JsonObject calendarEvent, final boolean isCreated ){
         QueryBuilder query = QueryBuilder.start("_id").is(calendarId);
-        JsonObject keys = new JsonObject().putNumber("calendar", 1);
-        JsonArray fetch = new JsonArray().addString("shared");
+        JsonObject keys = new JsonObject().put("calendar", 1);
+        JsonArray fetch = new JsonArray().add("shared");
 
         findRecipiants("calendar", query, keys, fetch, user, new Handler<Map<String, Object>>() {
             @Override
@@ -296,18 +296,18 @@ public class EventHelper extends MongoDbControllerHelper {
                             e.printStackTrace();
                         }
                         JsonObject p = new JsonObject()
-                                .putString("uri", Config.getInstance().getConfig().getString("host", "http://localhost:8090") +
+                                .put("uri", Config.getInstance().getConfig().getString("host", "http://localhost:8090") +
                                         "/userbook/annuaire#" + user.getUserId() + "#" + user.getType())
-                                .putString("username", user.getUsername())
-                                .putString("CalendarTitle", calendarTitle)
-                                .putString("postTitle", calendarEvent.getString("title"))
-                                .putString("profilUri", Config.getInstance().getConfig().getString("host", "http://localhost:8090") +
+                                .put("username", user.getUsername())
+                                .put("CalendarTitle", calendarTitle)
+                                .put("postTitle", calendarEvent.getString("title"))
+                                .put("profilUri", Config.getInstance().getConfig().getString("host", "http://localhost:8090") +
                                 "/userbook/annuaire#" + user.getUserId() + "#" + user.getType())
-                                .putString("calendarUri", Config.getInstance().getConfig().getString("host", "http://localhost:8090") +
+                                .put("calendarUri", Config.getInstance().getConfig().getString("host", "http://localhost:8090") +
                                         "/calendar#/view/" + calendarId)
-                                .putString("startMoment", DateUtils.format(startDate, "dd/MM/yyyy HH:mm"))
-                                .putString("endMoment", DateUtils.format(endDate, "dd/MM/yyyy HH:mm"))
-                                .putString("eventTitle", calendarEvent.getString("title"));
+                                .put("startMoment", DateUtils.format(startDate, "dd/MM/yyyy HH:mm"))
+                                .put("endMoment", DateUtils.format(endDate, "dd/MM/yyyy HH:mm"))
+                                .put("eventTitle", calendarEvent.getString("title"));
                         notification.notifyTimeline(request, template, user, recipients, calendarId, calendarEvent.getString("id"), p);
                     }
                 }
@@ -327,7 +327,7 @@ public class EventHelper extends MongoDbControllerHelper {
             public void handle(Either<String, JsonObject> event) {
                 if (event.isRight()) {
                     final JsonObject calendar = event.right().getValue();
-                    JsonArray shared = calendar.getArray("shared", new JsonObject().getArray("groupId")); //.getObject("calendar", new JsonObject()).getArray("shared");
+                    JsonArray shared = calendar.getJsonArray("shared", new JsonObject().getJsonArray("groupId")); //.getJsonObject("calendar", new JsonObject()).getArray("shared");
                     if (shared != null) {
                         List<String> shareIds = getSharedIds(shared, filterRights);
                         if (!shareIds.isEmpty()) {
@@ -337,7 +337,7 @@ public class EventHelper extends MongoDbControllerHelper {
                                 @Override
                                 public void handle(Message<JsonObject> res) {
                                     if ("ok".equals(res.body().getString("status"))) {
-                                        JsonArray listOfUsers = res.body().getArray("result");
+                                        JsonArray listOfUsers = res.body().getJsonArray("result");
                                         List<String> recipients = new ArrayList<>();
                                         for (Object attr : listOfUsers ) {
                                             JsonObject obj = (JsonObject) attr;

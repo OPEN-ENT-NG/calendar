@@ -30,12 +30,12 @@ import net.atos.entng.calendar.Calendar;
 import org.entcore.common.search.SearchingEvents;
 import org.entcore.common.service.VisibilityFilter;
 import org.entcore.common.service.impl.MongoDbSearchService;
-import org.vertx.java.core.Handler;
-import org.vertx.java.core.eventbus.Message;
-import org.vertx.java.core.json.JsonArray;
-import org.vertx.java.core.json.JsonObject;
-import org.vertx.java.core.logging.Logger;
-import org.vertx.java.core.logging.impl.LoggerFactory;
+import io.vertx.core.Handler;
+import io.vertx.core.eventbus.Message;
+import io.vertx.core.json.JsonArray;
+import io.vertx.core.json.JsonObject;
+import io.vertx.core.logging.Logger;
+import io.vertx.core.logging.LoggerFactory;
 
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -60,7 +60,7 @@ public class CalendarSearchingEvents implements SearchingEvents {
 							   final JsonArray columnsHeader, final String locale, final Handler<Either<String, JsonArray>> handler) {
 		if (appFilters.contains(CalendarSearchingEvents.class.getSimpleName())) {
 
-			final List<String> groupIdsLst = groupIds.toList();
+			final List<String> groupIdsLst = groupIds.getList();
 			final List<DBObject> groups = new ArrayList<DBObject>();
 			groups.add(QueryBuilder.start("userId").is(userId).get());
 			for (String gpId: groupIdsLst) {
@@ -75,9 +75,9 @@ public class CalendarSearchingEvents implements SearchingEvents {
 							new QueryBuilder().or(groups.toArray(new DBObject[groups.size()])).get()
 					).get());
 
-			JsonObject sort = new JsonObject().putNumber("modified", -1);
+			JsonObject sort = new JsonObject().put("modified", -1);
 			final JsonObject projection = new JsonObject();
-			projection.putNumber("title", 1);
+			projection.put("title", 1);
 			//search all calendar of user
 			mongo.find(Calendar.CALENDAR_COLLECTION, MongoQueryBuilder.build(rightsQuery), sort,
 					projection, new Handler<Message<JsonObject>>() {
@@ -89,12 +89,12 @@ public class CalendarSearchingEvents implements SearchingEvents {
 
 								final Map<String, String> mapIdTitle = new HashMap<String, String>();
 								for (int i=0;i<calendarResult.size();i++) {
-									final JsonObject j = calendarResult.get(i);
+									final JsonObject j = calendarResult.getJsonObject(i);
 									mapIdTitle.put(j.getString("_id"), j.getString("title"));
 								}
 
 								//search event for the calendars found
-								searchEvent(page, limit, searchWords.toList(), mapIdTitle, new Handler<Either<String, JsonArray>>() {
+								searchEvent(page, limit, searchWords.getList(), mapIdTitle, new Handler<Either<String, JsonArray>>() {
 									@Override
 									public void handle(Either<String, JsonArray> event) {
 										if (event.isRight()) {
@@ -120,21 +120,21 @@ public class CalendarSearchingEvents implements SearchingEvents {
 
 	private JsonArray formatSearchResult(final JsonArray results, final JsonArray columnsHeader, final Map<String,String> mapIdTitle,
 										 final String locale) {
-		final List<String> aHeader = columnsHeader.toList();
+		final List<String> aHeader = columnsHeader.getList();
 		final JsonArray traity = new JsonArray();
 
 		for (int i=0;i<results.size();i++) {
-			final JsonObject j = results.get(i);
+			final JsonObject j = results.getJsonObject(i);
 			final JsonObject jr = new JsonObject();
 			if (j != null) {
 				final String idCalendar = j.getString("calendar");
-				jr.putString(aHeader.get(0), mapIdTitle.get(idCalendar));
-				jr.putString(aHeader.get(1), formatDescription(locale, j.getString("title"), j.getString("description", ""),
+				jr.put(aHeader.get(0), mapIdTitle.get(idCalendar));
+				jr.put(aHeader.get(1), formatDescription(locale, j.getString("title"), j.getString("description", ""),
 						j.getString("location", ""), j.getString("startMoment"), j.getString("endMoment")));
-				jr.putObject(aHeader.get(2), j.getObject("modified"));
-				jr.putString(aHeader.get(3), j.getObject("owner").getString("displayName"));
-				jr.putString(aHeader.get(4), j.getObject("owner").getString("userId"));
-				jr.putString(aHeader.get(5), "/calendar#/view/" + idCalendar);
+				jr.put(aHeader.get(2), j.getJsonObject("modified"));
+				jr.put(aHeader.get(3), j.getJsonObject("owner").getString("displayName"));
+				jr.put(aHeader.get(4), j.getJsonObject("owner").getString("userId"));
+				jr.put(aHeader.get(5), "/calendar#/view/" + idCalendar);
 				traity.add(jr);
 			}
 		}
@@ -196,10 +196,10 @@ public class CalendarSearchingEvents implements SearchingEvents {
 		final QueryBuilder calendarQuery = new QueryBuilder().start("calendar").in(mapIdTitle.keySet());
 		final QueryBuilder query = new QueryBuilder().and(worldsQuery.get(), calendarQuery.get());
 
-		JsonObject sort = new JsonObject().putNumber("modified", -1);
+		JsonObject sort = new JsonObject().put("modified", -1);
 		final JsonObject projection = new JsonObject();
 		for (String field : returnFields) {
-			projection.putNumber(field, 1);
+			projection.put(field, 1);
 		}
 
 		mongo.find(Calendar.CALENDAR_EVENT_COLLECTION, MongoQueryBuilder.build(query), sort,

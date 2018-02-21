@@ -19,6 +19,7 @@
 
 package net.atos.entng.calendar.services.impl;
 
+import static fr.wseduc.webutils.Utils.handlerToAsyncHandler;
 import static org.entcore.common.mongodb.MongoDbResult.validActionResultHandler;
 import static org.entcore.common.mongodb.MongoDbResult.validResultHandler;
 import static org.entcore.common.mongodb.MongoDbResult.validResultsHandler;
@@ -35,11 +36,11 @@ import net.fortuna.ical4j.util.UidGenerator;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.entcore.common.service.impl.MongoDbCrudService;
 import org.entcore.common.user.UserInfos;
-import org.vertx.java.core.Handler;
-import org.vertx.java.core.eventbus.EventBus;
-import org.vertx.java.core.eventbus.Message;
-import org.vertx.java.core.json.JsonArray;
-import org.vertx.java.core.json.JsonObject;
+import io.vertx.core.Handler;
+import io.vertx.core.eventbus.EventBus;
+import io.vertx.core.eventbus.Message;
+import io.vertx.core.json.JsonArray;
+import io.vertx.core.json.JsonObject;
 
 import com.mongodb.QueryBuilder;
 
@@ -61,7 +62,7 @@ public class EventServiceMongoImpl extends MongoDbCrudService implements EventSe
     public void list(String calendarId, UserInfos user, final Handler<Either<String, JsonArray>> handler) {
         // Query
         QueryBuilder query = QueryBuilder.start("calendar").is(calendarId);
-        JsonObject sort = new JsonObject().putNumber("modified", -1);
+        JsonObject sort = new JsonObject().put("modified", -1);
 
         // Projection
         JsonObject projection = new JsonObject();
@@ -72,8 +73,8 @@ public class EventServiceMongoImpl extends MongoDbCrudService implements EventSe
     @Override
     public void create(String calendarId, JsonObject body, UserInfos user, Handler<Either<String, JsonObject>> handler) {
         // Clean data
-        body.removeField("_id");
-        body.removeField("calendar");
+        body.remove("_id");
+        body.remove("calendar");
 
         // ics Uid generate
         UidGenerator uidGenerator;
@@ -87,11 +88,11 @@ public class EventServiceMongoImpl extends MongoDbCrudService implements EventSe
 
         // Prepare data
         JsonObject now = MongoDb.now();
-        body.putObject("owner", new JsonObject().putString("userId", user.getUserId()).putString("displayName", user.getUsername()));
-        body.putObject("created", now);
-        body.putObject("modified", now);
-        body.putString("calendar", calendarId);
-        body.putString("icsUid", icsUid);
+        body.put("owner", new JsonObject().put("userId", user.getUserId()).put("displayName", user.getUsername()));
+        body.put("created", now);
+        body.put("modified", now);
+        body.put("calendar", calendarId);
+        body.put("icsUid", icsUid);
         mongo.save(this.collection, body, validActionResultHandler(handler));
     }
 
@@ -126,12 +127,12 @@ public class EventServiceMongoImpl extends MongoDbCrudService implements EventSe
         query.put("calendar").is(calendarId);
 
         // Clean data
-        body.removeField("_id");
-        body.removeField("calendar");
+        body.remove("_id");
+        body.remove("calendar");
 
         // Modifier
         MongoUpdateBuilder modifier = new MongoUpdateBuilder();
-        for (String attr : body.getFieldNames()) {
+        for (String attr : body.fieldNames()) {
             modifier.set(attr, body.getValue(attr));
         }
         modifier.set("modified", MongoDb.now());
@@ -150,13 +151,13 @@ public class EventServiceMongoImpl extends MongoDbCrudService implements EventSe
     @Override
     public void getIcal(String calendarId, UserInfos user, final Handler<Message<JsonObject>> handler) {
         final JsonObject message = new JsonObject();
-        message.putString("action", ICalHandler.ACTION_GET);
+        message.put("action", ICalHandler.ACTION_GET);
         this.list(calendarId, user, new Handler<Either<String, JsonArray>>() {
             @Override
             public void handle(Either<String, JsonArray> event) {
                 JsonArray values = event.right().getValue();
-                message.putArray("events", values);
-                eb.send(ICalHandler.ICAL_HANDLER_ADDRESS, message, handler);
+                message.put("events", values);
+                eb.send(ICalHandler.ICAL_HANDLER_ADDRESS, message, handlerToAsyncHandler(handler));
 
             }
         });
@@ -165,13 +166,13 @@ public class EventServiceMongoImpl extends MongoDbCrudService implements EventSe
     @Override
     public void importIcal(final String calendarId, String ics, final UserInfos user, final Handler<Either<String, JsonObject>> handler) {
         final JsonObject message = new JsonObject();
-        message.putString("action", ICalHandler.ACTION_PUT);
-        message.putString("calendarId", calendarId);
-        message.putString("ics", ics);
+        message.put("action", ICalHandler.ACTION_PUT);
+        message.put("calendarId", calendarId);
+        message.put("ics", ics);
         final EventServiceMongoImpl eventService = this;
         final MutableInt i = new MutableInt();
 
-        eb.send(ICalHandler.ICAL_HANDLER_ADDRESS, message, new Handler<Message<JsonObject>>() {
+        eb.send(ICalHandler.ICAL_HANDLER_ADDRESS, message, handlerToAsyncHandler(new Handler<Message<JsonObject>>() {
             @Override
             public void handle(Message<JsonObject> reply) {
                 final JsonObject result = new JsonObject();
@@ -179,10 +180,10 @@ public class EventServiceMongoImpl extends MongoDbCrudService implements EventSe
                     handler.handle(new Either.Left<String, JsonObject>(new String("Error")));
                 } else {
                     JsonObject body = reply.body();
-                    JsonArray calendarEvents = body.getArray("events");
-                    final JsonArray invalidCalendarEvents = body.getArray("invalidEvents");
-                    result.putArray("invalidEvents", invalidCalendarEvents);
-                    result.putNumber("createdEvents", calendarEvents.size());
+                    JsonArray calendarEvents = body.getJsonArray("events");
+                    final JsonArray invalidCalendarEvents = body.getJsonArray("invalidEvents");
+                    result.put("invalidEvents", invalidCalendarEvents);
+                    result.put("createdEvents", calendarEvents.size());
                     if (calendarEvents.size() == 0) {
                         handler.handle(new Either.Right<String, JsonObject>(result));
                     }
@@ -230,7 +231,7 @@ public class EventServiceMongoImpl extends MongoDbCrudService implements EventSe
                     }
                 }
             }
-        });
+        }));
     }
 
     @Override
@@ -252,7 +253,7 @@ public class EventServiceMongoImpl extends MongoDbCrudService implements EventSe
         QueryBuilder query;
         DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSX");
         String dateToIso = df.format(new Date());
-        JsonObject sort = new JsonObject().putNumber("startMoment", 1);
+        JsonObject sort = new JsonObject().put("startMoment", 1);
 
         query = new QueryBuilder().and(QueryBuilder.start("calendar").in(calendars).get(),
                 QueryBuilder.start("endMoment").greaterThanEquals(dateToIso).get());

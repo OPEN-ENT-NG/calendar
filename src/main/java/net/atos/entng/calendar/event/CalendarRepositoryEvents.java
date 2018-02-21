@@ -28,9 +28,9 @@ import fr.wseduc.webutils.Either;
 import net.atos.entng.calendar.Calendar;
 import org.entcore.common.mongodb.MongoDbResult;
 import org.entcore.common.service.impl.MongoDbRepositoryEvents;
-import org.vertx.java.core.Handler;
-import org.vertx.java.core.json.JsonArray;
-import org.vertx.java.core.json.JsonObject;
+import io.vertx.core.Handler;
+import io.vertx.core.json.JsonArray;
+import io.vertx.core.json.JsonObject;
 
 public class CalendarRepositoryEvents extends MongoDbRepositoryEvents {
 
@@ -49,7 +49,7 @@ public class CalendarRepositoryEvents extends MongoDbRepositoryEvents {
 
         final String[] groupIds = new String[groups.size()];
         for (int i = 0; i < groups.size(); i++) {
-            JsonObject j = groups.get(i);
+            JsonObject j = groups.getJsonObject(i);
             groupIds[i] = j.getString("group");
         }
 
@@ -80,7 +80,7 @@ public class CalendarRepositoryEvents extends MongoDbRepositoryEvents {
 
         final String[] usersIds = new String[users.size()];
         for (int i = 0; i < users.size(); i++) {
-            JsonObject j = users.get(i);
+            JsonObject j = users.getJsonObject(i);
             usersIds[i] = j.getString("id");
         }
         /*
@@ -128,7 +128,7 @@ public class CalendarRepositoryEvents extends MongoDbRepositoryEvents {
         // no manager found
         JsonObject matcher = MongoQueryBuilder.build(QueryBuilder.start("shared." + Calendar.MANAGE_RIGHT_ACTION).notEquals(true).or(deletedUsers, ownerIsDeleted));
         // return only calendar identifiers
-        JsonObject projection = new JsonObject().putNumber("_id", 1);
+        JsonObject projection = new JsonObject().put("_id", 1);
 
         mongo.find(Calendar.CALENDAR_COLLECTION, matcher, null, projection, MongoDbResult.validResultsHandler(new Handler<Either<String, JsonArray>>() {
             @Override
@@ -141,7 +141,7 @@ public class CalendarRepositoryEvents extends MongoDbRepositoryEvents {
                     }
                     final String[] calendarIds = new String[calendars.size()];
                     for (int i = 0; i < calendars.size(); i++) {
-                        JsonObject j = calendars.get(i);
+                        JsonObject j = calendars.getJsonObject(i);
                         calendarIds[i] = j.getString("_id");
                     }
                     cleanCalendars(usersIds, calendarIds);
