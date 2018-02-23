@@ -32,7 +32,7 @@ import net.atos.entng.calendar.ical.ICalHandler;
 import net.atos.entng.calendar.services.EventServiceMongo;
 import net.fortuna.ical4j.util.UidGenerator;
 
-import org.apache.commons.lang.mutable.MutableInt;
+import org.apache.commons.lang3.mutable.MutableInt;
 import org.entcore.common.service.impl.MongoDbCrudService;
 import org.entcore.common.user.UserInfos;
 import org.vertx.java.core.Handler;
