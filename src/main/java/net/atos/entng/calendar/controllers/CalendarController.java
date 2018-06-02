@@ -139,4 +139,31 @@ public class CalendarController extends MongoDbControllerHelper {
         removeShare(request, false);
     }
 
+    @Put("/share/resource/:id")
+    @ApiDoc("Share calendar by id.")
+    @SecuredAction(value = "calendar.manager", type = ActionType.RESOURCE)
+    public void shareResource(final HttpServerRequest request) {
+        UserUtils.getUserInfos(eb, request, new Handler<UserInfos>() {
+            @Override
+            public void handle(final UserInfos user) {
+                if (user != null) {
+                    final String id = request.params().get("id");
+                    if(id == null || id.trim().isEmpty()) {
+                        badRequest(request, "invalid.id");
+                        return;
+                    }
+
+                    JsonObject params = new JsonObject();
+                    params.put("profilUri", "/userbook/annuaire#" + user.getUserId() + "#" + user.getType());
+                    params.put("username", user.getUsername());
+                    params.put("calendarUri", "/calendar#/view/" + id);
+                    params.put("resourceUri", params.getString("calendarUri"));
+
+                    shareResource(request, "calendar.share", false, params, "title");
+                }
+            }
+        });
+    }
+
+
 }
