@@ -100,5 +100,8 @@
     "calendar.search.description.desc" : "Evènement, {0}, du {1} au {2} : {3}",
     "calendar.search.description.min" : "Evènement, {0}, du {1} au {2}",
     "calendar.search.date.to" : "à",
-	"import.browse" : "Parcourir"
+	"import.browse" : "Parcourir",
+    "calendar.shared.push.notif.body": "a partagé avec vous un nouvel agenda",
+    "calendar.event.created.push.notif.body": "a partagé avec vous l'évènement",
+    "calendar.event.updated.push.notif.body": "a modifié l'évènement"
 }

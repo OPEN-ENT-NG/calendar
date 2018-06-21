@@ -33,6 +33,7 @@ import java.util.*;
 
 import com.mongodb.QueryBuilder;
 import fr.wseduc.webutils.Either;
+import fr.wseduc.webutils.I18n;
 import fr.wseduc.webutils.collections.Joiner;
 import net.atos.entng.calendar.services.EventServiceMongo;
 
@@ -305,9 +306,18 @@ public class EventHelper extends MongoDbControllerHelper {
                                 "/userbook/annuaire#" + user.getUserId() + "#" + user.getType())
                                 .put("calendarUri", Config.getInstance().getConfig().getString("host", "http://localhost:8090") +
                                         "/calendar#/view/" + calendarId)
+                                .put("resourceUri", "/calendar#/view/" + calendarId)
                                 .put("startMoment", DateUtils.format(startDate, "dd/MM/yyyy HH:mm"))
                                 .put("endMoment", DateUtils.format(endDate, "dd/MM/yyyy HH:mm"))
                                 .put("eventTitle", calendarEvent.getString("title"));
+                        JsonObject pushNotif = new JsonObject()
+                                .put("title", isCreated ? "push.notif.event.created" : "push.notif.event.updated")
+                                .put("body", user.getUsername() + " " + I18n.getInstance().translate(
+                                        isCreated ? "calendar.event.created.push.notif.body" : "calendar.event.updated.push.notif.body",
+                                        getHost(request), I18n.acceptLanguage(request)
+                                ) + " " + calendarEvent.getString("title"));
+
+                        p.put("pushNotif", pushNotif);
                         notification.notifyTimeline(request, template, user, recipients, calendarId, calendarEvent.getString("id"), p);
                     }
                 }
