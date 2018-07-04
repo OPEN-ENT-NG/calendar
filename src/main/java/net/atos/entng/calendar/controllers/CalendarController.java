@@ -159,6 +159,13 @@ public class CalendarController extends MongoDbControllerHelper {
                     params.put("calendarUri", "/calendar#/view/" + id);
                     params.put("resourceUri", params.getString("calendarUri"));
 
+                    JsonObject pushNotif = new JsonObject()
+                            .put("title", "push.notif.calendar.share")
+                            .put("body", user.getUsername() + " " + I18n.getInstance().translate("calendar.shared.push.notif.body",
+                                    getHost(request), I18n.acceptLanguage(request)));
+
+                    params.put("pushNotif", pushNotif);
+
                     shareResource(request, "calendar.share", false, params, "title");
                 }
             }
