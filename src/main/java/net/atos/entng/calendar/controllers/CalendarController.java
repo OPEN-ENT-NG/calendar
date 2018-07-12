@@ -32,6 +32,7 @@ import org.entcore.common.events.EventStore;
 import org.entcore.common.events.EventStoreFactory;
 import org.entcore.common.mongodb.MongoDbControllerHelper;
 import org.entcore.common.user.UserUtils;
+import org.entcore.common.user.UserInfos;
 import org.vertx.java.core.http.RouteMatcher;
 
 import java.util.Calendar;
