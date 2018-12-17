@@ -297,14 +297,14 @@ public class EventHelper extends MongoDbControllerHelper {
                             e.printStackTrace();
                         }
                         JsonObject p = new JsonObject()
-                                .put("uri", Config.getInstance().getConfig().getString("host", "http://localhost:8090") +
+                                .put("uri",
                                         "/userbook/annuaire#" + user.getUserId() + "#" + user.getType())
                                 .put("username", user.getUsername())
                                 .put("CalendarTitle", calendarTitle)
                                 .put("postTitle", calendarEvent.getString("title"))
-                                .put("profilUri", Config.getInstance().getConfig().getString("host", "http://localhost:8090") +
+                                .put("profilUri",
                                 "/userbook/annuaire#" + user.getUserId() + "#" + user.getType())
-                                .put("calendarUri", Config.getInstance().getConfig().getString("host", "http://localhost:8090") +
+                                .put("calendarUri",
                                         "/calendar#/view/" + calendarId)
                                 .put("resourceUri", "/calendar#/view/" + calendarId)
                                 .put("startMoment", DateUtils.format(startDate, "dd/MM/yyyy HH:mm"))
