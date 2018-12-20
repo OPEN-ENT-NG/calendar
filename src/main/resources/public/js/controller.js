@@ -1064,7 +1064,10 @@ function CalendarController($scope, template, model, lang, date, route, $timeout
         model.calendar.firstDay.date(newDate.date());
         model.calendar.firstDay.month(newDate.month());
         model.calendar.firstDay.year(newDate.year());
- 
+        $scope.calendar.calendarEvents.sync(function() {
+            $scope.refreshCalendarEventItems($scope.calendar);
+            template.open('calendar', 'read-calendar');
+        });
         $('.hiddendatepickerform').datepicker('setValue', newDate.format("DD/MM/YYYY")).datepicker('update');
         $('.hiddendatepickerform').trigger({type: 'changeDate', date: newDate});
 
