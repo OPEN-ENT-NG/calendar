@@ -5,18 +5,31 @@ then
   mkdir node_modules
 fi
 
-if [ -z ${USER_UID:+x} ]
-then
-  export USER_UID=1000
-  export GROUP_GID=1000
-fi
+case `uname -s` in
+  MINGW*)
+    USER_UID=1000
+    GROUP_UID=1000
+    ;;
+  *)
+    if [ -z ${USER_UID:+x} ]
+    then
+      USER_UID=`id -u`
+      GROUP_GID=`id -g`
+    fi
+esac
 
 clean () {
   docker-compose run --rm -u "$USER_UID:$GROUP_GID" gradle gradle clean
 }
 
 buildNode () {
-  docker-compose run --rm -u "$USER_UID:$GROUP_GID" node sh -c "npm install && node_modules/gulp/bin/gulp.js build"
+  case `uname -s` in
+    MINGW*)
+      docker-compose run --rm -u "$USER_UID:$GROUP_GID" node sh -c "npm install --no-bin-links && node_modules/gulp/bin/gulp.js build"
+      ;;
+    *)
+      docker-compose run --rm -u "$USER_UID:$GROUP_GID" node sh -c "npm install && node_modules/gulp/bin/gulp.js build"
+  esac
 }
 
 buildGradle () {
@@ -47,7 +60,7 @@ do
       buildGradle
       ;;
     install)
-      buildGradle # buildNode && buildGradle
+      buildGradle # buildNode && buildGradle
       ;;
     publish)
       publish
@@ -59,4 +72,3 @@ do
     exit 1
   fi
 done
-
