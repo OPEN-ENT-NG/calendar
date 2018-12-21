@@ -10,6 +10,7 @@
 	<calendar
 		display-template="display-calendar-item" 
 		create-template="edit-event"
+        item-tooltip-template="itemTooltip"
 		on-create-open="createCalendarEvent(newItem)"
 		on-create-close="closeCalendarEvent()" 
 		items="calendarEvents.all">
@@ -18,6 +19,7 @@
 
 <div class="row" ng-if="!display.editEventRight && display.calendar">
     <calendar
+        item-tooltip-template="itemTooltip"
         display-template="display-calendar-item" 
         items="calendarEvents.all">
     </calendar>

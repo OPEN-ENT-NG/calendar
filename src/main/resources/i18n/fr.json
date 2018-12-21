@@ -105,5 +105,12 @@
     "import.browse" : "Parcourir",
     "calendar.shared.push.notif.body": "a partagé avec vous un nouvel agenda",
     "calendar.event.created.push.notif.body": "a partagé avec vous l'évènement",
-    "calendar.event.updated.push.notif.body": "a modifié l'évènement"
+    "calendar.event.updated.push.notif.body": "a modifié l'évènement",
+  "calendar.recurrence.daymap.mon":"Lu",
+  "calendar.recurrence.daymap.tue":"Ma",
+  "calendar.recurrence.daymap.wed":"Me",
+  "calendar.recurrence.daymap.thu":"Je",
+  "calendar.recurrence.daymap.fri":"Ve",
+  "calendar.recurrence.daymap.sat":"Sa",
+  "calendar.recurrence.daymap.sun":"Di"
 }

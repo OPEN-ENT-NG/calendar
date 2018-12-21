@@ -1081,6 +1081,7 @@ function CalendarController($scope, template, model, lang, date, route, $timeout
             $scope.refreshCalendarEventItems($scope.calendar);
             template.open('calendar', 'read-calendar');
         });
+        template.open('itemTooltip', 'tooltip-template');
         $scope.viewCalendarEvent(model.currentEvent);
     });
 }
