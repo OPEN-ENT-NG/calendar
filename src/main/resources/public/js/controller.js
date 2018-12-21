@@ -1059,7 +1059,23 @@ function CalendarController($scope, template, model, lang, date, route, $timeout
         $scope.calendarEvents.applyFilters();
  
     };
- 
+    $scope.$watch(
+        function() {
+            return $('.hiddendatepickerform')[0]
+                ? $('.hiddendatepickerform')[0].value
+                : '';
+        },
+        function(newVal, oldVal) {
+            if (newVal !== oldVal  &&  !$scope.display.list &&
+            newVal &&
+            newVal !== '' ){
+                updateCalendarSchedule(moment(
+                    newVal,
+                    'DD/MM/YYYY'
+                ).startOf('isoweek'));
+            }
+
+        });
     var updateCalendarSchedule = function(newDate){
         model.calendar.firstDay.date(newDate.date());
         model.calendar.firstDay.month(newDate.month());
