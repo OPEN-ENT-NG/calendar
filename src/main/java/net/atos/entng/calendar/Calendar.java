@@ -57,7 +57,7 @@ public class Calendar extends BaseServer {
         setDefaultResourceFilter(new ShareAndOwner());
         vertx.deployVerticle(ICalHandler.class.getName(), new DeploymentOptions().setWorker(true).setConfig(config));
 
-        setRepositoryEvents(new CalendarRepositoryEvents());
+        setRepositoryEvents(new CalendarRepositoryEvents(vertx));
 
         if (config.getBoolean("searching-event", true)) {
             setSearchingEvents(new CalendarSearchingEvents());
