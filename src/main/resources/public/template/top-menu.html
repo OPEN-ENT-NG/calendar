@@ -4,16 +4,19 @@
     <a ng-click="showCalendar(display.admin)">
       <i18n>calendar.title</i18n>
     </a>
-  </h1> 
+  </h1>
 </div>
 
 <div class="nine cell">
   <div class="row">
     <button ng-if="hasContribRight()===true" ng-click="createCalendarEvent(newItem); viewCalendarEvent(calendarEvent);"><i18n>calendar.new.event</i18n></button>
-
-    <i class="show-list" ng-class="{ selected: display.list === true }" ng-click="showList()"
-    tooltip="calendar.icon.show.events.list"></i>
-    <i class="show-calendar" ng-class="{ selected: display.list === false }" ng-click="showCalendar()"
-    tooltip="calendar.icon.show.calendar"></i>
+    <div class="right-magnet">
+      <div class="choice-view">
+        <i class="show-list" ng-class="{ selected: display.list === true }" ng-click="showList()"
+        tooltip="calendar.icon.show.events.list"></i>
+        <i class="show-calendar" ng-class="{ selected: display.list === false }" ng-click="showCalendar()"
+        tooltip="calendar.icon.show.calendar"></i>
+      </div>
+    </div>
   </div>
 </div>
