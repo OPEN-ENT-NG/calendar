@@ -6,6 +6,7 @@
         "app-name" : "Calendar",
         "app-address" : "/calendar",
         "app-icon" : "calendar-large",
+        "app-type" : "END_USER",
         "host": "${host}",
         "ssl" : $ssl,
         "userbook-host": "${host}",
