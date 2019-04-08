@@ -1,17 +1,34 @@
-.calendar.widget {
+body.calendar {
 
-  span.last-events-widget {
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    display: inline-block;
-    max-width: 100%;
+  @import 'components/index';
+
+  .calendar.widget {
+
+    span.last-events-widget {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      display: inline-block;
+      max-width: 100%;
+    }
+
+    .widget-list {
+      padding-right: 10px;
+    }
+
+    .calendar-detail-tooltip {
+      padding: 0px !important;
+    }
   }
 
-  .widget-list {
-    padding-right: 10px;
-  }
-  .calendar-detail-tooltip{
-    padding: 0px !important;
+  switch {
+    .switch {
+      .tick {
+        &:before {
+          height: 20px !important;
+          margin-top: 0 !important;
+        }
+      }
+    }
   }
 }

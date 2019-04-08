@@ -1,12 +1,12 @@
 <filters>
     <div class="dates" >
         <div class="cell">
-            <date-picker-icon ng-model="calendarEvents.filters.startDate" ng-change="switchFilterListByDates(true)" class="cell"></date-picker-icon>
+            <date-picker-icon ng-model="calendarEvents.filters.startMoment" ng-change="switchFilterListByDates()" class="cell"></date-picker-icon>
         </div>
             <div class="cell"><i18n>calendar.filters.date.from</i18n>&nbsp;[[calendarEvents.filters.startMoment.format('dddd DD MMM YYYY')]]</div>
 
         <div class="cell">
-            <date-picker-icon ng-model="calendarEvents.filters.endDate" ng-change="switchFilterListByDates(true)" class="cell"></date-picker-icon>
+            <date-picker-icon ng-model="calendarEvents.filters.endMoment" ng-change="switchFilterListByDates()" class="cell"></date-picker-icon>
         </div>
         <div class="cell"><i18n>calendar.filters.date.to</i18n>&nbsp;[[calendarEvents.filters.endMoment.format('dddd DD MMM YYYY')]]</div>
     </div>
@@ -25,7 +25,7 @@
     <tbody>
         <tr ng-repeat="calendarEvent in calendarEvents.filtered | orderBy:propertyName:reverse">
             <td class="one" colspan="2">
-                <input ng-if="calendarEvent.myRights.manage" type="checkbox" ng-model="calendarEvent.selected"/>
+                <input ng-if="calendarEvent.calendar.myRights.manage" type="checkbox" ng-model="calendarEvent.selected"/>
             </td>
             <td>[[calendarEvent.calendar.title]]</td>
             <td>[[calendarEvent.title]]</td>

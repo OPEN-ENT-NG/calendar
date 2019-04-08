@@ -21,3 +21,16 @@ test-tmp
 mods
 */mods
 data
+
+**/ts/entcore
+**/ts/**/*.js
+**/ts/*.js
+**/ts/**/*.js.map
+**/ts/*.js.map
+**/template/entcore
+**/temp
+**/dist
+**/.DS_Store
+**/view/*.html
+**/js/*
+**/view/*

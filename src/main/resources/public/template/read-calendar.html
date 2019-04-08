@@ -1,26 +1,35 @@
 
-<filters>
-  <li class="changeWeekButton">
-     <button  class="changeWeekButtonBack" ng-click="previousWeekButton(); ">&#8592;</button>
-     <button class="changeWeekButtonNext" ng-click="nextWeekButton(); ">&#8594;</button>
-  </li>
-</filters>
+
 
 <div class="row" ng-if="display.editEventRight && display.calendar">
 	<calendar
 		display-template="display-calendar-item" 
 		create-template="edit-event"
-        item-tooltip-template="itemTooltip"
 		on-create-open="createCalendarEvent(newItem)"
 		on-create-close="closeCalendarEvent()" 
-		items="calendarEvents.all">
+		items="calendarEvents.filtered"
+		add-filter="calendarEvents.filters.calendar"
+		enable-display-modes="true"
+		item-tooltip-template="tooltip-template"
+		display-month-template="display-calendar-month-item"
+		more-items-template="display-calendar-more-items"
+		show-next-previous-button="true"
+        display-options="true"
+	>
 	</calendar>
 </div>
 
 <div class="row" ng-if="!display.editEventRight && display.calendar">
     <calendar
-        item-tooltip-template="itemTooltip"
         display-template="display-calendar-item" 
-        items="calendarEvents.all">
+        items="calendarEvents.filtered"
+		add-filter="calendarEvents.filters.calendar"
+		enable-display-modes="true"
+		item-tooltip-template="tooltip-template"
+		display-month-template="display-calendar-month-item"
+		more-items-template="display-calendar-more-items"
+		show-next-previous-button="true"
+        display-options="true"
+	>
     </calendar>
 </div>

@@ -46,7 +46,21 @@ publish () {
   fi
   docker-compose run --rm -u "$USER_UID:$GROUP_GID" gradle gradle publish
 }
-
+rbs () {
+   (echo "Fin build"
+   echo "start replace"
+   cd ~/DEV/springboard-ent77/
+  ./build.sh run
+   cd ~/DEV/workspace/Modules/rbs)
+}
+deleteModule () {
+$DIRECTORY : net.atos~rbs~1.4-SNAPSHOT
+    cd ~/DEV/springboard-ent77/
+    ./build.sh stop
+    if [ -d "$DIRECTORY" ]; then
+      rmdir $DIRECTORY
+    fi
+}
 for param in "$@"
 do
   case $param in
@@ -60,8 +74,11 @@ do
       buildGradle
       ;;
     install)
-      buildGradle # buildNode && buildGradle
+      buildNode && buildGradle
       ;;
+    rbs)
+     buildNode && buildGradle && deleteModule  && rbs
+    ;;
     publish)
       publish
       ;;

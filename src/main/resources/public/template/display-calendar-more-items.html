@@ -1,0 +1,8 @@
+
+<div ng-repeat="item in morePopupItems" class="item">
+  <div ng-style="(item.color != null) && {'background-color': '[[item.color]]'} || {'background-color': '[[item.color]]'}"
+    ng-click="display.moreItems = false; viewCalendarEvent(item)"
+  >
+    [[ item.title ]] - [[ item.owner_name ]]
+  </div>
+</div>

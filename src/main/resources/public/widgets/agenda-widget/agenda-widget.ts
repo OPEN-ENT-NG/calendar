@@ -1,3 +1,4 @@
+/*
 var calendarWidget = model.widgets.findWidget("agenda-widget");
 
 calendarWidget.today = function(format){
@@ -31,4 +32,4 @@ http().get('/calendar/calendars').done(function(calendars){
     }
 });
 
-model.widgets.apply();
+model.widgets.apply();*/

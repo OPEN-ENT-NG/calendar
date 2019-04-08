@@ -56,7 +56,7 @@ public class ICalHandler extends AbstractVerticle implements Handler<Message<Jso
     public static final String ACTION_GET = "get";
 
     /**
-     * Simple Date formatter in moment.js format
+     * Simple Date formatter in moment.ts format
      */
     private static final SimpleDateFormat MOMENT_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
 
@@ -207,7 +207,7 @@ public class ICalHandler extends AbstractVerticle implements Handler<Message<Jso
     }
 
     /**
-     * Set ical4j event dates to JsonObject with moment.js formatting
+     * Set ical4j event dates to JsonObject with moment.ts formatting
      * @param event ical4j filled event
      * @param jsonEvent JsonObject event to fill
      */

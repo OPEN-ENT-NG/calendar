@@ -1,0 +1,13 @@
+.schedule .days .day .timeslots .timeslot hr {
+  border-bottom: thin solid #fff !important;
+}
+
+.schedule .days .day.single {
+  width: 100%
+}
+.datepicker{
+  display: none;
+}
+.schedule {
+  margin-top: 70px !important;
+}

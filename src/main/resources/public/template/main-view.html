@@ -54,11 +54,11 @@
 </section>
 
 <!-- Action buttons for calendar events -->
-<section class="toggle-buttons" ng-class="{ hide: calendarEvents.selection().length === 0 || !display.list}">
+<section class="toggle-buttons" ng-class="{ hide: calendarEvents.selected.length === 0 || !display.list}">
     <div class="toggle">
         <div class="row">
-            <behaviour name="manage" resource="calendarEvents.selection()" class="cell">
-                <button ng-if="calendarEvents.selection().length === 1" ng-click="viewCalendarEvent(calendarEvents.selection()[0])"><i18n>edit</i18n></button>
+            <behaviour name="manage" resource="calendarEvents.selected" class="cell">
+                <button ng-if="calendarEvents.selected.length === 1" ng-click="viewCalendarEvent(calendarEvents.selected[0])"><i18n>edit</i18n></button>
                 <button ng-click="confirmRemoveCalendarEvents($event)"><i18n>remove</i18n></button>
             </behaviour>
         </div>
@@ -160,7 +160,7 @@
             <i18n>calendar.confirm.delete.recurrent.event</i18n>
         </div>
 
-        <div class="row scrollable-content" ng-if="calendarEvents.selection().length > 1">  
+        <div class="row scrollable-content" ng-if="calendarEvents.selected.length > 1">
             <table class="list-view colored">
                 <thead>
                     <tr>
@@ -172,7 +172,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr ng-repeat="calendarEvent in calendarEvents.selection()">
+                    <tr ng-repeat="calendarEvent in calendarEvents.selected">
                         <td class="icon" ng-class="calendarEvent.calendar.color"></td>
                         <td>[[calendarEvent.calendar.title]]</td>
                         <td>[[calendarEvent.title]]</td>
