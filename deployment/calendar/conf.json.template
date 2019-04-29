@@ -1,5 +1,5 @@
 {
-      "name": "net.atos~calendar~1.5-SNAPSHOT",
+      "name": "net.atos~calendar~1.5.0",
       "config": {
         "main" : "net.atos.entng.calendar.Calendar",
         "port" : 8098,
