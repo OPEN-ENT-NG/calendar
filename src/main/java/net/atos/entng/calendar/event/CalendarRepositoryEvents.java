@@ -47,67 +47,95 @@ public class CalendarRepositoryEvents extends MongoDbRepositoryEvents {
 
     @Override
     public void exportResources(String exportId, String userId, JsonArray g, String exportPath, String locale,
-                                String host, Handler<Boolean> handler) {
-            QueryBuilder findByOwner = QueryBuilder.start("owner.userId").is(userId);
-            QueryBuilder findByShared = QueryBuilder.start().or(
-                    QueryBuilder.start("shared.userId").is(userId).get(),
-                    QueryBuilder.start("shared.groupId").in(g).get());
-            QueryBuilder findByAuthorOrOwnerOrShared = QueryBuilder.start().or(findByOwner.get(),findByShared.get());
-            final JsonObject query = MongoQueryBuilder.build(findByAuthorOrOwnerOrShared);
-            final AtomicBoolean exported = new AtomicBoolean(false);
-            mongo.find(Calendar.CALENDAR_COLLECTION, query, new Handler<Message<JsonObject>>() {
-                @Override
-                public void handle(Message<JsonObject> event) {
-                    JsonArray results = event.body().getJsonArray("results");
-                    if ("ok".equals(event.body().getString("status")) && results != null) {
-                        results.forEach(elem -> {
-                            JsonObject cal = ((JsonObject) elem);
-                            cal.put("title", "cal_" + cal.getString("title"));
-                        });
-                        final Set<String> ids = results.stream().map(res -> ((JsonObject)res).getString("_id")).collect(Collectors.toSet());
-                        QueryBuilder findByCategoryId = QueryBuilder.start("calendar").in(ids);
-                        JsonObject query2 = MongoQueryBuilder.build(findByCategoryId);
-                        mongo.find(Calendar.CALENDAR_EVENT_COLLECTION, query2, new Handler<Message<JsonObject>>() {
-                            @Override
-                            public void handle(Message<JsonObject> event2) {
-                                JsonArray results2 = event2.body().getJsonArray("results");
-                                if ("ok".equals(event2.body().getString("status")) && results2 != null) {
-                                    results2.forEach(elem -> {
-                                        JsonObject ev = ((JsonObject) elem);
-                                        ev.put("title", "ev_" + ev.getString("title"));
-                                    });
-                                    createExportDirectory(exportPath, locale, new Handler<String>() {
-                                        @Override
-                                        public void handle(String path) {
-                                            if (path != null) {
-                                                exportDocumentsDependancies(results.addAll(results2), path, new Handler<Boolean>() {
-                                                    @Override
-                                                    public void handle(Boolean bool) {
-                                                        if (bool) {
-                                                            exportFiles(results, path, new HashSet<String>(), exported, handler);
-                                                        } else {
-                                                            // Should never happen, export doesn't fail if docs export fail.
-                                                            handler.handle(exported.get());
-                                                        }
+                                String host, Handler<Boolean> handler)
+    {
+        QueryBuilder findByOwner = QueryBuilder.start("owner.userId").is(userId);
+        QueryBuilder findByShared = QueryBuilder.start().or(
+            QueryBuilder.start("shared.userId").is(userId).get(),
+            QueryBuilder.start("shared.groupId").in(g).get()
+        );
+
+        QueryBuilder findByAuthorOrOwnerOrShared = QueryBuilder.start().or(findByOwner.get(),findByShared.get());
+
+        final JsonObject query = MongoQueryBuilder.build(findByAuthorOrOwnerOrShared);
+
+        final AtomicBoolean exported = new AtomicBoolean(false);
+
+        mongo.find(Calendar.CALENDAR_COLLECTION, query, new Handler<Message<JsonObject>>()
+        {
+            @Override
+            public void handle(Message<JsonObject> event)
+            {
+                JsonArray results = event.body().getJsonArray("results");
+                if ("ok".equals(event.body().getString("status")) && results != null)
+                {
+                    results.forEach(elem ->
+                    {
+                        JsonObject cal = ((JsonObject) elem);
+                        cal.put("title", "cal_" + cal.getString("title"));
+                    });
+
+                    final Set<String> ids = results.stream().map(res -> ((JsonObject)res).getString("_id")).collect(Collectors.toSet());
+                    QueryBuilder findByCategoryId = QueryBuilder.start("calendar").in(ids);
+                    JsonObject query2 = MongoQueryBuilder.build(findByCategoryId);
+
+                    mongo.find(Calendar.CALENDAR_EVENT_COLLECTION, query2, new Handler<Message<JsonObject>>()
+                    {
+                        @Override
+                        public void handle(Message<JsonObject> event2)
+                        {
+                            JsonArray results2 = event2.body().getJsonArray("results");
+                            if ("ok".equals(event2.body().getString("status")) && results2 != null)
+                            {
+                                results2.forEach(elem ->
+                                {
+                                    JsonObject ev = ((JsonObject) elem);
+                                    ev.put("title", "ev_" + ev.getString("title"));
+                                });
+
+                                createExportDirectory(exportPath, locale, new Handler<String>()
+                                {
+                                    @Override
+                                    public void handle(String path)
+                                    {
+                                        if (path != null)
+                                        {
+                                            exportDocumentsDependancies(results.addAll(results2), path, new Handler<Boolean>()
+                                            {
+                                                @Override
+                                                public void handle(Boolean bool)
+                                                {
+                                                    if (bool) {
+                                                        exportFiles(results, path, new HashSet<String>(), exported, handler);
+                                                    } else {
+                                                        // Should never happen, export doesn't fail if docs export fail.
+                                                        handler.handle(exported.get());
                                                     }
-                                                });
-                                            } else {
-                                                handler.handle(exported.get());
-                                            }
+                                                }
+                                            });
                                         }
-                                    });
-                                } else {
-                                    log.error(title + " : Could not proceed query " + query2.encode(), event2.body().getString("message"));
-                                    handler.handle(exported.get());
-                                }
+                                        else
+                                        {
+                                            handler.handle(exported.get());
+                                        }
+                                    }
+                                });
                             }
-                        });
-                    } else {
-                        log.error(title + " : Could not proceed query " + query.encode(), event.body().getString("message"));
-                        handler.handle(exported.get());
-                    }
+                            else
+                            {
+                                log.error(title + " : Could not proceed query " + query2.encode(), event2.body().getString("message"));
+                                handler.handle(exported.get());
+                            }
+                        }
+                    });
                 }
-            });
+                else
+                {
+                    log.error(title + " : Could not proceed query " + query.encode(), event.body().getString("message"));
+                    handler.handle(exported.get());
+                }
+            }
+        });
     }
 
     @Override
