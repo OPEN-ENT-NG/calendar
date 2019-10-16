@@ -17,11 +17,11 @@
   },
   "homepage": "https://github.com/OPEN-ENT-NG/calendar#readme",
   "dependencies": {
+    "entcore": "~3.7.0-dev",
     "@types/core-js": "0.9.42",
     "awesome-typescript-loader": "3.2.1",
     "axios": "0.16.2",
     "core-js": "2.4.1",
-    "entcore": "3.6.2",
     "entcore-toolkit": "^1.0.1",
     "gulp": "3.9.1",
     "gulp-clean": "^0.3.2",
