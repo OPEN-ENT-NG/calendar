@@ -35,6 +35,7 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
@@ -43,6 +44,9 @@ public class CalendarRepositoryEvents extends MongoDbRepositoryEvents {
 
     public CalendarRepositoryEvents(Vertx vertx) {
         super(vertx);
+
+        this.collectionNameToImportPrefixMap.put(Calendar.CALENDAR_COLLECTION, "cal_");
+        this.collectionNameToImportPrefixMap.put(Calendar.CALENDAR_EVENT_COLLECTION, "ev_");
     }
 
     @Override
@@ -71,6 +75,8 @@ public class CalendarRepositoryEvents extends MongoDbRepositoryEvents {
 
         final AtomicBoolean exported = new AtomicBoolean(false);
 
+        Map<String, String> prefixMap = this.collectionNameToImportPrefixMap;
+
         mongo.find(Calendar.CALENDAR_COLLECTION, query, new Handler<Message<JsonObject>>()
         {
             @Override
@@ -82,7 +88,7 @@ public class CalendarRepositoryEvents extends MongoDbRepositoryEvents {
                     results.forEach(elem ->
                     {
                         JsonObject cal = ((JsonObject) elem);
-                        cal.put("title", "cal_" + cal.getString("title"));
+                        cal.put("title", prefixMap.get(Calendar.CALENDAR_COLLECTION) + cal.getString("title"));
                     });
 
                     final Set<String> ids = results.stream().map(res -> ((JsonObject)res).getString("_id")).collect(Collectors.toSet());
@@ -100,7 +106,7 @@ public class CalendarRepositoryEvents extends MongoDbRepositoryEvents {
                                 results2.forEach(elem ->
                                 {
                                     JsonObject ev = ((JsonObject) elem);
-                                    ev.put("title", "ev_" + ev.getString("title"));
+                                    ev.put("title", prefixMap.get(Calendar.CALENDAR_EVENT_COLLECTION) + ev.getString("title"));
                                 });
 
                                 createExportDirectory(exportPath, locale, new Handler<String>()
