@@ -598,7 +598,7 @@ export const calendarController =  ng.controller('CalendarController',
            return calendar.myRights.contrib;
         } else {
              return $scope.calendars.all.some(function(cl) {
-                if (cl.myRights.contrib) {
+                if (cl.myRights.contrib && cl.selected) {
                    return true;
                 }
             });

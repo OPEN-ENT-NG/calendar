@@ -26,7 +26,6 @@ export class CalendarEvent implements Selectable{
     is_periodic:boolean;
     locked:boolean = true;
     color:Array<string>;
-    myRights: any;
     shared:any;
     owner:any;
     start_date: Date;
@@ -80,10 +79,11 @@ export class CalendarEvent implements Selectable{
 
     editDateBeforeSend(isNewEvent){
         if(isNewEvent){
+            const addTime:number = moment(this.startMoment)._i ? 0 : - utcTime();
             this.startMoment= moment.utc(getTime(this.startMoment, this.startTime))
-                .add(- utcTime(), 'hours');
+                .add( addTime, 'hours');
             this.endMoment= moment.utc(getTime(this.endMoment, this.endTime))
-                .add(- utcTime(), 'hours');
+                .add( addTime, 'hours');
         } else {
             this.startMoment= moment.utc(getTime(this.startMoment, this.startTime));
             this.endMoment= moment.utc(getTime(this.endMoment, this.endTime));
@@ -141,7 +141,6 @@ export class CalendarEvents extends Selection<CalendarEvent> {
             calendarEvent.endTime = makerFormatTimeInput(moment(endDate), moment(endDate));
             calendarEvent.is_periodic = false;
             calendarEvent.color = calendar.color;
-            calendarEvent.myRights = calendar.myRights;
             return calendarEvent;
         });
 

@@ -34,3 +34,5 @@ data
 **/view/*.html
 **/js/*
 **/view/*
+node_modules
+npm-debug.log
