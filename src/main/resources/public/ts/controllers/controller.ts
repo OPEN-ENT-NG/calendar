@@ -11,6 +11,7 @@ import {
     periods,
     timeConfig,
     recurrence,
+    LANG_CALENDAR,
 } from "../model/constantes";
 import {
     isSameAfter,
@@ -62,6 +63,7 @@ export const calendarController =  ng.controller('CalendarController',
                     $scope.calendars.sync(),
                     $scope.calendars.preference.sync()
                 ]);
+                setCalendarLang();
                 $scope.loadSelectedCalendars();
                 let calendarNotification = $scope.calendars.all.filter( calendarFiltre => calendarFiltre._id === params.calendarId )[0];
                 if (calendarNotification === undefined) {
@@ -79,6 +81,7 @@ export const calendarController =  ng.controller('CalendarController',
                 ]);
                 $scope.loadSelectedCalendars();
                 $scope.initEventDates(moment().utc().second(0).millisecond(0), moment().utc().second(0).millisecond(0).add(1, 'hours'));
+                setCalendarLang();
                 $scope.$apply();
             },
         });
@@ -95,6 +98,10 @@ export const calendarController =  ng.controller('CalendarController',
             $scope.display.importFileButtonDisabled = false;
         });
     }
+
+    const setCalendarLang = ():void => {
+        model.calendar.firstDay = model.calendar.firstDay.lang(LANG_CALENDAR);
+    };
 
     $scope.loadCalendarEvents = () =>{
         if($scope.calendars.all.length > 0){

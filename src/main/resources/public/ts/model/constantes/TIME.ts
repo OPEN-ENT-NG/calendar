@@ -55,3 +55,5 @@ export const recurrence = {
         7: "calendar.recurrence.daymap.sun"
     }
 };
+
+export const LANG_CALENDAR = "fr";
