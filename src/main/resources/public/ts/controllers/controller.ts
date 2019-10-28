@@ -677,8 +677,8 @@ export const calendarController =  ng.controller('CalendarController',
             $scope.calendarEvent.endMoment = newItem.end;
             $scope.calendarEvent.endMoment = $scope.calendarEvent.endMoment.minute(0).second(0).millisecond(0);
         } else {
-            $scope.calendarEvent.startMoment = moment.utc().second(0).millisecond(0).add(utcTime(), 'hours');
-            $scope.calendarEvent.endMoment = moment.utc().second(0).millisecond(0).add(1 + utcTime(), 'hours');
+            $scope.calendarEvent.startMoment = moment.utc().second(0).millisecond(0).add(utcTime($scope.calendarEvent.startMoment), 'hours');
+            $scope.calendarEvent.endMoment = moment.utc().second(0).millisecond(0).add(1 + utcTime($scope.calendarEvent.endMoment), 'hours');
         }
         $scope.calendarEvent.startTime = makerFormatTimeInput($scope.calendarEvent.startMoment, $scope.calendarEvent.startMoment);
         $scope.calendarEvent.endTime = makerFormatTimeInput($scope.calendarEvent.endMoment, $scope.calendarEvent.startMoment);

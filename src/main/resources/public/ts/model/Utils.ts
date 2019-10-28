@@ -17,8 +17,8 @@ export const makerFormatTimeInput = (hours, minutes) => {
     );
 };
 
-export const utcTime = () => {
-    return moment(moment()
+export const utcTime = (getMomentScopeUtc:Date):number => {
+    return moment(moment(getMomentScopeUtc)
         .format("YYYY MM DD HH:MM"), "YYYY MM DD HH:MM")
         .format('Z')
         .split(':')[0]

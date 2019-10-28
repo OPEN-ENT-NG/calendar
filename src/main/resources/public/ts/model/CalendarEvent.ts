@@ -79,7 +79,7 @@ export class CalendarEvent implements Selectable{
 
     editDateBeforeSend(isNewEvent){
         if(isNewEvent){
-            const addTime:number = moment(this.startMoment)._i ? 0 : - utcTime();
+            const addTime:number = moment(this.startMoment)._i ? 0 : - utcTime(this.startMoment);
             this.startMoment= moment.utc(getTime(this.startMoment, this.startTime))
                 .add( addTime, 'hours');
             this.endMoment= moment.utc(getTime(this.endMoment, this.endTime))
