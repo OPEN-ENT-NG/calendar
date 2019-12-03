@@ -111,5 +111,6 @@
   "calendar.recurrence.daymap.fri":"Ve",
   "calendar.recurrence.daymap.sat":"Sa",
   "calendar.recurrence.daymap.sun":"Di",
+    "calendar.error.date.saving":"Problème d'enregistrement de l'évènement : Les dates de début et fin ne sont pas les mêmes, veuillez contacter le service support",
     "calendar.navigation.guard": "Les modifications que vous avez apportées ne seront peut-être pas enregistrées. Souhaitez vous quitter cette page?"
 }

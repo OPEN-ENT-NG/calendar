@@ -1,4 +1,4 @@
-import {$, _, moment, ng , template, idiom as lang} from "entcore";
+import {$, _, moment, ng , template, idiom as lang, notify} from "entcore";
 
 import {
     Calendar,
@@ -118,16 +118,10 @@ export const calendarController =  ng.controller('CalendarController',
     };
 
     $scope.changeStartMoment = () => {
-        if($scope.calendarEvent.isRecurrent){
-            $scope.calendarEvent.endMoment = moment($scope.calendarEvent.endMoment)
-                .year(moment($scope.calendarEvent.startMoment).year())
-                .month(moment($scope.calendarEvent.startMoment).month())
-                .day(moment($scope.calendarEvent.startMoment).day());
-        }
-        if (isSameAfter($scope.calendarEvent.startMoment, $scope.calendarEvent.endMoment)) {
-            $scope.calendarEvent.endMoment = moment($scope.calendarEvent.startMoment);
-            $scope.calendarEvent.endTime = makerFormatTimeInput(moment($scope.calendarEvent.startTime).add(1, 'hours'), 0);
-        }
+        $scope.calendarEvent.endMoment = moment($scope.calendarEvent.endMoment)
+            .year(moment($scope.calendarEvent.startMoment).year())
+            .month(moment($scope.calendarEvent.startMoment).month())
+            .day(moment($scope.calendarEvent.startMoment).day());
     };
 
     $scope.changeEndMoment = () => {
@@ -789,10 +783,18 @@ export const calendarController =  ng.controller('CalendarController',
                         }
                         itemCalendarEvent.parentId = parentId;
                     }
-                    await itemCalendarEvent.save();
-                        items[count].calEvent._id =  itemCalendarEvent._id;
-                        count++;
-                        doItemCalendarEvent(items, count);
+                        itemCalendarEvent.save()
+                            .then(() => {
+                                items[count].calEvent._id =  itemCalendarEvent._id;
+                                count++;
+                                doItemCalendarEvent(items, count);
+                            })
+                            .catch(() =>{
+                                notify.error(lang.translate('calendar.error.date.saving'));
+                                count = items.length;
+                                doItemCalendarEvent(items, count);
+                            })
+
                 } else {
                     await itemCalendarEvent.delete();
                         count++;

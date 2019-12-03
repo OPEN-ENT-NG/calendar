@@ -99,22 +99,27 @@ public class EventHelper extends MongoDbControllerHelper {
                     RequestUtils.bodyToJson(request, new Handler<JsonObject>() {
                         @Override
                         public void handle(JsonObject object) {
-                            eventService.create(calendarId, object, user, new Handler<Either<String, JsonObject>>() {
-                                public void handle(Either<String, JsonObject> event) {
-                                    if (event.isRight()) {
-                                        JsonObject eventId = event.right().getValue();
-                                        final JsonObject message = new JsonObject();
-                                        message.put("id", calendarId);
-                                        message.put("eventId", eventId.getString("_id"));
-                                        message.put("start_date", (String) null);
-                                        message.put("end_date", (String) null);
-                                        notifyEventCreatedOrUpdated(request, user, message, true);
-                                        renderJson(request, event.right().getValue(), 200);
-                                    } else if (event.isLeft()) {
-                                        log.error("Error when getting notification informations.");
+                            if (object.getString("startMoment").substring(0,10).equals(object.getString("endMoment").substring(0,10))) {
+                                eventService.create(calendarId, object, user, new Handler<Either<String, JsonObject>>() {
+                                    public void handle(Either<String, JsonObject> event) {
+                                        if (event.isRight()) {
+                                            JsonObject eventId = event.right().getValue();
+                                            final JsonObject message = new JsonObject();
+                                            message.put("id", calendarId);
+                                            message.put("eventId", eventId.getString("_id"));
+                                            message.put("start_date", (String) null);
+                                            message.put("end_date", (String) null);
+                                            notifyEventCreatedOrUpdated(request, user, message, true);
+                                            renderJson(request, event.right().getValue(), 200);
+                                        } else if (event.isLeft()) {
+                                            log.error("Error when getting notification informations.");
+                                        }
                                     }
-                                }
-                            });
+                                });
+                            }else{
+                                log.error("The beginning and end date of the event are not the same");
+                                Renders.unauthorized(request);
+                            }
                         }
                     });
                 } else {

@@ -62,15 +62,21 @@
                                     <label class="twelve cell form-label"><i18n>calendar.event.start.date</i18n></label>
                                     <date-picker ng-model="calendarEvent.startMoment" ng-change="changeStartMoment()"></date-picker>
                                 </div>
-                                <div class="six cell" ng-if="!calendarEvent.allday">
+                                <div class="three cell" ng-if="!calendarEvent.allday">
                                     <label class="twelve cell form-label"><i18n>calendar.event.start.time</i18n></label>
                                     <input format-input-time type="time" id="time-picker-start-moment" class="input-small cell"
                                            placeholder="HH:mm" ng-model="calendarEvent.startTime" start-time="calendarEvent.startTime" end-time="calendarEvent.endTime"
                                            step="60" start-moment="calendarEvent.startMoment" end-moment="calendarEvent.endMoment" required/>
                                 </div>
+                                <div class="three cell" ng-if="!calendarEvent.allday">
+                                    <label class="twelve cell form-label"><i18n>calendar.event.end.time</i18n></label>
+                                    <input format-input-time  type="time" id="time-picker-end-moment" class="input-small cell"
+                                           placeholder="HH:mm" ng-model="calendarEvent.endTime" start-time="calendarEvent.startTime" end-time="calendarEvent.endTime"
+                                           step="60" start-moment="calendarEvent.startMoment" end-moment="calendarEvent.endMoment"required/>
+                                </div>
                             </div>
 
-                            <div class="row">
+                            <!--<div class="row">
                                 <div class="six cell">
                                     <div ng-show="!calendarEvent.isRecurrent">
                                         <label class="twelve cell form-label"><i18n>calendar.event.end.date</i18n></label>
@@ -86,7 +92,7 @@
                                            placeholder="HH:mm" ng-model="calendarEvent.endTime" start-time="calendarEvent.startTime" end-time="calendarEvent.endTime"
                                            step="60" start-moment="calendarEvent.startMoment" end-moment="calendarEvent.endMoment"required/>
                                 </div>
-                            </div>
+                            </div>-->
                             <div class="row">
                                 <div class="six cell">
                                     <input type="checkbox" ng-model="calendarEvent.allday"/>
@@ -234,7 +240,8 @@
             </div>
 
             <button ng-if="calendarEvent._id" class="right-magnet" ng-click="confirmRemoveCalendarEvent(calendarEvent, $event)"><i18n>remove</i18n></button>
-            <button class="right-magnet" ng-click="saveCalendarEventEdit(calendarEventIn)" ng-disabled="form.$invalid"><i18n>save</i18n></button>
+            <button class="right-magnet" ng-click="saveCalendarEventEdit(calendarEventIn)"
+                    ng-disabled="form.$invalid && calendarEvent.startMoment != calendarEvent.endMoment"><i18n>save</i18n></button>
 
         </form>
     </section>
