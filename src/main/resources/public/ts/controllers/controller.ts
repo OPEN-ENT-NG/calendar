@@ -53,6 +53,7 @@ export const calendarController =  ng.controller('CalendarController',
         $scope.jsonData = {ics: {}};
         $scope.calendarEvents.filters.startMoment = moment().startOf('day');
         $scope.calendarEvents.filters.endMoment = moment().add(2, 'months').startOf('day');
+        $scope.contentToWatch = "";
 
         template.open('main', 'main-view');
         template.open('top-menu', 'top-menu');
@@ -478,6 +479,7 @@ export const calendarController =  ng.controller('CalendarController',
 
     $scope.viewCalendarEvent = calendarEvent => {
         $scope.calendarEvent = calendarEvent;
+        $scope.contentToWatch = $scope.calendarEvent.title+$scope.calendarEvent.description+$scope.calendarEvent.location;
         $scope.calendarEvent.showDetails = true;
          if (!$scope.calendarEvent.parentId) {
              if (!$scope.calendarEvent.recurrence) {
@@ -498,6 +500,7 @@ export const calendarController =  ng.controller('CalendarController',
         template.close('lightbox');
         $scope.showCalendarEventTimePicker = false;
         $scope.display.showEventPanel = false;
+        $scope.contentToWatch = "";
     };
 
      $scope.confirmRemoveCalendarEvent = (calendarEvent, event) => {
@@ -583,6 +586,7 @@ export const calendarController =  ng.controller('CalendarController',
         $scope.calendar = calendar;
         event.stopPropagation();
         template.open('calendar', 'edit-calendar');
+        $scope.contentToWatch = $scope.calendarEvent.title+$scope.calendarEvent.description+$scope.calendarEvent.location;
     };
 
     $scope.saveCalendarEdit = async () => {
@@ -739,6 +743,27 @@ export const calendarController =  ng.controller('CalendarController',
         }
     };
 
+    $scope.canICloseLightBox = function() {
+        if($scope.calendarEvent.title == undefined && $scope.calendarEvent.description == undefined && $scope.calendarEvent.location == undefined){
+            return false;
+        }else {
+            if($scope.calendarEvent.title == undefined){
+                $scope.calendarEvent.title = "";
+            }
+            if($scope.calendarEvent.description == undefined){
+                $scope.calendarEvent.description = "";
+            }
+            if($scope.calendarEvent.location == undefined){
+                $scope.calendarEvent.location = "";
+            }
+            if ($scope.contentToWatch != $scope.calendarEvent.title + $scope.calendarEvent.description + $scope.calendarEvent.location) {
+                return !confirm(lang.translate("calendar.navigation.guard"));
+            } else {
+                return false;
+            }
+        }
+    };
+
     $scope.saveCalendarEventEdit = async (calendarEvent = $scope.calendarEvent) => {
         async function doItemCalendarEvent(items, count) {
             if (items.length === count) {
@@ -775,6 +800,7 @@ export const calendarController =  ng.controller('CalendarController',
                 }
             }
         }
+        $scope.contentToWatch = $scope.calendarEvent.title+$scope.calendarEvent.description+$scope.calendarEvent.location;
         var items = [];
         calendarEvent.startMoment = moment(calendarEvent.startMoment).seconds(0).milliseconds(0);
         calendarEvent.endMoment = moment(calendarEvent.endMoment).seconds(0).milliseconds(0);

@@ -144,7 +144,7 @@
 
 <!-- Lightbox : Event creation / edition -->
 <div ng-if="display.showEventPanel">
-    <lightbox show="display.showEventPanel" on-close="closeCalendarEvent()">
+    <lightbox show="display.showEventPanel" on-close="closeCalendarEvent()" delegate-close="canICloseLightBox()">
         <container template="lightbox"></container>
     </lightbox>
 </div>
