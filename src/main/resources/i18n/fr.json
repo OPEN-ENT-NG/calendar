@@ -110,5 +110,6 @@
   "calendar.recurrence.daymap.thu":"Je",
   "calendar.recurrence.daymap.fri":"Ve",
   "calendar.recurrence.daymap.sat":"Sa",
-  "calendar.recurrence.daymap.sun":"Di"
+  "calendar.recurrence.daymap.sun":"Di",
+    "calendar.navigation.guard": "Les modifications que vous avez apportées ne seront peut-être pas enregistrées. Souhaitez vous quitter cette page?"
 }
