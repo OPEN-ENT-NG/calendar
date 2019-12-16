@@ -118,18 +118,17 @@ export const calendarController =  ng.controller('CalendarController',
     };
 
     $scope.changeStartMoment = () => {
-        $scope.calendarEvent.endMoment = moment($scope.calendarEvent.endMoment)
-            .year(moment($scope.calendarEvent.startMoment).year())
-            .month(moment($scope.calendarEvent.startMoment).month())
-            .day(moment($scope.calendarEvent.startMoment).day());
+        $scope.calendarEvent.endMoment = moment($scope.calendarEvent.startMoment);
     };
 
+/*
     $scope.changeEndMoment = () => {
         if (isSameAfter($scope.calendarEvent.startMoment, $scope.calendarEvent.endMoment)) {
             $scope.calendarEvent.startMoment = moment($scope.calendarEvent.endMoment);
                 $scope.calendarEvent.startTime = makerFormatTimeInput(moment($scope.calendarEvent.endTime).subtract(1, 'hours'), 0);
         }
     };
+*/
 
     $scope.toggleIsRecurrent = function(calendarEvent) {
         if (calendarEvent.isRecurrent) {
