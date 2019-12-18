@@ -4,14 +4,14 @@
     "calendar.create": "Création d'un événement",
     "calendar.update": "Mise à jour d'un événement",
     "timeline.calendar.has.created": "a créé un",
-    "timeline.calendar.event": "évènement",
+    "timeline.calendar.event": "événement",
     "timeline.calendar.from": "du",
     "timeline.calendar.to": "au",
     "timeline.calendar.shared": "vous a donné accès à l'agenda",
-    "timeline.calendar.add": "a ajouté un évènement à l'agenda",
-    "timeline.calendar.update": "a mis à jour un évènement dans l'agenda",
+    "timeline.calendar.add": "a ajouté un événement à l'agenda",
+    "timeline.calendar.update": "a mis à jour un événement dans l'agenda",
     "timeline.calendar.of.calendar": "du module de gestion d'agenda",
     "push.notif.calendar.share": "Agenda: Nouvel agenda",
-    "push.notif.event.created": "Agenda: Nouvel évènement",
-    "push.notif.event.updated": "Agenda: Un évènement à été modifié"
+    "push.notif.event.created": "Agenda: Nouvel événement",
+    "push.notif.event.updated": "Agenda: Un événement à été modifié"
 }
