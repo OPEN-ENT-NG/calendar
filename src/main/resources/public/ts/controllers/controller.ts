@@ -550,12 +550,18 @@ export const calendarController =  ng.controller('CalendarController',
         $scope.display.confirmDeleteCalendarEvent = false;
     };
 
+    const addCssOnHtmlElement = (selectorHtml:string, propertyCss:string, valueCss:string):void => {
+        $(selectorHtml).css(propertyCss,valueCss);
+    }
+
     $scope.refreshCalendarEvents = async () => {
         template.close('lightbox');
         await $scope.calendars.syncCalendarEvents();
         await $scope.loadCalendarEvents();
+        addCssOnHtmlElement("body > portal > div > section","z-index","9000");
         $scope.$apply();
     };
+
 
     $scope.resetCalendarAfterRemoveEvent = async function(count,countRecurrent) {
         if (count === 0 && countRecurrent === 0) {
