@@ -74,7 +74,6 @@ export class CalendarEvent implements Selectable{
 
     async delete() {
         await http.delete('/calendar/' + this.calendar._id + '/event/' + this._id);
-
     };
 
     editDateBeforeSend(isNewEvent){
