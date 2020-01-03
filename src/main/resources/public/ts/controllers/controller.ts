@@ -472,7 +472,7 @@ export const calendarController =  ng.controller('CalendarController',
 
     $scope.viewCalendarEvent = calendarEvent => {
         $scope.calendarEvent = calendarEvent;
-        $scope.contentToWatch = $scope.calendarEvent.title+$scope.calendarEvent.description+$scope.calendarEvent.location;
+        $scope.createContentToWatch();
         $scope.calendarEvent.showDetails = true;
          if (!$scope.calendarEvent.parentId) {
              if (!$scope.calendarEvent.recurrence) {
@@ -585,7 +585,21 @@ export const calendarController =  ng.controller('CalendarController',
         $scope.calendar = calendar;
         event.stopPropagation();
         template.open('calendar', 'edit-calendar');
-        $scope.contentToWatch = $scope.calendarEvent.title+$scope.calendarEvent.description+$scope.calendarEvent.location;
+        $scope.createContentToWatch();
+    };
+
+    $scope.createContentToWatch = function(){
+        if($scope.calendarEvent.title == undefined){
+            $scope.contentToWatch = "";
+        }else{
+            $scope.contentToWatch = $scope.calendarEvent.title;
+        }
+        if($scope.calendarEvent.description != undefined){
+            $scope.contentToWatch += $scope.calendarEvent.description;
+        }
+        if($scope.calendarEvent.location != undefined){
+            $scope.contentToWatch += $scope.calendarEvent.location;
+        }
     };
 
     $scope.saveCalendarEdit = async () => {
@@ -746,16 +760,17 @@ export const calendarController =  ng.controller('CalendarController',
         if($scope.calendarEvent.title == undefined && $scope.calendarEvent.description == undefined && $scope.calendarEvent.location == undefined){
             return false;
         }else {
-            if($scope.calendarEvent.title == undefined){
-                $scope.calendarEvent.title = "";
+            let toCompare = "";
+            if($scope.calendarEvent.title != undefined){
+                toCompare += $scope.calendarEvent.title;
             }
-            if($scope.calendarEvent.description == undefined){
-                $scope.calendarEvent.description = "";
+            if($scope.calendarEvent.description != undefined){
+                toCompare += $scope.calendarEvent.description;
             }
-            if($scope.calendarEvent.location == undefined){
-                $scope.calendarEvent.location = "";
+            if($scope.calendarEvent.location != undefined){
+                toCompare += $scope.calendarEvent.location;
             }
-            if ($scope.contentToWatch != $scope.calendarEvent.title + $scope.calendarEvent.description + $scope.calendarEvent.location) {
+            if ($scope.contentToWatch != toCompare) {
                 return !confirm(lang.translate("calendar.navigation.guard"));
             } else {
                 return false;
@@ -807,7 +822,7 @@ export const calendarController =  ng.controller('CalendarController',
                 }
             }
         }
-        $scope.contentToWatch = $scope.calendarEvent.title+$scope.calendarEvent.description+$scope.calendarEvent.location;
+        $scope.createContentToWatch();
         var items = [];
         calendarEvent.startMoment = moment(calendarEvent.startMoment).seconds(0).milliseconds(0);
         calendarEvent.endMoment = moment(calendarEvent.endMoment).seconds(0).milliseconds(0);
