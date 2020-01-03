@@ -129,13 +129,13 @@ export class CalendarEvents extends Selection<CalendarEvent> {
             let startDate = moment(calendarEvent.startMoment).second(0).millisecond(0);
             calendarEvent.startMoment = startDate;
             calendarEvent.startMomentDate = startDate.format('DD/MM/YYYY');
-            calendarEvent.startMomentTime = startDate.format('hh:mm');
+            calendarEvent.startMomentTime = startDate.format('HH:mm');
             calendarEvent.start_date = moment.utc(calendarEvent.startMoment)._d;
             calendarEvent.startTime = makerFormatTimeInput(moment(startDate),moment(startDate));
             let endDate = moment(calendarEvent.endMoment).second(0).millisecond(0);
             calendarEvent.endMoment = endDate;
             calendarEvent.endMomentDate = endDate.format('DD/MM/YYYY');
-            calendarEvent.endMomentTime = endDate.format('hh:mm');
+            calendarEvent.endMomentTime = endDate.format('HH:mm');
             calendarEvent.end_date =  moment.utc(calendarEvent.endMoment)._d;
             calendarEvent.endTime = makerFormatTimeInput(moment(endDate), moment(endDate));
             calendarEvent.is_periodic = false;
