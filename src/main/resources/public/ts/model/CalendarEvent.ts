@@ -62,6 +62,7 @@ export class CalendarEvent implements Selectable{
     };
 
     async create(){
+        console.log("im in")
         this.editDateBeforeSend(true);
      let {data : {_id : id}} = await http.post('/calendar/' + this.calendar._id + '/events', this.toJSON());
         this._id = id;

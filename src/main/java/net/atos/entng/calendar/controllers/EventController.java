@@ -57,6 +57,7 @@ public class EventController extends BaseController {
     @Post("/:id/events")
     @SecuredAction(value = "calendar.contrib", type = ActionType.RESOURCE)
     public void createEvent(final HttpServerRequest request) {
+        log.info("createEvent");
         RequestUtils.bodyToJson(request, pathPrefix + "event", new Handler<JsonObject>() {
             @Override
             public void handle(JsonObject event) {

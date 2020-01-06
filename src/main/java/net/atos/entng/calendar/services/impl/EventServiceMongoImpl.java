@@ -93,7 +93,19 @@ public class EventServiceMongoImpl extends MongoDbCrudService implements EventSe
         body.put("modified", now);
         body.put("calendar", calendarId);
         body.put("icsUid", icsUid);
-        mongo.save(this.collection, body, validActionResultHandler(handler));
+//        mongo.save(this.collection, body, validActionResultHandler(handler));
+        mongo.save(this.collection, body, new Handler<Message<JsonObject>>() {
+            @Override
+            public void handle(Message<JsonObject> event) {
+                System.out.println(event.body());
+                if(event.body().containsKey("status") &&  event.body().getValue("status").equals("ok")){
+                    handler.handle(new Either.Right<String, JsonObject>(new JsonObject().put("_id",event.body().getValue("_id"))));
+                }else {
+                    handler.handle(new Either.Left<String, JsonObject>("no id"));
+
+                }
+            }
+        });
     }
 
     @Override

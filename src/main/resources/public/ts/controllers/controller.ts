@@ -190,6 +190,7 @@ export const calendarController =  ng.controller('CalendarController',
     $scope.handleEveryDayRecurrence = function(calendarEvent) {
         var calendarRecurrentEvent;
         var list = [];
+        //called when everyday
         if (calendarEvent.recurrence.end_type == 'after' && calendarEvent.recurrence.end_after) {
             for (let i = 0; i < calendarEvent.recurrence.end_after; i++) {
                 calendarRecurrentEvent = $scope.createChildCalendarEvent(calendarEvent);
@@ -844,7 +845,8 @@ export const calendarController =  ng.controller('CalendarController',
         var item = {'calEvent': calendarEvent, 'action': 'save'};
         items.push(item);
         if (calendarEvent.isRecurrent && !calendarEvent.parentId && !hasExistingRecurrence) {
-            Array.prototype.push.apply(items, $scope.handleRecurrence(calendarEvent));
+            console.log("lopsqdsqsdq")
+            // Array.prototype.push.apply(items, $scope.handleRecurrence(calendarEvent));
         }
         if (calendarEvent.isRecurrent && !calendarEvent.parentId) {
             var item = {'calEvent': calendarEvent, 'action': 'delete'};

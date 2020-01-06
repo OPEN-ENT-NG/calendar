@@ -99,6 +99,8 @@ public class EventHelper extends MongoDbControllerHelper {
                     RequestUtils.bodyToJson(request, new Handler<JsonObject>() {
                         @Override
                         public void handle(JsonObject object) {
+                            if(object.getBoolean("isRecurrent"))
+                                log.info("Recurrent");
                             if (object.getString("startMoment").substring(0,10).equals(object.getString("endMoment").substring(0,10))) {
                                 eventService.create(calendarId, object, user, new Handler<Either<String, JsonObject>>() {
                                     public void handle(Either<String, JsonObject> event) {
@@ -246,6 +248,7 @@ public class EventHelper extends MongoDbControllerHelper {
      * Notify moderators that an event has been created or updated
      */
     private void notifyEventCreatedOrUpdated(final HttpServerRequest request, final UserInfos user, final JsonObject message, final boolean isCreated) {
+        log.info("notifyEventCreatedOrUpdated " + user.getLastName());
 
         final String calendarId = message.getString("id", null);
         final String eventId = message.getString("eventId", null);
@@ -323,13 +326,28 @@ public class EventHelper extends MongoDbControllerHelper {
                                 ) + " " + calendarEvent.getString("title"));
 
                         p.put("pushNotif", pushNotif);
+                        log.info("notifyUsersSharing " + user.getFirstName());
+                        log.info(" duplicates : " +  findDuplicates(recipients));
                         notification.notifyTimeline(request, template, user, recipients, calendarId, calendarEvent.getString("id"), p);
                     }
                 }
             }
         });
     }
+    public Set<String> findDuplicates(List<String> listContainingDuplicates)
+    {
+        final Set<String> setToReturn = new HashSet<>();
+        final Set<String> set1 = new HashSet<>();
 
+        for (String yourInt : listContainingDuplicates)
+        {
+            if (!set1.add(yourInt))
+            {
+                setToReturn.add(yourInt);
+            }
+        }
+        return setToReturn;
+    }
     private void findRecipiants(String collection, QueryBuilder query, JsonObject keys,
                                 final JsonArray fetch, final UserInfos user, final Handler<Map<String, Object>> handler) {
         findRecipiants(collection, query, keys, fetch, null, user, handler);
