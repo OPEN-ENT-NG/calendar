@@ -499,8 +499,8 @@ export const calendarController =  ng.controller('CalendarController',
      $scope.confirmRemoveCalendarEvent = (calendarEvent, event) => {
         $scope.calendar.calendarEvents.deselectAll();
         let infoEventSelected= $scope.calendar.calendarEvents.all
-            .filter( eventFiltered => calendarEvent._id === eventFiltered._id);
-        if (!infoEventSelected.parentId && $scope.calendarEvent.detailToRecurrence) {
+            .filter( eventFiltered => calendarEvent._id === eventFiltered._id)[0];
+        if (infoEventSelected.parentId != undefined && $scope.calendarEvent.isRecurrent) {
             $scope.calendarEvents.getRecurrenceEvents(calendarEvent).forEach(function(calEvent) {
                 calEvent.selected = true;
             });
