@@ -99,9 +99,24 @@ public class EventHelper extends MongoDbControllerHelper {
                     RequestUtils.bodyToJson(request, new Handler<JsonObject>() {
                         @Override
                         public void handle(JsonObject object) {
-                            if(object.getBoolean("isRecurrent"))
-                                log.info("Recurrent");
-                            if (object.getString("startMoment").substring(0,10).equals(object.getString("endMoment").substring(0,10))) {
+                            if (object.getBoolean("isRecurrent")){
+                                eventService.createRecurrent(calendarId, object, user, new Handler<Either<String, JsonObject>>() {
+                                    public void handle(Either<String, JsonObject> event) {
+                                        if (event.isRight()) {
+                                            JsonObject eventId = event.right().getValue();
+                                            final JsonObject message = new JsonObject();
+                                            message.put("id", calendarId);
+                                            message.put("eventId", eventId.getString("_id"));
+                                            message.put("start_date", (String) null);
+                                            message.put("end_date", (String) null);
+                                            notifyEventCreatedOrUpdated(request, user, message, true);
+                                            renderJson(request, event.right().getValue(), 200);
+                                        } else if (event.isLeft()) {
+                                            log.error("Error when getting notification informations.");
+                                        }
+                                    }
+                                });
+                            }else if (object.getString("startMoment").substring(0,10).equals(object.getString("endMoment").substring(0,10))) {
                                 eventService.create(calendarId, object, user, new Handler<Either<String, JsonObject>>() {
                                     public void handle(Either<String, JsonObject> event) {
                                         if (event.isRight()) {
@@ -248,7 +263,6 @@ public class EventHelper extends MongoDbControllerHelper {
      * Notify moderators that an event has been created or updated
      */
     private void notifyEventCreatedOrUpdated(final HttpServerRequest request, final UserInfos user, final JsonObject message, final boolean isCreated) {
-        log.info("notifyEventCreatedOrUpdated " + user.getLastName());
 
         final String calendarId = message.getString("id", null);
         final String eventId = message.getString("eventId", null);
@@ -311,7 +325,7 @@ public class EventHelper extends MongoDbControllerHelper {
                                 .put("CalendarTitle", calendarTitle)
                                 .put("postTitle", calendarEvent.getString("title"))
                                 .put("profilUri",
-                                "/userbook/annuaire#" + user.getUserId() + "#" + user.getType())
+                                        "/userbook/annuaire#" + user.getUserId() + "#" + user.getType())
                                 .put("calendarUri",
                                         "/calendar#/view/" + calendarId)
                                 .put("resourceUri", "/calendar#/view/" + calendarId)
@@ -326,28 +340,13 @@ public class EventHelper extends MongoDbControllerHelper {
                                 ) + " " + calendarEvent.getString("title"));
 
                         p.put("pushNotif", pushNotif);
-                        log.info("notifyUsersSharing " + user.getFirstName());
-                        log.info(" duplicates : " +  findDuplicates(recipients));
                         notification.notifyTimeline(request, template, user, recipients, calendarId, calendarEvent.getString("id"), p);
                     }
                 }
             }
         });
     }
-    public Set<String> findDuplicates(List<String> listContainingDuplicates)
-    {
-        final Set<String> setToReturn = new HashSet<>();
-        final Set<String> set1 = new HashSet<>();
 
-        for (String yourInt : listContainingDuplicates)
-        {
-            if (!set1.add(yourInt))
-            {
-                setToReturn.add(yourInt);
-            }
-        }
-        return setToReturn;
-    }
     private void findRecipiants(String collection, QueryBuilder query, JsonObject keys,
                                 final JsonArray fetch, final UserInfos user, final Handler<Map<String, Object>> handler) {
         findRecipiants(collection, query, keys, fetch, null, user, handler);
@@ -422,30 +421,30 @@ public class EventHelper extends MongoDbControllerHelper {
     private String getNeoQuery(List<String> shareIds) {
         String query =
                 "MATCH (u:User) " +
-                "WHERE u.id IN ['" +
-                Joiner.on("','").join(shareIds) + "'] AND u.id <> {userId} " +
-                "RETURN distinct u.id as id"
+                        "WHERE u.id IN ['" +
+                        Joiner.on("','").join(shareIds) + "'] AND u.id <> {userId} " +
+                        "RETURN distinct u.id as id"
 
-                + " UNION " +
+                        + " UNION " +
 
-                "MATCH (n:ProfileGroup )<-[:IN]-(u:User) " +
-                "WHERE n.id IN ['" +
-                Joiner.on("','").join(shareIds) + "'] AND u.id <> {userId} " +
-                "RETURN distinct u.id as id"
+                        "MATCH (n:ProfileGroup )<-[:IN]-(u:User) " +
+                        "WHERE n.id IN ['" +
+                        Joiner.on("','").join(shareIds) + "'] AND u.id <> {userId} " +
+                        "RETURN distinct u.id as id"
 
-                + " UNION " +
+                        + " UNION " +
 
-                "MATCH (n:ManualGroup )<-[:IN]-(u:User) " +
-                "WHERE n.id IN ['" +
-                Joiner.on("','").join(shareIds) + "'] AND u.id <> {userId} " +
-                "RETURN distinct u.id as id"
+                        "MATCH (n:ManualGroup )<-[:IN]-(u:User) " +
+                        "WHERE n.id IN ['" +
+                        Joiner.on("','").join(shareIds) + "'] AND u.id <> {userId} " +
+                        "RETURN distinct u.id as id"
 
-                + " UNION " +
+                        + " UNION " +
 
-                "MATCH (n:CommunityGroup )<-[:IN]-(u:User) " +
-                "WHERE n.id IN ['" +
-                Joiner.on("','").join(shareIds) + "'] AND u.id <> {userId} " +
-                "RETURN distinct u.id as id ";
+                        "MATCH (n:CommunityGroup )<-[:IN]-(u:User) " +
+                        "WHERE n.id IN ['" +
+                        Joiner.on("','").join(shareIds) + "'] AND u.id <> {userId} " +
+                        "RETURN distinct u.id as id ";
 
         return query;
     }

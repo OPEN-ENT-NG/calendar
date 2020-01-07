@@ -93,19 +93,53 @@ public class EventServiceMongoImpl extends MongoDbCrudService implements EventSe
         body.put("modified", now);
         body.put("calendar", calendarId);
         body.put("icsUid", icsUid);
-//        mongo.save(this.collection, body, validActionResultHandler(handler));
+        System.out.println(body);
+        mongo.save(this.collection, body, validActionResultHandler(handler));
+
+    }
+
+    @Override
+    public void createRecurrent(String calendarId, JsonObject body, UserInfos user, Handler<Either<String, JsonObject>> handler) {
+        // Clean data
+        body.remove("_id");
+        body.remove("calendar");
+
+        // ics Uid generate
+        UidGenerator uidGenerator;
+        String icsUid = "";
+        try {
+            uidGenerator = new UidGenerator("1");
+            icsUid = uidGenerator.generateUid().toString();
+        } catch (SocketException e) {
+            handler.handle(new Either.Left<String, JsonObject>(new String("Error")));
+        }
+
+        // Prepare data
+        JsonObject now = MongoDb.now();
+        body.put("owner", new JsonObject().put("userId", user.getUserId()).put("displayName", user.getUsername()));
+        body.put("created", now);
+        body.put("modified", now);
+        body.put("calendar", calendarId);
+        body.put("icsUid", icsUid);
+        System.out.println("creating recurrent");
         mongo.save(this.collection, body, new Handler<Message<JsonObject>>() {
             @Override
             public void handle(Message<JsonObject> event) {
-                System.out.println(event.body());
-                if(event.body().containsKey("status") &&  event.body().getValue("status").equals("ok")){
-                    handler.handle(new Either.Right<String, JsonObject>(new JsonObject().put("_id",event.body().getValue("_id"))));
-                }else {
+                if (event.body().containsKey("status") && event.body().getValue("status").equals("ok")) {
+                    System.out.println(event.body());
+                    createRecurrences(body,event.body().getString("_id"),handler);
+//                    handler.handle(new Either.Right<String, JsonObject>(new JsonObject().put("_id", event.body().getValue("_id"))));
+                } else {
                     handler.handle(new Either.Left<String, JsonObject>("no id"));
 
                 }
             }
         });
+    }
+
+    private void createRecurrences(JsonObject body, String parentId, Handler<Either<String, JsonObject>> handler) {
+
+            handler.handle(new Either.Right<>(new JsonObject().put("_id",parentId)));
     }
 
     @Override
@@ -247,21 +281,20 @@ public class EventServiceMongoImpl extends MongoDbCrudService implements EventSe
     }
 
     @Override
-    public void findOne(String collection, QueryBuilder query, Handler<Either<String, JsonObject>> handler){
+    public void findOne(String collection, QueryBuilder query, Handler<Either<String, JsonObject>> handler) {
         JsonObject projection = new JsonObject();
         mongo.findOne(collection, MongoQueryBuilder.build(query), validResultHandler(handler));
     }
 
     @Override
-    public void getCalendarEventById(String eventId, Handler<Either<String, JsonObject>> handler){
+    public void getCalendarEventById(String eventId, Handler<Either<String, JsonObject>> handler) {
         JsonObject projection = new JsonObject();
         QueryBuilder query = QueryBuilder.start("_id").is(eventId);
-        mongo.findOne("calendarevent", MongoQueryBuilder.build(query), validResultHandler(handler));
+        mongo.findOne(this.collection, MongoQueryBuilder.build(query), validResultHandler(handler));
     }
 
     @Override
-    public void getEventsByCalendarAndDate(String[] calendars, int nbLimit, Handler<Either<String, JsonArray>> handler)
-    {
+    public void getEventsByCalendarAndDate(String[] calendars, int nbLimit, Handler<Either<String, JsonArray>> handler) {
         QueryBuilder query;
         DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSX");
         String dateToIso = df.format(new Date());
@@ -270,7 +303,7 @@ public class EventServiceMongoImpl extends MongoDbCrudService implements EventSe
         query = new QueryBuilder().and(QueryBuilder.start("calendar").in(calendars).get(),
                 QueryBuilder.start("endMoment").greaterThanEquals(dateToIso).get());
 
-        mongo.find("calendarevent", MongoQueryBuilder.build(query),
+        mongo.find(this.collection, MongoQueryBuilder.build(query),
                 sort, null, -1, nbLimit, 2147483647,
                 validResultsHandler(handler));
     }

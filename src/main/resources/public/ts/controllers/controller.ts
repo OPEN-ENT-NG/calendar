@@ -851,7 +851,7 @@ export const calendarController =  ng.controller('CalendarController',
         if (calendarEvent.isRecurrent && !calendarEvent.parentId) {
             var item = {'calEvent': calendarEvent, 'action': 'delete'};
             if (parentAction === 'create') {
-                items.push(item);
+                // items.push(item);
             } else if (items.length > 1) {
                 items.push(item);
             } else {
