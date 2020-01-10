@@ -24,17 +24,26 @@ import static org.entcore.common.mongodb.MongoDbResult.validActionResultHandler;
 import static org.entcore.common.mongodb.MongoDbResult.validResultHandler;
 import static org.entcore.common.mongodb.MongoDbResult.validResultsHandler;
 
+import java.awt.*;
 import java.net.SocketException;
 import java.text.DateFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
+import java.util.GregorianCalendar;
+import java.util.TimeZone;
 
+import io.vertx.core.logging.Logger;
+import io.vertx.core.logging.LoggerFactory;
 import net.atos.entng.calendar.ical.ICalHandler;
 import net.atos.entng.calendar.services.EventServiceMongo;
+import net.atos.entng.calendar.services.utils.Course;
 import net.fortuna.ical4j.util.UidGenerator;
 
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.entcore.common.service.impl.MongoDbCrudService;
+import org.entcore.common.service.impl.MongoDbRepositoryEvents;
 import org.entcore.common.user.UserInfos;
 import io.vertx.core.Handler;
 import io.vertx.core.eventbus.EventBus;
@@ -52,9 +61,13 @@ import fr.wseduc.webutils.Either;
 public class EventServiceMongoImpl extends MongoDbCrudService implements EventServiceMongo {
 
     private final EventBus eb;
+    public static final String ISO_8601_24H_FULL_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX";
+    final SimpleDateFormat sdf = new SimpleDateFormat(ISO_8601_24H_FULL_FORMAT);
+    protected static final Logger log = LoggerFactory.getLogger(EventServiceMongoImpl.class);
 
     public EventServiceMongoImpl(String collection, EventBus eb) {
         super(collection);
+        sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
         this.eb = eb;
     }
 
@@ -70,6 +83,26 @@ public class EventServiceMongoImpl extends MongoDbCrudService implements EventSe
         mongo.find(this.collection, MongoQueryBuilder.build(query), sort, projection, validResultsHandler(handler));
     }
 
+    private void insertInMongo(Course course, Handler<Either<String, JsonObject>> handler) {
+        JsonObject body = course.toJson();
+        JsonObject now = MongoDb.now();
+        body.put("created", now);
+        body.put("modified", now);
+
+        String icsUid = generateUid(handler);
+
+        body.put("icsUid", icsUid);
+        mongo.save(this.collection, body, new Handler<Message<JsonObject>>() {
+            @Override
+            public void handle(Message<JsonObject> event) {
+                if (!event.body().containsKey("status") || !event.body().getValue("status").equals("ok")) {
+                    handleLeft(handler, "no id");
+                }
+            }
+        });
+
+    }
+
     @Override
     public void create(String calendarId, JsonObject body, UserInfos user, Handler<Either<String, JsonObject>> handler) {
         // Clean data
@@ -77,14 +110,7 @@ public class EventServiceMongoImpl extends MongoDbCrudService implements EventSe
         body.remove("calendar");
 
         // ics Uid generate
-        UidGenerator uidGenerator;
-        String icsUid = "";
-        try {
-            uidGenerator = new UidGenerator("1");
-            icsUid = uidGenerator.generateUid().toString();
-        } catch (SocketException e) {
-            handler.handle(new Either.Left<String, JsonObject>(new String("Error")));
-        }
+        String icsUid = generateUid(handler);
 
         // Prepare data
         JsonObject now = MongoDb.now();
@@ -105,14 +131,7 @@ public class EventServiceMongoImpl extends MongoDbCrudService implements EventSe
         body.remove("calendar");
 
         // ics Uid generate
-        UidGenerator uidGenerator;
-        String icsUid = "";
-        try {
-            uidGenerator = new UidGenerator("1");
-            icsUid = uidGenerator.generateUid().toString();
-        } catch (SocketException e) {
-            handler.handle(new Either.Left<String, JsonObject>(new String("Error")));
-        }
+        String icsUid = generateUid(handler);
 
         // Prepare data
         JsonObject now = MongoDb.now();
@@ -121,25 +140,134 @@ public class EventServiceMongoImpl extends MongoDbCrudService implements EventSe
         body.put("modified", now);
         body.put("calendar", calendarId);
         body.put("icsUid", icsUid);
-        System.out.println("creating recurrent");
         mongo.save(this.collection, body, new Handler<Message<JsonObject>>() {
             @Override
             public void handle(Message<JsonObject> event) {
                 if (event.body().containsKey("status") && event.body().getValue("status").equals("ok")) {
-                    System.out.println(event.body());
                     createRecurrences(body,event.body().getString("_id"),handler);
 //                    handler.handle(new Either.Right<String, JsonObject>(new JsonObject().put("_id", event.body().getValue("_id"))));
                 } else {
-                    handler.handle(new Either.Left<String, JsonObject>("no id"));
+                    handleLeft(handler, "no id");
 
                 }
             }
         });
     }
 
-    private void createRecurrences(JsonObject body, String parentId, Handler<Either<String, JsonObject>> handler) {
+    private String generateUid(Handler<Either<String, JsonObject>> handler) {
+        UidGenerator uidGenerator;
+        String icsUid = "";
+        try {
+            uidGenerator = new UidGenerator("1");
+            icsUid = uidGenerator.generateUid().toString();
+        } catch (SocketException e) {
+            handler.handle(new Either.Left<String, JsonObject>(new String("Error")));
+        }
+        return icsUid;
+    }
 
-            handler.handle(new Either.Right<>(new JsonObject().put("_id",parentId)));
+    private void createRecurrences(JsonObject body, String parentId, Handler<Either<String, JsonObject>> handler) {
+        if(body.containsKey("recurrence")){
+            JsonObject params = body.getJsonObject("recurrence");
+            if(params.containsKey("type") && params.containsKey("end_type")){
+                if (params.getString("type").equals("every_week")){
+                    if( params.getString("end_type").equals("after")){
+                        createCoursesAfterAndEveryWeek(params,body,parentId,handler);
+                    }else if(params.getString("end_type").equals("on")){
+                        createCoursesOnAndEveryWeek(params,body,parentId,handler);
+                    }else{
+                        handleLeft(handler,"Error no recognizable end_type given in recurrence");
+                    }
+                }else if (params.getString("type").equals("every_day")){
+                    if( params.getString("end_type").equals("after")){
+                        createCoursesAfterAndEveryDay(params,body,parentId,handler);
+                    }else if(params.getString("end_type").equals("on")){
+                        createCoursesOnAndEveryDay(params,body,parentId,handler);
+                    }else{
+                        handleLeft(handler,"Error no recognizable type given in recurrence");
+                    }
+                }else{
+                    handleLeft(handler,"Error no recognizable end_type given in recurrence");
+                }
+            }else{
+                handleLeft(handler, "Error no argument type or end_type in recurrence  ");
+            }
+        }else{
+            handleLeft(handler, "Error no argument recurrence ");
+        }
+
+        handleRight(parentId, handler);
+    }
+
+    private void handleRight(String parentId, Handler<Either<String, JsonObject>> handler) {
+        handler.handle(new Either.Right<>(new JsonObject().put("_id",parentId)));
+    }
+
+    private void createCoursesAfterAndEveryWeek(JsonObject params, JsonObject firstOccurenceBody, String parentId, Handler<Either<String, JsonObject>> handler) {
+
+    }
+    private void createCoursesOnAndEveryWeek(JsonObject params, JsonObject firstOccurenceBody, String parentId, Handler<Either<String, JsonObject>> handler) {
+    }
+    private void createCoursesAfterAndEveryDay(JsonObject params, JsonObject firstOccurenceBody, String parentId, Handler<Either<String, JsonObject>> handler) {
+        int nb_occurence = params.getInteger("end_after");
+        if(nb_occurence <= 1){
+            handleRight(parentId, handler);
+        }else{
+            for (int i =1 ; i< nb_occurence;i++){
+              Course course = createCourse(firstOccurenceBody,firstOccurenceBody.getJsonObject("recurrence"),i);
+              course.setParentId(parentId);
+              insertInMongo(course,handler);
+            }
+        }
+    }
+
+
+    private void createCoursesOnAndEveryDay(JsonObject params, JsonObject firstOccurenceBody, String parentId, Handler<Either<String, JsonObject>> handler) {
+        String date_endStr = params.getString("end_on");
+        System.out.println(date_endStr);
+        System.out.println(firstOccurenceBody);
+        System.out.println(parentId);
+
+    }
+
+    private Course createCourse(JsonObject firstOccurenceBody,JsonObject recurrence,int index) {
+        Course courseToCreate = new Course();
+        courseToCreate.setAllDay(firstOccurenceBody.getBoolean("allday"));
+        courseToCreate.setIndex(index);
+        courseToCreate.setRecurrence(recurrence);
+        courseToCreate.setRecurrent(firstOccurenceBody.getBoolean("isRecurrent"));
+        courseToCreate.setTitle(firstOccurenceBody.getString("title"));
+        courseToCreate.setCalendarId(firstOccurenceBody.getString("calendar"));
+        JsonObject owner = firstOccurenceBody.getJsonObject("owner");
+        courseToCreate.setUser(owner.getString("userId"),owner.getString("displayName"));
+        int gapDays = recurrence.getInteger("every");
+
+        try {
+
+            courseToCreate.setStartMoment(getIncrementDate(firstOccurenceBody.getString("startMoment"),gapDays*index));
+            courseToCreate.setEndMoment(getIncrementDate(firstOccurenceBody.getString("endMoment"),gapDays*index));
+        } catch (Exception e) {
+            log.error("ERROR IN EventServiceMongoImpl " + e.getMessage());
+        }
+        return  courseToCreate;
+    }
+
+    private String getIncrementDate(String moment, int numberOfDaysToAdd){
+        Calendar c = Calendar.getInstance();
+        try {
+            c.setTime(sdf.parse(moment));
+            c.add(Calendar.DATE, numberOfDaysToAdd);  // number of days to add
+            return  sdf.format(c.getTime());
+        } catch (ParseException e) {
+            log.error("ERROR in getIncrementDate " + e.getMessage());
+            return "null";
+        }
+
+
+    }
+
+    private void handleLeft(Handler<Either<String, JsonObject>> handler, String s) {
+        handler.handle(new Either.Left<>(s));
     }
 
     @Override

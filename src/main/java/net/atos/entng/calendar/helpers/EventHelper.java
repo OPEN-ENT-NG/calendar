@@ -99,44 +99,7 @@ public class EventHelper extends MongoDbControllerHelper {
                     RequestUtils.bodyToJson(request, new Handler<JsonObject>() {
                         @Override
                         public void handle(JsonObject object) {
-                            if (object.getBoolean("isRecurrent")){
-                                eventService.createRecurrent(calendarId, object, user, new Handler<Either<String, JsonObject>>() {
-                                    public void handle(Either<String, JsonObject> event) {
-                                        if (event.isRight()) {
-                                            JsonObject eventId = event.right().getValue();
-                                            final JsonObject message = new JsonObject();
-                                            message.put("id", calendarId);
-                                            message.put("eventId", eventId.getString("_id"));
-                                            message.put("start_date", (String) null);
-                                            message.put("end_date", (String) null);
-                                            notifyEventCreatedOrUpdated(request, user, message, true);
-                                            renderJson(request, event.right().getValue(), 200);
-                                        } else if (event.isLeft()) {
-                                            log.error("Error when getting notification informations.");
-                                        }
-                                    }
-                                });
-                            }else if (object.getString("startMoment").substring(0,10).equals(object.getString("endMoment").substring(0,10))) {
-                                eventService.create(calendarId, object, user, new Handler<Either<String, JsonObject>>() {
-                                    public void handle(Either<String, JsonObject> event) {
-                                        if (event.isRight()) {
-                                            JsonObject eventId = event.right().getValue();
-                                            final JsonObject message = new JsonObject();
-                                            message.put("id", calendarId);
-                                            message.put("eventId", eventId.getString("_id"));
-                                            message.put("start_date", (String) null);
-                                            message.put("end_date", (String) null);
-                                            notifyEventCreatedOrUpdated(request, user, message, true);
-                                            renderJson(request, event.right().getValue(), 200);
-                                        } else if (event.isLeft()) {
-                                            log.error("Error when getting notification informations.");
-                                        }
-                                    }
-                                });
-                            }else{
-                                log.error("The beginning and end date of the event are not the same");
-                                Renders.unauthorized(request);
-                            }
+                            handleCourseCreationRequest(object, calendarId, user, request);
                         }
                     });
                 } else {
@@ -145,6 +108,48 @@ public class EventHelper extends MongoDbControllerHelper {
                 }
             }
         });
+    }
+
+    private void handleCourseCreationRequest(JsonObject object, String calendarId, UserInfos user, HttpServerRequest request) {
+        if (object.getBoolean("isRecurrent")){
+            eventService.createRecurrent(calendarId, object, user, new Handler<Either<String, JsonObject>>() {
+                public void handle(Either<String, JsonObject> event) {
+                    if (event.isRight()) {
+                        JsonObject eventId = event.right().getValue();
+                        final JsonObject message = new JsonObject();
+                        createMessage(message, calendarId, eventId.getString("_id"));
+                        notifyEventCreatedOrUpdated(request, user, message, true);
+                        renderJson(request, event.right().getValue(), 200);
+                    } else if (event.isLeft()) {
+                        log.error("Error when getting notification informations.");
+                    }
+                }
+            });
+        }else if (object.getString("startMoment").substring(0,10).equals(object.getString("endMoment").substring(0,10))) {
+            eventService.create(calendarId, object, user, new Handler<Either<String, JsonObject>>() {
+                public void handle(Either<String, JsonObject> event) {
+                    if (event.isRight()) {
+                        JsonObject eventId = event.right().getValue();
+                        final JsonObject message = new JsonObject();
+                        createMessage(message, calendarId, eventId.getString("_id"));
+                        notifyEventCreatedOrUpdated(request, user, message, true);
+                        renderJson(request, event.right().getValue(), 200);
+                    } else if (event.isLeft()) {
+                        log.error("Error when getting notification informations.");
+                    }
+                }
+            });
+        }else{
+            log.error("The beginning and end date of the event are not the same");
+            Renders.unauthorized(request);
+        }
+    }
+
+    private void createMessage(JsonObject message, String calendarId, String id) {
+        message.put("id", calendarId);
+        message.put("eventId", id);
+        message.put("start_date", (String) null);
+        message.put("end_date", (String) null);
     }
 
     @Override
@@ -162,10 +167,7 @@ public class EventHelper extends MongoDbControllerHelper {
                                 public void handle(Either<String, JsonObject> event) {
                                     if (event.isRight()) {
                                         final JsonObject message = new JsonObject();
-                                        message.put("id", calendarId);
-                                        message.put("eventId", eventId);
-                                        message.put("start_date", (String) null);
-                                        message.put("end_date", (String)  null);
+                                        createMessage(message, calendarId, eventId);
                                         notifyEventCreatedOrUpdated(request, user, message, false);
                                         renderJson(request, event.right().getValue(), 200);
                                     } else if (event.isLeft()) {
