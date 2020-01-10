@@ -33,6 +33,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.TimeZone;
+import java.util.concurrent.TimeUnit;
 
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
@@ -196,7 +197,7 @@ public class EventServiceMongoImpl extends MongoDbCrudService implements EventSe
             handleLeft(handler, "Error no argument recurrence ");
         }
 
-        handleRight(parentId, handler);
+//        handleRight(parentId, handler);
     }
 
     private void handleRight(String parentId, Handler<Either<String, JsonObject>> handler) {
@@ -214,20 +215,43 @@ public class EventServiceMongoImpl extends MongoDbCrudService implements EventSe
             handleRight(parentId, handler);
         }else{
             for (int i =1 ; i< nb_occurence;i++){
-              Course course = createCourse(firstOccurenceBody,firstOccurenceBody.getJsonObject("recurrence"),i);
-              course.setParentId(parentId);
-              insertInMongo(course,handler);
+                Course course = createCourse(firstOccurenceBody,firstOccurenceBody.getJsonObject("recurrence"),i);
+                course.setParentId(parentId);
+                insertInMongo(course,handler);
             }
+            handleRight(parentId, handler);
         }
     }
 
 
     private void createCoursesOnAndEveryDay(JsonObject params, JsonObject firstOccurenceBody, String parentId, Handler<Either<String, JsonObject>> handler) {
+        String date_startStr = params.getString("start_on");
         String date_endStr = params.getString("end_on");
-        System.out.println(date_endStr);
-        System.out.println(firstOccurenceBody);
-        System.out.println(parentId);
+        int nb_occurence = getNbOccurenceWhenLimitDate(date_startStr,date_endStr);
+        if(nb_occurence <= 1){
+            handleRight(parentId, handler);
+        }else{
+            for (int i =1 ; i< nb_occurence;i++){
+                Course course = createCourse(firstOccurenceBody,firstOccurenceBody.getJsonObject("recurrence"),i);
+                course.setParentId(parentId);
+                insertInMongo(course,handler);
+            }
+            handleRight(parentId, handler);
+        }
+    }
 
+    private int getNbOccurenceWhenLimitDate(String date_startStr, String date_endStr) {
+        Calendar c = Calendar.getInstance();
+        try {
+            Date startDate = sdf.parse(date_startStr);
+            Date endDate = sdf.parse(date_endStr);
+            long diffInMillies = Math.abs(endDate.getTime() - startDate.getTime());
+            return (int) TimeUnit.DAYS.convert(diffInMillies, TimeUnit.MILLISECONDS);
+
+        } catch (ParseException e) {
+            log.error("ERROR in getIncrementDate " + e.getMessage());
+            return 0;
+        }
     }
 
     private Course createCourse(JsonObject firstOccurenceBody,JsonObject recurrence,int index) {
