@@ -58,5 +58,5 @@ public interface EventServiceMongo {
      */
     void getEventsByCalendarAndDate(String[] calendars, int nbLimit,  Handler<Either<String, JsonArray>> handler);
 
-    void createRecurrent(String calendarId, JsonObject object, UserInfos user, Handler<Either<String, JsonObject>> eitherHandler);
+    void createFirstRecurrence(String calendarId, JsonObject object, UserInfos user, Handler<Either<String, JsonObject>> eitherHandler);
 }

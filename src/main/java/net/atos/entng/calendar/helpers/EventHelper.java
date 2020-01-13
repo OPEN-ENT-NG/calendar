@@ -43,7 +43,6 @@ import org.entcore.common.notification.TimelineHelper;
 import org.entcore.common.service.CrudService;
 import org.entcore.common.user.UserInfos;
 import org.entcore.common.user.UserUtils;
-import org.entcore.common.utils.Config;
 import org.entcore.common.utils.DateUtils;
 import io.vertx.core.Handler;
 import io.vertx.core.eventbus.Message;
@@ -112,7 +111,7 @@ public class EventHelper extends MongoDbControllerHelper {
 
     private void handleCourseCreationRequest(JsonObject object, String calendarId, UserInfos user, HttpServerRequest request) {
         if (object.getBoolean("isRecurrent")){
-            eventService.createRecurrent(calendarId, object, user, new Handler<Either<String, JsonObject>>() {
+            eventService.createFirstRecurrence(calendarId, object, user, new Handler<Either<String, JsonObject>>() {
                 public void handle(Either<String, JsonObject> event) {
                     if (event.isRight()) {
                         JsonObject eventId = event.right().getValue();

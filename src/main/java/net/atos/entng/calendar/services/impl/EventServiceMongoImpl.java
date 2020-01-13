@@ -24,14 +24,12 @@ import static org.entcore.common.mongodb.MongoDbResult.validActionResultHandler;
 import static org.entcore.common.mongodb.MongoDbResult.validResultHandler;
 import static org.entcore.common.mongodb.MongoDbResult.validResultsHandler;
 
-import java.awt.*;
 import java.net.SocketException;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.GregorianCalendar;
 import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
 
@@ -44,7 +42,6 @@ import net.fortuna.ical4j.util.UidGenerator;
 
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.entcore.common.service.impl.MongoDbCrudService;
-import org.entcore.common.service.impl.MongoDbRepositoryEvents;
 import org.entcore.common.user.UserInfos;
 import io.vertx.core.Handler;
 import io.vertx.core.eventbus.EventBus;
@@ -126,7 +123,7 @@ public class EventServiceMongoImpl extends MongoDbCrudService implements EventSe
     }
 
     @Override
-    public void createRecurrent(String calendarId, JsonObject body, UserInfos user, Handler<Either<String, JsonObject>> handler) {
+    public void createFirstRecurrence(String calendarId, JsonObject body, UserInfos user, Handler<Either<String, JsonObject>> handler) {
         // Clean data
         body.remove("_id");
         body.remove("calendar");
@@ -141,18 +138,63 @@ public class EventServiceMongoImpl extends MongoDbCrudService implements EventSe
         body.put("modified", now);
         body.put("calendar", calendarId);
         body.put("icsUid", icsUid);
-        mongo.save(this.collection, body, new Handler<Message<JsonObject>>() {
-            @Override
-            public void handle(Message<JsonObject> event) {
-                if (event.body().containsKey("status") && event.body().getValue("status").equals("ok")) {
-                    createRecurrences(body,event.body().getString("_id"),handler);
-//                    handler.handle(new Either.Right<String, JsonObject>(new JsonObject().put("_id", event.body().getValue("_id"))));
-                } else {
-                    handleLeft(handler, "no id");
+        boolean noWeekDayWithWeekMod = false;
 
+        JsonObject recurrence =  body.getJsonObject("recurrence");
+        if(recurrence.getString("type").equals("every_week")){
+            noWeekDayWithWeekMod = checkFirstDateOfEveryWeek(body);
+        }
+        if(!noWeekDayWithWeekMod) {
+            mongo.save(this.collection, body, new Handler<Message<JsonObject>>() {
+                @Override
+                public void handle(Message<JsonObject> event) {
+                    if (event.body().containsKey("status") && event.body().getValue("status").equals("ok")) {
+                        createRecurrences(body, event.body().getString("_id"), handler);
+//                    handler.handle(new Either.Right<String, JsonObject>(new JsonObject().put("_id", event.body().getValue("_id"))));
+                    } else {
+                        handleLeft(handler, "no id");
+
+                    }
                 }
+            });
+        }else {
+            handleLeft(handler,"no days available with week recurrence");
+        }
+    }
+
+    private boolean checkFirstDateOfEveryWeek(JsonObject body) {
+        JsonObject recurrence =  body.getJsonObject("recurrence");
+        JsonObject weekDays =  recurrence.getJsonObject("week_days");
+
+        String startDate = body.getString("startMoment");
+        Calendar c = Calendar.getInstance();
+        try {
+            c.setTime(sdf.parse(startDate));
+            int differenceBetweenCalendarAndMongo;
+            differenceBetweenCalendarAndMongo = ((c.get(Calendar.DAY_OF_WEEK) + 5 ) % 7) + 1;
+            boolean isAvailableDay = weekDays.getBoolean(Integer.toString(differenceBetweenCalendarAndMongo));
+            if(!isAvailableDay){
+                int nbDays = 0 ;
+                while (!isAvailableDay && nbDays < 7){
+                    c.add(Calendar.DATE, 1);
+                    differenceBetweenCalendarAndMongo = ((c.get(Calendar.DAY_OF_WEEK) + 5 ) % 7) + 1;
+                    isAvailableDay = weekDays.getBoolean(Integer.toString(differenceBetweenCalendarAndMongo));
+                    nbDays++;
+                }
+                if(nbDays == 7){
+                    return  true;
+                }else {
+                    body.put("startMoment", getIncrementDate(body.getString("startMoment"), nbDays));
+                    body.put("endMoment", getIncrementDate(body.getString("endMoment"), nbDays));
+                    return false;
+                }
+            }else{
+                return false;
             }
-        });
+        } catch (ParseException e) {
+            log.error("ERROR in checkFirstDateOfEveryWeek " + e.getMessage());
+            return  true;
+        }
     }
 
     private String generateUid(Handler<Either<String, JsonObject>> handler) {
@@ -196,8 +238,6 @@ public class EventServiceMongoImpl extends MongoDbCrudService implements EventSe
         }else{
             handleLeft(handler, "Error no argument recurrence ");
         }
-
-//        handleRight(parentId, handler);
     }
 
     private void handleRight(String parentId, Handler<Either<String, JsonObject>> handler) {
@@ -205,8 +245,25 @@ public class EventServiceMongoImpl extends MongoDbCrudService implements EventSe
     }
 
     private void createCoursesAfterAndEveryWeek(JsonObject params, JsonObject firstOccurenceBody, String parentId, Handler<Either<String, JsonObject>> handler) {
+        int nb_occurence = params.getInteger("end_after");
+        if(nb_occurence <= 1){
+            handleRight(parentId, handler);
+        }else{
+            for (int i =1 ; i< nb_occurence;i++){
+                Course course = createCourseWeek(firstOccurenceBody,firstOccurenceBody.getJsonObject("recurrence"),i);
+                log.info(firstOccurenceBody.getString("startMoment"));
+                log.info(course.getStartMoment());
 
+                firstOccurenceBody.put("startMoment",course.getStartMoment());
+                firstOccurenceBody.put("endMoment",course.getEndMoment());
+                course.setParentId(parentId);
+                insertInMongo(course,handler);
+            }
+            handleRight(parentId, handler);
+        }
     }
+
+
     private void createCoursesOnAndEveryWeek(JsonObject params, JsonObject firstOccurenceBody, String parentId, Handler<Either<String, JsonObject>> handler) {
     }
     private void createCoursesAfterAndEveryDay(JsonObject params, JsonObject firstOccurenceBody, String parentId, Handler<Either<String, JsonObject>> handler) {
@@ -215,7 +272,7 @@ public class EventServiceMongoImpl extends MongoDbCrudService implements EventSe
             handleRight(parentId, handler);
         }else{
             for (int i =1 ; i< nb_occurence;i++){
-                Course course = createCourse(firstOccurenceBody,firstOccurenceBody.getJsonObject("recurrence"),i);
+                Course course = createCourseDay(firstOccurenceBody,firstOccurenceBody.getJsonObject("recurrence"),i);
                 course.setParentId(parentId);
                 insertInMongo(course,handler);
             }
@@ -232,7 +289,7 @@ public class EventServiceMongoImpl extends MongoDbCrudService implements EventSe
             handleRight(parentId, handler);
         }else{
             for (int i =1 ; i< nb_occurence;i++){
-                Course course = createCourse(firstOccurenceBody,firstOccurenceBody.getJsonObject("recurrence"),i);
+                Course course = createCourseDay(firstOccurenceBody,firstOccurenceBody.getJsonObject("recurrence"),i);
                 course.setParentId(parentId);
                 insertInMongo(course,handler);
             }
@@ -254,7 +311,53 @@ public class EventServiceMongoImpl extends MongoDbCrudService implements EventSe
         }
     }
 
-    private Course createCourse(JsonObject firstOccurenceBody,JsonObject recurrence,int index) {
+    private Course createCourseWeek(JsonObject firstOccurenceBody, JsonObject recurrence, int index) {
+        Course courseToCreate = createCourse(firstOccurenceBody, recurrence, index);
+        int gapWeeks = recurrence.getInteger("every");
+        JsonObject weekDays =  recurrence.getJsonObject("week_days");
+        String startDate = firstOccurenceBody.getString("startMoment");
+        Calendar c = Calendar.getInstance();
+        try {
+            c.setTime(sdf.parse(startDate));
+            c.add(Calendar.DATE, 1);
+
+            int differenceBetweenCalendarAndMongo;
+            differenceBetweenCalendarAndMongo = ((c.get(Calendar.DAY_OF_WEEK) + 5 ) % 7) + 1 ;
+
+            boolean isAvailableDay = weekDays.getBoolean(Integer.toString(differenceBetweenCalendarAndMongo));
+
+            if(!isAvailableDay) {
+                int nbDays = 1;
+                while (!isAvailableDay) {
+                    c.add(Calendar.DATE, 1);
+                    differenceBetweenCalendarAndMongo = ((c.get(Calendar.DAY_OF_WEEK) + 5) % 7) + 1;
+                    isAvailableDay = weekDays.getBoolean(Integer.toString(differenceBetweenCalendarAndMongo));
+                    nbDays++;
+                }
+                courseToCreate.setStartMoment( getIncrementDate(firstOccurenceBody.getString("startMoment"), nbDays));
+                courseToCreate.setEndMoment( getIncrementDate(firstOccurenceBody.getString("endMoment"), nbDays));
+
+            }
+        } catch (ParseException e) {
+            log.error("ERROR in createCourseWeek " + e.getMessage());
+        }
+        return  courseToCreate;
+    }
+
+    private Course createCourseDay(JsonObject firstOccurenceBody, JsonObject recurrence, int index) {
+        Course courseToCreate = createCourse(firstOccurenceBody, recurrence, index);
+        int gapDays = recurrence.getInteger("every");
+        try {
+
+            courseToCreate.setStartMoment(getIncrementDate(firstOccurenceBody.getString("startMoment"),gapDays*index));
+            courseToCreate.setEndMoment(getIncrementDate(firstOccurenceBody.getString("endMoment"),gapDays*index));
+        } catch (Exception e) {
+            log.error("ERROR IN createCourseDay " + e.getMessage());
+        }
+        return  courseToCreate;
+    }
+
+    private Course createCourse(JsonObject firstOccurenceBody, JsonObject recurrence, int index) {
         Course courseToCreate = new Course();
         courseToCreate.setAllDay(firstOccurenceBody.getBoolean("allday"));
         courseToCreate.setIndex(index);
@@ -264,23 +367,15 @@ public class EventServiceMongoImpl extends MongoDbCrudService implements EventSe
         courseToCreate.setCalendarId(firstOccurenceBody.getString("calendar"));
         JsonObject owner = firstOccurenceBody.getJsonObject("owner");
         courseToCreate.setUser(owner.getString("userId"),owner.getString("displayName"));
-        int gapDays = recurrence.getInteger("every");
-
-        try {
-
-            courseToCreate.setStartMoment(getIncrementDate(firstOccurenceBody.getString("startMoment"),gapDays*index));
-            courseToCreate.setEndMoment(getIncrementDate(firstOccurenceBody.getString("endMoment"),gapDays*index));
-        } catch (Exception e) {
-            log.error("ERROR IN EventServiceMongoImpl " + e.getMessage());
-        }
-        return  courseToCreate;
+        return courseToCreate;
     }
 
     private String getIncrementDate(String moment, int numberOfDaysToAdd){
         Calendar c = Calendar.getInstance();
         try {
             c.setTime(sdf.parse(moment));
-            c.add(Calendar.DATE, numberOfDaysToAdd);  // number of days to add
+
+            c.add(Calendar.DATE, numberOfDaysToAdd);
             return  sdf.format(c.getTime());
         } catch (ParseException e) {
             log.error("ERROR in getIncrementDate " + e.getMessage());
