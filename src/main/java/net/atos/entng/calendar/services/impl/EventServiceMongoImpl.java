@@ -251,9 +251,6 @@ public class EventServiceMongoImpl extends MongoDbCrudService implements EventSe
         }else{
             for (int i =1 ; i< nb_occurence;i++){
                 Course course = createCourseWeek(firstOccurenceBody,firstOccurenceBody.getJsonObject("recurrence"),i);
-                log.info(firstOccurenceBody.getString("startMoment"));
-                log.info(course.getStartMoment());
-
                 firstOccurenceBody.put("startMoment",course.getStartMoment());
                 firstOccurenceBody.put("endMoment",course.getEndMoment());
                 course.setParentId(parentId);
@@ -317,31 +314,44 @@ public class EventServiceMongoImpl extends MongoDbCrudService implements EventSe
         JsonObject weekDays =  recurrence.getJsonObject("week_days");
         String startDate = firstOccurenceBody.getString("startMoment");
         Calendar c = Calendar.getInstance();
+        Calendar cc = Calendar.getInstance();
+
         try {
             c.setTime(sdf.parse(startDate));
+            int weekNumber = c.get(Calendar.WEEK_OF_YEAR);
+            int numberOfDaysToAdd = 1 ;
+            boolean isSunday = c.get(Calendar.DAY_OF_WEEK) == Calendar.SUNDAY;
             c.add(Calendar.DATE, 1);
+            boolean willBeSunday = c.get(Calendar.DAY_OF_WEEK) == Calendar.SUNDAY;
 
             int differenceBetweenCalendarAndMongo;
             differenceBetweenCalendarAndMongo = ((c.get(Calendar.DAY_OF_WEEK) + 5 ) % 7) + 1 ;
-
             boolean isAvailableDay = weekDays.getBoolean(Integer.toString(differenceBetweenCalendarAndMongo));
-
+            numberOfDaysToAdd = getNumberOfDaysToAddWeek(gapWeeks, c, weekNumber, isSunday, willBeSunday, numberOfDaysToAdd);
             if(!isAvailableDay) {
-                int nbDays = 1;
                 while (!isAvailableDay) {
                     c.add(Calendar.DATE, 1);
+                    willBeSunday = c.get(Calendar.DAY_OF_WEEK) == Calendar.SUNDAY;
+                    numberOfDaysToAdd = getNumberOfDaysToAddWeek(gapWeeks, c, weekNumber, isSunday,willBeSunday, numberOfDaysToAdd);
                     differenceBetweenCalendarAndMongo = ((c.get(Calendar.DAY_OF_WEEK) + 5) % 7) + 1;
                     isAvailableDay = weekDays.getBoolean(Integer.toString(differenceBetweenCalendarAndMongo));
-                    nbDays++;
+                    numberOfDaysToAdd++;
                 }
-                courseToCreate.setStartMoment( getIncrementDate(firstOccurenceBody.getString("startMoment"), nbDays));
-                courseToCreate.setEndMoment( getIncrementDate(firstOccurenceBody.getString("endMoment"), nbDays));
-
             }
+            courseToCreate.setStartMoment( getIncrementDate(firstOccurenceBody.getString("startMoment"),numberOfDaysToAdd));
+            courseToCreate.setEndMoment( getIncrementDate(firstOccurenceBody.getString("endMoment"),numberOfDaysToAdd));
         } catch (ParseException e) {
             log.error("ERROR in createCourseWeek " + e.getMessage());
         }
         return  courseToCreate;
+    }
+
+    private int getNumberOfDaysToAddWeek(int gapWeeks, Calendar c, int weekNumber, boolean isSunday, boolean willBeSunday, int numberOfDaysToAdd) {
+        if ((isSunday && weekNumber == c.get(Calendar.WEEK_OF_YEAR)) || (!isSunday && weekNumber != c.get(Calendar.WEEK_OF_YEAR) && !willBeSunday) && gapWeeks > 1) {
+            numberOfDaysToAdd += 7 * (gapWeeks -1);
+            c.add(Calendar.DATE, 7 * (gapWeeks -1) );
+        }
+        return numberOfDaysToAdd;
     }
 
     private Course createCourseDay(JsonObject firstOccurenceBody, JsonObject recurrence, int index) {
