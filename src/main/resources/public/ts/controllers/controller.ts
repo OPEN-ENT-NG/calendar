@@ -54,6 +54,7 @@ export const calendarController =  ng.controller('CalendarController',
         $scope.calendarEvents.filters.startMoment = moment().startOf('day');
         $scope.calendarEvents.filters.endMoment = moment().add(2, 'months').startOf('day');
         $scope.contentToWatch = "";
+        $scope.calendarCreationScreen = false;
 
         template.open('main', 'main-view');
         template.open('top-menu', 'top-menu');
@@ -103,6 +104,13 @@ export const calendarController =  ng.controller('CalendarController',
     const setCalendarLang = ():void => {
         model.calendar.firstDay = model.calendar.firstDay.lang(LANG_CALENDAR);
     };
+
+    $scope.isEmpty = () => {
+        return $scope.calendars 
+            && $scope.calendars.all 
+            && $scope.calendars.all.length < 1
+            && !$scope.calendarCreationScreen;
+    }
 
     $scope.loadCalendarEvents = () =>{
         if($scope.calendars.all.length > 0){
@@ -465,6 +473,7 @@ export const calendarController =  ng.controller('CalendarController',
     };
 
     $scope.newCalendar = function() {
+        $scope.calendarCreationScreen = true;
         $scope.calendar = new Calendar();
         $scope.calendar.color = defaultColor;
         template.open('calendar', 'edit-calendar');
@@ -615,6 +624,7 @@ export const calendarController =  ng.controller('CalendarController',
             $scope.loadCalendarEvents();
         }
         $scope.showCalendar();
+        $scope.calendarCreationScreen = false;
     };
 
     $scope.hasContribRight = calendar => {
