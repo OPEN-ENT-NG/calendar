@@ -1,4 +1,4 @@
-<section class="cell three">
+<section class="cell three" ng-if="!isEmpty()">
     <button workflow="calendar.admin" ng-click="newCalendar()"><i18n>calendar.new</i18n></button>
     <nav class="vertical row">
         <ul>
@@ -32,6 +32,30 @@
         </ul>
     <hr />
     </nav>
+</section>
+
+<section ng-if="isEmpty()">
+    <!-- Consultation -->
+    <div class="emptyscreen" workflow-not="calendar.admin">
+        <h2 class="emptyscreen-header">
+            <i18n>empty.calendar.consultation.title</i18n>
+        </h2>
+        <img class="emptyscreen-image__mini" src="/calendar/public/img/empty-calendar.svg">
+        <p class="emptyscreen-footer">
+            <i18n>empty.calendar.consultation</i18n>
+        </p>
+    </div>
+    <!-- Création -->
+    <div class="emptyscreen" workflow="calendar.admin">
+        <h2 class="emptyscreen-header">
+            <i18n>empty.calendar.creation.title</i18n>
+        </h2>
+        <img class="emptyscreen-image__mini" src="/calendar/public/img/empty-calendar.svg">
+        <p class="emptyscreen-footer">
+            <i18n>empty.calendar.creation</i18n>
+        </p>
+        <button workflow="calendar.admin" ng-click="newCalendar()"><i18n>calendar.new</i18n></button>
+    </div>
 </section>
 
 <section class="cell nine">

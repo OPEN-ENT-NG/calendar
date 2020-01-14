@@ -7,7 +7,7 @@
   </h1>
 </div>
 
-<div class="nine cell">
+<div class="nine cell" ng-if="!isEmpty()">
   <div class="row">
     <button ng-if="hasContribRight()===true" ng-click="createCalendarEvent()"><i18n>calendar.new.event</i18n></button>
     <div class="right-magnet">
