@@ -284,6 +284,19 @@ public class EventServiceMongoImpl extends MongoDbCrudService implements EventSe
 
 
     private void createCoursesOnAndEveryWeek(JsonObject params, JsonObject firstOccurenceBody, String parentId, Handler<Either<String, JsonObject>> handler) {
+        String date_startStr = params.getString("start_on");
+        String date_endStr = params.getString("end_on");
+        int nb_occurence = getNbOccurenceWhenDayLimitDayMode(date_startStr,date_endStr,1);
+        if(nb_occurence <= 1){
+            handleRight(parentId, handler);
+        }else{
+            for (int i =1 ; i< nb_occurence;i++){
+                Course course = createCourseDay(firstOccurenceBody,firstOccurenceBody.getJsonObject("recurrence"),i);
+                course.setParentId(parentId);
+                insertInMongo(course,handler);
+            }
+            handleRight(parentId, handler);
+        }
     }
     private void createCoursesAfterAndEveryDay(JsonObject params, JsonObject firstOccurenceBody, String parentId, Handler<Either<String, JsonObject>> handler) {
         int nb_occurence = params.getInteger("end_after");
@@ -303,7 +316,8 @@ public class EventServiceMongoImpl extends MongoDbCrudService implements EventSe
     private void createCoursesOnAndEveryDay(JsonObject params, JsonObject firstOccurenceBody, String parentId, Handler<Either<String, JsonObject>> handler) {
         String date_startStr = params.getString("start_on");
         String date_endStr = params.getString("end_on");
-        int nb_occurence = getNbOccurenceWhenLimitDate(date_startStr,date_endStr);
+        int nb_occurence = getNbOccurenceWhenDayLimitDayMode(date_startStr,date_endStr,firstOccurenceBody.getJsonObject("recurrence").getInteger("every"));
+        log.info(nb_occurence);
         if(nb_occurence <= 1){
             handleRight(parentId, handler);
         }else{
@@ -316,7 +330,8 @@ public class EventServiceMongoImpl extends MongoDbCrudService implements EventSe
         }
     }
 
-    private int getNbOccurenceWhenLimitDate(String date_startStr, String date_endStr) {
+
+    private int getNbOccurenceWhenDayLimitWeekMode(String date_startStr, String date_endStr) {
         Calendar c = Calendar.getInstance();
         try {
             Date startDate = sdf.parse(date_startStr);
@@ -324,6 +339,20 @@ public class EventServiceMongoImpl extends MongoDbCrudService implements EventSe
             long diffInMillies = Math.abs(endDate.getTime() - startDate.getTime());
             return (int) TimeUnit.DAYS.convert(diffInMillies, TimeUnit.MILLISECONDS);
 
+        } catch (ParseException e) {
+            log.error("ERROR in getIncrementDate " + e.getMessage());
+            return 0;
+        }
+    }
+
+
+    private int getNbOccurenceWhenDayLimitDayMode(String date_startStr, String date_endStr,int gap) {
+        Calendar c = Calendar.getInstance();
+        try {
+            Date startDate = sdf.parse(date_startStr);
+            Date endDate = sdf.parse(date_endStr);
+            long diffInMillies = Math.abs(endDate.getTime() - startDate.getTime());
+            return (int) TimeUnit.DAYS.convert(diffInMillies, TimeUnit.MILLISECONDS) / gap + 1 ;
         } catch (ParseException e) {
             log.error("ERROR in getIncrementDate " + e.getMessage());
             return 0;
