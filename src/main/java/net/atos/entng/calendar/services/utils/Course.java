@@ -72,7 +72,7 @@ public class Course {
     }
     public JsonObject toJson() {
         return new JsonObject()
-                .put("title", this.title)
+                .put("title", title)
                 .put("allDay", allDay)
                 .put("recurrence", recurrence)
                 .put("isRecurrent", isRecurrent)
@@ -80,7 +80,8 @@ public class Course {
                 .put("calendar", calendarId)
                 .put("startMoment", startMoment)
                 .put("endMoment", endMoment)
-                .put("owner", owner.toJson());
+                .put("owner", owner.toJson())
+                .put("parentId",parentId);
     }
 
     public void setParentId(String parentId) {

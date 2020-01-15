@@ -60,7 +60,7 @@ public class EventServiceMongoImpl extends MongoDbCrudService implements EventSe
 
     private final EventBus eb;
     public static final String ISO_8601_24H_FULL_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX";
-    final SimpleDateFormat sdf = new SimpleDateFormat(ISO_8601_24H_FULL_FORMAT);
+    private final SimpleDateFormat sdf = new SimpleDateFormat(ISO_8601_24H_FULL_FORMAT);
     protected static final Logger log = LoggerFactory.getLogger(EventServiceMongoImpl.class);
 
     public EventServiceMongoImpl(String collection, EventBus eb) {
@@ -139,7 +139,7 @@ public class EventServiceMongoImpl extends MongoDbCrudService implements EventSe
         body.put("calendar", calendarId);
         body.put("icsUid", icsUid);
         boolean noWeekDayWithWeekMod = false;
-
+        final String finalCollection = this.collection;
         JsonObject recurrence =  body.getJsonObject("recurrence");
         if(recurrence.getString("type").equals("every_week")){
             noWeekDayWithWeekMod = checkFirstDateOfEveryWeek(body);
@@ -149,17 +149,39 @@ public class EventServiceMongoImpl extends MongoDbCrudService implements EventSe
                 @Override
                 public void handle(Message<JsonObject> event) {
                     if (event.body().containsKey("status") && event.body().getValue("status").equals("ok")) {
-                        createRecurrences(body, event.body().getString("_id"), handler);
-//                    handler.handle(new Either.Right<String, JsonObject>(new JsonObject().put("_id", event.body().getValue("_id"))));
+                        final String _id =  event.body().getString("_id");
+                        createRecurrences(body,_id, setParentIdToParent(_id, finalCollection,handler));
                     } else {
                         handleLeft(handler, "no id");
-
                     }
                 }
             });
         }else {
             handleLeft(handler,"no days available with week recurrence");
         }
+    }
+
+    private Handler<Either<String, JsonObject>> setParentIdToParent(String _id, String finalCollection, Handler<Either<String, JsonObject>> handler) {
+        return new Handler<Either<String, JsonObject>>() {
+            @Override
+            public void handle(Either<String, JsonObject> result) {
+                if(result.isRight()){
+                    final JsonObject criteria = MongoQueryBuilder.build(QueryBuilder.start("_id").is(_id));
+                    MongoUpdateBuilder modifier = new MongoUpdateBuilder();
+                    modifier.set("parentId", _id);
+                    mongo.update(finalCollection, criteria, modifier.build(), new Handler<Message<JsonObject>>() {
+                        @Override
+                        public void handle(Message<JsonObject> event) {
+                            if (event.body().containsKey("status") && event.body().getValue("status").equals("ok")) {
+                                handler.handle(new Either.Right<String, JsonObject>(result.right().getValue()));
+                            }
+                        }
+                    });
+                }else{
+                    handler.handle(new Either.Left<>(result.left().getValue()));
+                }
+            }
+        };
     }
 
     private boolean checkFirstDateOfEveryWeek(JsonObject body) {
