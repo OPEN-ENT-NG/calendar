@@ -34,7 +34,7 @@
     </nav>
 </section>
 
-<section ng-if="isEmpty()">
+<section ng-if="isEmpty() && !calendarCreationScreen">
     <!-- Consultation -->
     <div class="emptyscreen" workflow-not="calendar.admin">
         <h2 class="emptyscreen-header">

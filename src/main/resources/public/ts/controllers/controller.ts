@@ -108,8 +108,7 @@ export const calendarController =  ng.controller('CalendarController',
     $scope.isEmpty = () => {
         return $scope.calendars 
             && $scope.calendars.all 
-            && $scope.calendars.all.length < 1
-            && !$scope.calendarCreationScreen;
+            && $scope.calendars.all.length < 1;
     }
 
     $scope.loadCalendarEvents = () =>{
@@ -652,8 +651,14 @@ export const calendarController =  ng.controller('CalendarController',
     };
 
     $scope.cancelCalendarEdit = function() {
+        $scope.calendarCreationScreen = false;
         $scope.calendar = undefined;
-        template.open('calendar', 'read-calendar');
+        
+        if ($scope.isEmpty()) {
+            template.close('calendar');
+        } else {
+            template.open('calendar', 'read-calendar');
+        }
     };
 
     $scope.confirmRemoveCalendar = function(calendar, event){
