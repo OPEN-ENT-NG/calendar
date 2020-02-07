@@ -5,7 +5,11 @@ calendarWidget.today = function(format){
 };
 
 calendarWidget.dateToString = function(date) {
-    return moment.utc(date).format('DD/MM HH:mm');
+    var numberHoursLag = moment(moment(date)
+        .format("YYYY MM DD HH:MM"), "YYYY MM DD HH:MM")
+        .format('Z')
+        .split(':')[0];
+    return moment.utc(date).add(numberHoursLag, 'hours').format('DD/MM HH:mm');
 };
 
 calendarWidget.userEvents = [];
