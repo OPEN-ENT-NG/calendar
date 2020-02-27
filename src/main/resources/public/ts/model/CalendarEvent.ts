@@ -13,6 +13,8 @@ export class CalendarEvent implements Selectable{
     location: string;
     startMoment: Date;
     endMoment: Date;
+    notifStartMoment: Date;
+    notifEndMoment: Date;
     allday: boolean;
     recurrence: object;
     parentId : string;
@@ -77,16 +79,19 @@ export class CalendarEvent implements Selectable{
     };
 
     editDateBeforeSend(isNewEvent){
-        if(isNewEvent){
-            const addTime:number = moment(this.startMoment)._i ? 0 : - utcTime(this.startMoment);
-            this.startMoment= moment.utc(getTime(this.startMoment, this.startTime))
-                .add( addTime, 'hours');
-            this.endMoment= moment.utc(getTime(this.endMoment, this.endTime))
-                .add( addTime, 'hours');
-        } else {
-            this.startMoment= moment.utc(getTime(this.startMoment, this.startTime));
-            this.endMoment= moment.utc(getTime(this.endMoment, this.endTime));
+        if(isNewEvent) {
+            // The date sent by the calendar directive is WRONG
+            // It's a timezoned date sent as UTC. We need to calculate the real UTC time when sent by the directive
+            // If not sent by the directive, the date is correct
+            const addTime: number = moment(this.startMoment)._i ? 0 : -utcTime(this.startMoment);
+            this.startMoment = getTime(this.startMoment, this.startTime).add(addTime, 'hours');
+            this.endMoment = getTime(this.endMoment, this.endTime).add(addTime, 'hours');
         }
+        this.startMoment= moment.utc(this.startMoment);
+        this.endMoment= moment.utc(this.endMoment);
+        // CO-860 : Notifications must use timezoned dates
+        this.notifStartMoment = moment(this.startMoment).utcOffset(moment().utcOffset());
+        this.notifEndMoment = moment(this.endMoment).utcOffset(moment().utcOffset());
     }
 
     toJSON(){
@@ -101,6 +106,8 @@ export class CalendarEvent implements Selectable{
             index: this.index,
             startMoment: this.startMoment,
             endMoment: this.endMoment,
+            notifStartMoment: this.notifStartMoment.format("DD/MM/YYYY HH:mm"),
+            notifEndMoment: this.notifEndMoment.format("DD/MM/YYYY HH:mm"),
         }
     };
 }

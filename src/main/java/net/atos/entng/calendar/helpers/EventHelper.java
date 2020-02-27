@@ -28,7 +28,6 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.text.ParseException;
 import java.util.*;
 
 import com.mongodb.QueryBuilder;
@@ -43,8 +42,6 @@ import org.entcore.common.notification.TimelineHelper;
 import org.entcore.common.service.CrudService;
 import org.entcore.common.user.UserInfos;
 import org.entcore.common.user.UserUtils;
-import org.entcore.common.utils.Config;
-import org.entcore.common.utils.DateUtils;
 import io.vertx.core.Handler;
 import io.vertx.core.eventbus.Message;
 import io.vertx.core.http.HttpServerRequest;
@@ -293,14 +290,6 @@ public class EventHelper extends MongoDbControllerHelper {
                     if (recipients != null) {
                         String template = isCreated ? "calendar.create" : "calendar.update";
 
-                        Date startDate = null;
-                        Date endDate = null;
-                        try {
-                            startDate = DateUtils.parseTimestampWithoutTimezone(calendarEvent.getString("startMoment"));
-                            endDate = DateUtils.parseTimestampWithoutTimezone(calendarEvent.getString("endMoment"));
-                        } catch (ParseException e) {
-                            e.printStackTrace();
-                        }
                         JsonObject p = new JsonObject()
                                 .put("uri",
                                         "/userbook/annuaire#" + user.getUserId() + "#" + user.getType())
@@ -312,8 +301,8 @@ public class EventHelper extends MongoDbControllerHelper {
                                 .put("calendarUri",
                                         "/calendar#/view/" + calendarId)
                                 .put("resourceUri", "/calendar#/view/" + calendarId)
-                                .put("startMoment", DateUtils.format(startDate, "dd/MM/yyyy HH:mm"))
-                                .put("endMoment", DateUtils.format(endDate, "dd/MM/yyyy HH:mm"))
+                                .put("startMoment", calendarEvent.getString("notifStartMoment"))
+                                .put("endMoment", calendarEvent.getString("notifEndMoment"))
                                 .put("eventTitle", calendarEvent.getString("title"));
                         JsonObject pushNotif = new JsonObject()
                                 .put("title", isCreated ? "push.notif.event.created" : "push.notif.event.updated")
