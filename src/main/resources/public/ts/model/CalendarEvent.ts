@@ -1,7 +1,7 @@
 import http from "axios";
 import { moment} from "entcore";
 import { timeConfig } from "./constantes";
-import { Calendar } from "./";
+import {Calendar, Calendars} from "./";
 import { Mix, Selectable, Selection } from "entcore-toolkit";
 import {getTime, makerFormatTimeInput, utcTime} from './Utils'
 
@@ -20,7 +20,7 @@ export class CalendarEvent implements Selectable{
     parentId : string;
     isRecurrent: boolean;
     index: number;
-    calendar : Calendar;
+    calendar: Array<Calendar>;
     startMomentDate:Date;
     startMomentTime:Date;
     endMomentDate:Date;
@@ -39,6 +39,7 @@ export class CalendarEvent implements Selectable{
     noMoreRecurrence: boolean;
     detailToRecurrence: boolean;
     startDateToRecurrence: boolean;
+    deleteAllRecurrence: boolean;
 
     constructor (calendarEvent? : Object){
         this.allday= false;
@@ -65,17 +66,17 @@ export class CalendarEvent implements Selectable{
 
     async create(){
         this.editDateBeforeSend(true);
-     let {data : {_id : id}} = await http.post('/calendar/' + this.calendar._id + '/events', this.toJSON());
+        let {data : {_id : id}} = await http.post('/calendar/' + this.calendar[0]._id + '/events', this.toJSON());
         this._id = id;
     };
 
     async update(){
         this.editDateBeforeSend(false);
-       await http.put('/calendar/' + this.calendar._id + '/event/' + this._id, this.toJSON());
+       await http.put('/calendar/' + this.calendar[0]._id + '/event/' + this._id, this.toJSON());
     };
 
     async delete() {
-        await http.delete('/calendar/' + this.calendar._id + '/event/' + this._id);
+        await http.delete('/calendar/' + this.calendar[0]._id + '/event/' + this._id);
     };
 
     editDateBeforeSend(isNewEvent){
@@ -97,11 +98,23 @@ export class CalendarEvent implements Selectable{
         this.notifEndMoment = moment(this.endMoment).add(addTimeNotif, "hours");
     }
 
+    /**
+     * Transform the array of calendars in an array of id of calendars for the data base
+     */
+    getCalendarId = (): String[] => {
+        let calendarIds = new Array<String>();
+        this.calendar.forEach(function (calendar) {
+            calendarIds.push(calendar._id);
+        });
+        return calendarIds;
+    }
+
     toJSON(){
         return {
             title: this.title,
             description: this.description,
             location: this.location,
+            calendar: this.getCalendarId(),
             allday: this.allday,
             recurrence: this.recurrence,
             parentId : this.parentId,
@@ -131,11 +144,16 @@ export class CalendarEvents extends Selection<CalendarEvent> {
         this.calendar = calendar;
     }
 
-    async sync (calendar){
+    async sync (calendar, calendars){
         let { data } = await http.get('/calendar/' + calendar._id+ '/events');
         this.all = Mix.castArrayAs(CalendarEvent, data);
+        let thisCalendarEvents = this;
         this.all.map(  calendarEvent => {
-            calendarEvent.calendar = calendar;
+            let idCalendars = calendarEvent.calendar;
+            calendarEvent.calendar = new Array<Calendar>();
+            idCalendars.forEach(function (id){
+                calendarEvent.calendar.push(thisCalendarEvents.getCalendarFromId(calendars, id));
+            });
             let startDate = moment(calendarEvent.startMoment).second(0).millisecond(0);
             calendarEvent.startMoment = startDate;
             calendarEvent.startMomentDate = startDate.format('DD/MM/YYYY');
@@ -152,8 +170,6 @@ export class CalendarEvents extends Selection<CalendarEvent> {
             calendarEvent.color = calendar.color;
             return calendarEvent;
         });
-
-
     };
 
     getRecurrenceEvents (calendarEvent) {
@@ -169,6 +185,21 @@ export class CalendarEvents extends Selection<CalendarEvent> {
         }
         return calendarEvents;
     };
+
+    /**
+     * Transform an id of a calendar into an object Calendar
+     * @param calendars object Calendars
+     * @param calendarId id of the calendar
+     */
+    getCalendarFromId = (calendars: Calendars, calendarId): Calendar => {
+        let cal = null;
+        calendars.all.forEach(function (calendar) {
+            if(calendar._id === calendarId){
+                cal = calendar;
+            }
+        });
+        return cal;
+    }
 
     applyFilters() {
         if(this.all.length !== 0){

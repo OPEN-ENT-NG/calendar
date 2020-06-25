@@ -31,6 +31,7 @@ data
 **/temp
 **/dist
 **/.DS_Store
+**/rev-manifest.json
 **/view/*.html
 **/js/*
 **/view/*
