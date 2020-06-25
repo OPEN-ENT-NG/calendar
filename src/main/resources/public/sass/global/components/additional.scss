@@ -16,6 +16,12 @@ p.placeholder {
 	overflow: auto !important;
 }
 
+.content {
+	margin: 5px;
+	padding-bottom: 5px;
+	padding-left: 5px;
+}
+
 div.disabled {
 	color: #888;
 }
@@ -129,4 +135,14 @@ ul.colored a.selected {
 
 .down-open {
 	padding-left :5px;
+}
+
+.multi-combo{
+	margin-top: 10px;
+	margin-bottom: 10px;
+}
+
+.warningEventView{
+	margin-top: 20px;
+	margin-bottom: 10px;
 }
