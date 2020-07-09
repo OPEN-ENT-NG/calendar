@@ -403,6 +403,14 @@ export const calendarController =  ng.controller('CalendarController',
         return calendar.shared && calendar.owner.userId != $scope.me.userId;
     };
 
+    /**
+     * Return true if the current user created the event
+     * @param calEvent event to check
+     */
+    $scope.isMyEvent = (calEvent : CalendarEvent): boolean => {
+        return calEvent.owner.userId == $scope.me.userId;
+    };
+
     $scope.hasSharedCalendars = function() {
         var hasSharedCalendars = $scope.calendars.all.some(function(calendar) {
             if ($scope.isCalendarSharedWithMe(calendar)) {
@@ -480,6 +488,7 @@ export const calendarController =  ng.controller('CalendarController',
 
     $scope.viewCalendarEvent = calendarEvent => {
         $scope.calendarEvent = calendarEvent;
+        $scope.calendar = calendarEvent.calendar;
         $scope.createContentToWatch();
         $scope.calendarEvent.showDetails = true;
          if (!$scope.calendarEvent.parentId) {
@@ -489,7 +498,7 @@ export const calendarController =  ng.controller('CalendarController',
              }
         }
 
-        if ($scope.hasContribRight(calendarEvent.calendar)){
+        if (!calendarEvent._id || $scope.hasManageRightOrIsEventOwner(calendarEvent)){
         template.open('lightbox', 'edit-event');
         } else {
         template.open('lightbox', 'view-event');
@@ -626,6 +635,15 @@ export const calendarController =  ng.controller('CalendarController',
         $scope.calendarCreationScreen = false;
     };
 
+    /**
+     * Return true if the user as the right to manage the calendar of the event or if he created the event and he can contrib
+     * to the calendar
+     * @param calEvent event to check
+     */
+    $scope.hasManageRightOrIsEventOwner = (calEvent : CalendarEvent): boolean => {
+        return calEvent.calendar.myRights.manage || ($scope.isMyEvent(calEvent) && $scope.hasContribRight(calEvent.calendar));
+    }
+
     $scope.hasContribRight = calendar => {
         if (calendar) {
            return calendar.myRights.contrib;
@@ -700,9 +718,9 @@ export const calendarController =  ng.controller('CalendarController',
     };
 
     $scope.createCalendarEvent = newItem => {
-        $scope.viewCalendarEvent($scope.calendarEvent);
         $scope.calendarEvent = new CalendarEvent();
         $scope.calendarEvent.recurrence = {};
+        $scope.viewCalendarEvent($scope.calendarEvent);
         if(newItem){
             $scope.calendarEvent.startMoment = newItem.beginning;
             $scope.calendarEvent.startMoment = $scope.calendarEvent.startMoment.minute(0).second(0).millisecond(0);

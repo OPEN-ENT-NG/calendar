@@ -239,8 +239,8 @@
                 </article>
             </div>
 
-            <button ng-if="calendarEvent._id" class="right-magnet" ng-disabled="!calendarEvent.calendar.myRights.manage"
-                    ng-click="confirmRemoveCalendarEvent(calendarEvent, $event)"><i18n>remove</i18n></button>
+            <button ng-if="calendarEvent._id" class="right-magnet" ng-click="confirmRemoveCalendarEvent(calendarEvent, $event)">
+                <i18n>remove</i18n></button>
             <button class="right-magnet" ng-click="saveCalendarEventEdit(calendarEventIn)"
                     ng-disabled="form.$invalid && calendarEvent.startMoment != calendarEvent.endMoment"><i18n>save</i18n></button>
 
