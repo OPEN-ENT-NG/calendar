@@ -39,6 +39,7 @@ export class CalendarEvent implements Selectable{
     noMoreRecurrence: boolean;
     detailToRecurrence: boolean;
     startDateToRecurrence: boolean;
+    deleteAllRecurrence: boolean;
 
     constructor (calendarEvent? : Object){
         this.allday= false;

@@ -73,6 +73,7 @@
     "calendar.confirm.delete.recurrent.event": "Confirmer la suppression d'événements récurrents",
     "calendar.recurrent.event.remove": "Sortir cet événement de la récurrence",
     "calendar.recurrent.event.delete.others": "Supprimer les autres événements de la récurrence",
+    "calendar.remove.all.recurrent": "Supprimer toute la récurrence",
     "group.HeadTeacher": "Professeurs principaux de {0}.",
     "group.Func": "Personnels de fonction {0}.",
     "group.Discipline": "Enseignants de discipline {0}.",

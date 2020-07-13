@@ -517,10 +517,8 @@ export const calendarController =  ng.controller('CalendarController',
         $scope.calendar.calendarEvents.deselectAll();
         let infoEventSelected= $scope.calendar.calendarEvents.all
             .filter( eventFiltered => calendarEvent._id === eventFiltered._id)[0];
-        if (infoEventSelected.parentId != undefined && $scope.calendarEvent.isRecurrent) {
-            $scope.calendarEvents.getRecurrenceEvents(calendarEvent).forEach(function(calEvent) {
-                calEvent.selected = true;
-            });
+        if (calendarEvent.deleteAllRecurrence) {
+            selectOtherRecurrentEvents(calendarEvent);
         }
         $scope.display.confirmDeleteCalendarEvent = true;
         event.stopPropagation();
@@ -528,13 +526,34 @@ export const calendarController =  ng.controller('CalendarController',
 
     $scope.confirmRemoveCalendarEvents = function(event){
         template.open('lightbox');
-        $scope.display.confirmDeleteCalendarEvent = true;
         $scope.calendarEvents.selected.forEach(calendarEvent => {
-            $scope.calendarEvents.getRecurrenceEvents(calendarEvent).forEach(calEvent => {
-                calEvent.selected = true;
-            });
+            if (calendarEvent.deleteAllRecurrence) {
+                selectOtherRecurrentEvents(calendarEvent);
+            }
+        });
+        $scope.display.confirmDeleteCalendarEvent = true;
+    };
+
+    /**
+     * Select all recurrent events associated to the current event
+     * @param calendarEvent calendar Event
+     */
+    const selectOtherRecurrentEvents = (calendarEvent: CalendarEvent): void => {
+        $scope.calendarEvents.getRecurrenceEvents(calendarEvent).forEach(calEvent => {
+            calEvent.selected = true;
         });
     };
+
+    /**
+     * Allow delete all recurrent events of an event when it is display in list
+     * @param calendarEvent calendar event
+     */
+    $scope.deleteAllRecurrenceList = (calendarEvent: CalendarEvent): void => {
+        $scope.calendarEvent = calendarEvent;
+        $scope.calendarEvent.deleteAllRecurrence = true;
+        $scope.confirmRemoveCalendarEvents(null);
+
+    }
 
     $scope.removeCalendarEvents = () => {
         let count = $scope.calendarEvents.selected.length;
@@ -545,20 +564,9 @@ export const calendarController =  ng.controller('CalendarController',
             $scope.resetCalendarAfterRemoveEvent(count,countReccurent);
         } else {
              $scope.calendarEvents.selected.forEach( calendarEvent => {
-                if(calendarEvent.parentId !== undefined){
-                    let recurrentEvents = $scope.calendarEvents.getRecurrenceEvents(calendarEvent);
-                    countReccurent = recurrentEvents.length;
-                    count--;
-                    recurrentEvents.forEach( calEventRecurrent => {
-                        calEventRecurrent.delete();
-                        countReccurent--;
-                        $scope.resetCalendarAfterRemoveEvent(count,countReccurent);
-                    });
-                } else {
                     calendarEvent.delete();
                     count--;
                     $scope.resetCalendarAfterRemoveEvent(count,countReccurent);
-                }
             });
         }
         $scope.calendarEvents.deselectAll();
@@ -593,6 +601,7 @@ export const calendarController =  ng.controller('CalendarController',
 
     $scope.cancelRemoveCalendarEvent = function() {
         $scope.display.confirmDeleteCalendarEvent = undefined;
+        $scope.calendarEvent.deleteAllRecurrence = false;
         $scope.calendarEvents.forEach(function(calendarEvent) {
             calendarEvent.selected = false;
         });
