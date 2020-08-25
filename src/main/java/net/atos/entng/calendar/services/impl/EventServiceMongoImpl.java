@@ -74,7 +74,6 @@ public class EventServiceMongoImpl extends MongoDbCrudService implements EventSe
     public void create(String calendarId, JsonObject body, UserInfos user, Handler<Either<String, JsonObject>> handler) {
         // Clean data
         body.remove("_id");
-        body.remove("calendar");
 
         // ics Uid generate
         UidGenerator uidGenerator;
@@ -91,8 +90,10 @@ public class EventServiceMongoImpl extends MongoDbCrudService implements EventSe
         body.put("owner", new JsonObject().put("userId", user.getUserId()).put("displayName", user.getUsername()));
         body.put("created", now);
         body.put("modified", now);
-        body.put("calendar", calendarId);
         body.put("icsUid", icsUid);
+        if(body.getValue("calendar") == null){
+            body.put("calendar", new JsonArray().add(calendarId));
+        }
         mongo.save(this.collection, body, validActionResultHandler(handler));
     }
 
@@ -128,7 +129,6 @@ public class EventServiceMongoImpl extends MongoDbCrudService implements EventSe
 
         // Clean data
         body.remove("_id");
-        body.remove("calendar");
 
         // Modifier
         MongoUpdateBuilder modifier = new MongoUpdateBuilder();

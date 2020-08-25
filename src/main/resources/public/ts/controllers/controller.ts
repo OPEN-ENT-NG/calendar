@@ -18,6 +18,7 @@ import {
     makerFormatTimeInput,
     utcTime,
 } from "../model/Utils";
+import {calendar} from "entcore/types/src/ts/calendar";
 
 export const calendarController =  ng.controller('CalendarController',
     ["$location",
@@ -55,6 +56,8 @@ export const calendarController =  ng.controller('CalendarController',
         $scope.calendarEvents.filters.endMoment = moment().add(2, 'months').startOf('day');
         $scope.contentToWatch = "";
         $scope.calendarCreationScreen = false;
+        $scope.calendarAsContribRight = new Array<String>();
+        $scope.selectedCalendarInEvent = new Array<String>();
 
         template.open('main', 'main-view');
         template.open('top-menu', 'top-menu');
@@ -67,7 +70,7 @@ export const calendarController =  ng.controller('CalendarController',
                 ]);
                 setCalendarLang();
                 $scope.loadSelectedCalendars();
-                let calendarNotification = $scope.calendars.all.filter( calendarFiltre => calendarFiltre._id === params.calendarId )[0];
+                let calendarNotification = $scope.calendars.all.filter( calendarFiltre => calendarFiltre._id === params.calendar )[0];
                 if (calendarNotification === undefined) {
                     $scope.notFound = true;
                     template.open('error', '404');
@@ -115,10 +118,21 @@ export const calendarController =  ng.controller('CalendarController',
         if($scope.calendars.all.length > 0){
             $scope.calendarEvents.all = $scope.calendarEvents.filtered = $scope.calendars.arr.reduce((accumulator, element)=>{
                     return element.selected? [...accumulator, ...element.calendarEvents.arr] : [...accumulator];
-                },[]);
+                    },[]
+            );
         }
         if ($scope.display.list) $scope.calendarEvents.applyFilters();
-        };
+        $scope.calendarEvents.filtered = $scope.removeDuplicateCalendarEvent($scope.calendarEvents.filtered);
+    };
+
+    /**
+     * Remove events which are duplicated
+     */
+    $scope.removeDuplicateCalendarEvent = (events: Array<CalendarEvent>): Array<CalendarEvent> => {
+        events = events.filter((item, index) =>
+            index === events.findIndex((t) => t._id === item._id));
+        return events;
+    };
 
     $scope.someSelectedValue = function(selection) {
         return Object.keys(selection).map(function(val) { return selection[val]; }).some(function(val) { return val === true;});
@@ -363,12 +377,15 @@ export const calendarController =  ng.controller('CalendarController',
         $scope.calendars.preference.update();
     };
 
+    /**
+     * View events in a list
+     */
     $scope.showList = function() {
         $scope.display.list = true;
         $scope.display.calendar = false;
         $scope.display.propertyName = 'startMoment';
         $scope.reverse = false;
-        $scope.calendarEvents.applyFilters();
+        $scope.loadCalendarEvents();
         template.open('calendar', 'events-list');
     };
 
@@ -377,6 +394,9 @@ export const calendarController =  ng.controller('CalendarController',
         $scope.propertyName = propertyName;
     };
 
+    /**
+     * View events in a grid
+     */
     $scope.showCalendar = function() {
         if($scope.calendars.all.length === 0) return;
         $scope.display.list = false;
@@ -444,7 +464,6 @@ export const calendarController =  ng.controller('CalendarController',
 
     $scope.openOrCloseCalendar = async function(calendar, savePreferences) {
         if ($scope.calendars.selected.length > 1 || !calendar.selected) {
-            $scope.display.calendar = false;
             calendar.selected = !calendar.selected;
             if (calendar.selected) {
                 $scope.calendar = calendar;
@@ -453,6 +472,8 @@ export const calendarController =  ng.controller('CalendarController',
             $scope.calendarEvents.applyFilters();
             if (!$scope.display.list && !$scope.display.calendar) {
                 $scope.showCalendar();
+            } else {
+                $scope.loadCalendarEvents();
             }
             if (savePreferences) {
                 $scope.calendars.preference.selectedCalendars = $scope.calendars.selectedElements.map(element => element._id);
@@ -488,7 +509,7 @@ export const calendarController =  ng.controller('CalendarController',
 
     $scope.viewCalendarEvent = calendarEvent => {
         $scope.calendarEvent = calendarEvent;
-        $scope.calendar = calendarEvent.calendar;
+        $scope.calendar = calendarEvent.calendar[0];
         $scope.createContentToWatch();
         $scope.calendarEvent.showDetails = true;
          if (!$scope.calendarEvent.parentId) {
@@ -497,7 +518,6 @@ export const calendarController =  ng.controller('CalendarController',
                  $scope.calendarEvent.recurrence.week_days = recurrence.week_days;
              }
         }
-
         if (!calendarEvent._id || $scope.hasManageRightOrIsEventOwner(calendarEvent)){
         template.open('lightbox', 'edit-event');
         } else {
@@ -517,8 +537,8 @@ export const calendarController =  ng.controller('CalendarController',
         $scope.calendar.calendarEvents.deselectAll();
         let infoEventSelected= $scope.calendar.calendarEvents.all
             .filter( eventFiltered => calendarEvent._id === eventFiltered._id)[0];
-        if (calendarEvent.deleteAllRecurrence) {
-            selectOtherRecurrentEvents(calendarEvent);
+         if (calendarEvent.deleteAllRecurrence) {
+             selectOtherRecurrentEvents(calendarEvent);
         }
         $scope.display.confirmDeleteCalendarEvent = true;
         event.stopPropagation();
@@ -535,11 +555,13 @@ export const calendarController =  ng.controller('CalendarController',
     };
 
     /**
+
      * Select all recurrent events associated to the current event
      * @param calendarEvent calendar Event
      */
     const selectOtherRecurrentEvents = (calendarEvent: CalendarEvent): void => {
-        $scope.calendarEvents.getRecurrenceEvents(calendarEvent).forEach(calEvent => {
+        let reccurentEvents = $scope.removeDuplicateCalendarEvent($scope.calendarEvents.getRecurrenceEvents(calendarEvent));
+        reccurentEvents.forEach(calEvent => {
             calEvent.selected = true;
         });
     };
@@ -631,7 +653,7 @@ export const calendarController =  ng.controller('CalendarController',
     $scope.saveCalendarEdit = async () => {
         if ($scope.calendar._id) {
             await $scope.calendar.save();
-            await $scope.calendar.calendarEvents.sync($scope.calendar);
+            await $scope.calendar.calendarEvents.sync($scope.calendar, $scope.calendars);
             $scope.calendarEvents.applyFilters();
         } else {
             await $scope.calendar.save();
@@ -650,7 +672,8 @@ export const calendarController =  ng.controller('CalendarController',
      * @param calEvent event to check
      */
     $scope.hasManageRightOrIsEventOwner = (calEvent : CalendarEvent): boolean => {
-        return calEvent.calendar.myRights.manage || ($scope.isMyEvent(calEvent) && $scope.hasContribRight(calEvent.calendar));
+        return $scope.smallerRightEvent(calEvent) == "manage" ||
+            ($scope.isMyEvent(calEvent) && $scope.smallerRightEvent(calEvent) == "contrib");
     }
 
     $scope.hasContribRight = calendar => {
@@ -727,9 +750,13 @@ export const calendarController =  ng.controller('CalendarController',
     };
 
     $scope.createCalendarEvent = newItem => {
+        $scope.calendarAsContribRight = new Array<String>();
+        $scope.selectedCalendarInEvent = new Array<String>();
         $scope.calendarEvent = new CalendarEvent();
         $scope.calendarEvent.recurrence = {};
+        $scope.calendarEvent.calendar = new Array<Calendar>();
         $scope.viewCalendarEvent($scope.calendarEvent);
+        setListCalendarWithContribFilter();
         if(newItem){
             $scope.calendarEvent.startMoment = newItem.beginning;
             $scope.calendarEvent.startMoment = $scope.calendarEvent.startMoment.minute(0).second(0).millisecond(0);
@@ -737,16 +764,106 @@ export const calendarController =  ng.controller('CalendarController',
             $scope.calendarEvent.endMoment = $scope.calendarEvent.endMoment.minute(0).second(0).millisecond(0);
         } else {
             $scope.calendarEvent.startMoment = moment.utc().second(0).millisecond(0).add(utcTime($scope.calendarEvent.startMoment), 'hours');
-            $scope.calendarEvent.endMoment = moment.utc().second(0).millisecond(0).add(1 + utcTime($scope.calendarEvent.endMoment), 'hours');
+            $scope.calendarEvent.endMoment = moment.utc().second(0).millisecond(0).add(5 - utcTime($scope.calendarEvent.endMoment), 'hours');
         }
         $scope.calendarEvent.startTime = makerFormatTimeInput($scope.calendarEvent.startMoment, $scope.calendarEvent.startMoment);
         $scope.calendarEvent.endTime = makerFormatTimeInput($scope.calendarEvent.endMoment, $scope.calendarEvent.startMoment);
         $scope.calendarEvent.recurrence.week_days = recurrence.week_days;
         $scope.calendarEvent.calendar = $scope.calendars.selected[$scope.calendars.selected.length - 1];
+        $scope.changeCalendarEventCalendar();
         $scope.calendarEvent.showDetails = true;
         $scope.initEventDates($scope.calendarEvent.startMoment, $scope.calendarEvent.endMoment);
         $scope.showCalendarEventTimePicker = true;
     };
+
+    /**
+    *   Put the calendars that the user has the right to modify in calendarAsContribRight and tick the first in the list
+    */
+    const setListCalendarWithContribFilter = (): void => {
+        $scope.calendars.arr.forEach(
+            function(calendar){
+                if($scope.hasContribRight(calendar) != null){
+                    $scope.calendarAsContribRight.push(calendar.title);
+                }
+            });
+        $scope.selectedCalendarInEvent.push($scope.calendarAsContribRight[0]);
+    }
+
+    /**
+     *  Verify if there is a element tick in the multi-combo of calendars
+     */
+    $scope.isCalendarSelectedInEvent = (): boolean => {
+        if($scope.calendarEvent._id){
+            return true;
+        } else {
+            return $scope.selectedCalendarInEvent.length != 0;
+        }
+    };
+
+    /**
+     * Remove the selected calendar from the list of selected calendars
+     * @param calendar name of the selected calendar
+     */
+    $scope.dropCalendar = (calendar: String): void => {
+        $scope.selectedCalendarInEvent = _.without($scope.selectedCalendarInEvent, calendar);
+        $scope.changeCalendarEventCalendar();
+    };
+
+    /**
+     *  Update the calendars of the calendar event
+     */
+    $scope.changeCalendarEventCalendar = (): void => {
+        $scope.calendarEvent.calendar = new Array<Calendar>();
+
+        $scope.selectedCalendarInEvent.forEach(
+            function(title){
+                $scope.calendars.arr.forEach(
+                    function(calendar){
+                        if(title === calendar.title){
+                            $scope.calendarEvent.calendar.push(calendar);
+                        }
+                });
+        });
+    }
+
+    /**
+     * Return the name of the smaller right
+     * @param event the calendar event
+     */
+    $scope.smallerRightEvent = (event : CalendarEvent): string => {
+        let right = "manage";
+        event.calendar.forEach(
+            function(calendar){
+                if($scope.hasContribRight(calendar)){
+                    if(!calendar.myRights.manage && right != "read"){
+                        right = "contrib";
+                    }
+                } else {
+                    right = "read";
+                }
+            }
+        )
+        return right;
+    }
+
+    /**
+     * Verify if one of the calendar of the event as the right of manage or if the event is created by the user and he
+     * as one of his calendar with the right of contrib
+     * @param event calendar event to check
+     */
+    $scope.hasACalendarWithRightsOfModifyEvent = (event : CalendarEvent): boolean => {
+        let right = false
+        event.calendar.forEach(
+            function(calendar) {
+                if ($scope.hasContribRight(calendar)) {
+                    if (calendar.myRights.manage || $scope.isMyEvent(event)) {
+                        right = true;
+                    }
+                }
+            }
+        );
+        return right;
+    }
 
     $scope.displayImportIcsPanel = function() {
         $scope.display.showImportPanel = true;
@@ -771,7 +888,7 @@ export const calendarController =  ng.controller('CalendarController',
         $scope.display.showImportPanel = undefined;
         $scope.display.showImportReport = true;
         $scope.importFileButtonDisabled = true;
-        await $scope.calendar.calendarEvents.sync($scope.calendar);
+        await $scope.calendar.calendarEvents.sync($scope.calendar, $scope.calendars);
         $scope.loadCalendarEvents();
         if ($scope.display.list) {
             $scope.showList();
@@ -1005,7 +1122,7 @@ export const calendarController =  ng.controller('CalendarController',
     $scope.switchSelectAllCalendarEvents = function() {
         if ($scope.display.selectAllCalendarEvents) {
             $scope.calendarEvents.filtered.forEach(function(calendarEvent) {
-                if (calendarEvent.calendar.myRights.contrib) {
+                if ($scope.smallerRightEvent(calendarEvent) == "manage") {
                     calendarEvent.selected = true;
                 }
             });
@@ -1019,6 +1136,7 @@ export const calendarController =  ng.controller('CalendarController',
         $scope.calendarEvents.filters.startMoment = moment($scope.calendarEvents.filters.startMoment);
         $scope.calendarEvents.filters.endMoment = moment($scope.calendarEvents.filters.endMoment);
         $scope.calendarEvents.applyFilters();
+        $scope.calendarEvents.filtered = $scope.removeDuplicateCalendarEvent($scope.calendarEvents.filtered);
         $scope.$apply();
     };
 
@@ -1090,7 +1208,7 @@ export const calendarController =  ng.controller('CalendarController',
         model.calendar.firstDay.date(newDate.date());
         model.calendar.firstDay.month(newDate.month());
         model.calendar.firstDay.year(newDate.year());
-        $scope.calendar.calendarEvents.sync($scope.calendar);
+        $scope.calendar.calendarEvents.sync($scope.calendar, $scope.calendars);
         $scope.calendarEvents.applyFilters();
             template.open('calendar', 'read-calendar');
         $('.hiddendatepickerform').datepicker('setValue', newDate.format("DD/MM/YYYY")).datepicker('update');

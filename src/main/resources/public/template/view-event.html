@@ -3,7 +3,7 @@
         <i18n>calendar.view.event</i18n>
     </h2>
 
-    <h3 class="backgroundOrangeTitle">
+    <h3 class="backgroundBlueTitle">
         <i18n>calendar.event.header.details</i18n>
     </h3>
 
@@ -11,7 +11,8 @@
         <div class="content">
 
             <div class="row">
-                <label><i18n>calendar.event.calendar</i18n> :</label><span> [[calendarEvent.calendar.title]]</span>
+                <label><i18n>calendar.event.calendar</i18n> :</label>
+                <span ng-repeat="calendar in calendarEvent.calendar"> [[calendar.title]][[$last ? '' : ', ']]</span>
             </div>
 
             <div class="row" ng-if="calendarEvent._id">
@@ -62,6 +63,9 @@
                 </div>
             </div>
         </div>
-
+        <div class="warningEventView">
+            <label class="warning" ng-if="hasACalendarWithRightsOfModifyEvent(calendarEvent)">
+                <i18n>calendar.event.not.all.calendar.rights</i18n></label>
+        </div>
     </div>
 </div>
