@@ -27,13 +27,9 @@ export const formatInputTime = ng.directive('formatInputTime', () => {
                 scope.endMoment = getTime(scope.endMoment, scope.endTime);
 
                 if(isSameAfter(scope.startMoment, scope.endMoment )){
-                    if (attribute.id === 'time-picker-start-moment'){
-                        scope.endTime = makerFormatTimeInput(scope.startTime, moment(scope.startTime).add(15, 'minutes'));
-                    } else if (attribute.id === 'time-picker-end-moment' && canCheck) {
-                        scope.startTime = makerFormatTimeInput(moment(scope.endTime).subtract(1, 'hours'), scope.endTime);
-                    }
+                    canCheck = true;
                 }
-                canCheck = true;
+
 
                 if (time.endsWith('.000')) {
                     return time.slice(0, -7)

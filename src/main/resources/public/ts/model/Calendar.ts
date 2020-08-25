@@ -88,7 +88,7 @@ export class Calendars extends Selection<Calendar> {
 
      async syncCalendarEvents () {
         for( let i = 0 ; i < this.all.length ; i++){
-           await this.all[i].calendarEvents.sync(this.all[i]);
+           await this.all[i].calendarEvents.sync(this.all[i], this);
          }
     }
 

@@ -34,6 +34,8 @@ import com.mongodb.QueryBuilder;
 import fr.wseduc.webutils.Either;
 import fr.wseduc.webutils.I18n;
 import fr.wseduc.webutils.collections.Joiner;
+import io.vertx.core.CompositeFuture;
+import io.vertx.core.Future;
 import net.atos.entng.calendar.services.EventServiceMongo;
 
 import org.entcore.common.mongodb.MongoDbControllerHelper;
@@ -75,7 +77,6 @@ public class EventHelper extends MongoDbControllerHelper {
 
     @Override
     public void list(final HttpServerRequest request) {
-
         UserUtils.getUserInfos(eb, request, new Handler<UserInfos>() {
             @Override
             public void handle(final UserInfos user) {
@@ -145,7 +146,7 @@ public class EventHelper extends MongoDbControllerHelper {
                                         message.put("id", calendarId);
                                         message.put("eventId", eventId);
                                         message.put("start_date", (String) null);
-                                        message.put("end_date", (String)  null);
+                                        message.put("end_date", (String) null);
                                         notifyEventCreatedOrUpdated(request, user, message, false);
                                         renderJson(request, event.right().getValue(), 200);
                                     } else if (event.isLeft()) {
@@ -260,11 +261,16 @@ public class EventHelper extends MongoDbControllerHelper {
         eventService.getCalendarEventById(eventId, new Handler<Either<String, JsonObject>>() {
             @Override
             public void handle(Either<String, JsonObject> event) {
-                if( event.isRight()) {
-                    // notify users
+                if (event.isRight()) {
                     JsonObject calendarEvent = event.right().getValue();
-                    notifyUsersSharing(request, user, calendarId, calendarEvent, isCreated);
+                    JsonArray calendar = calendarEvent.getJsonArray("calendar", new JsonArray());
+                    if(!calendar.isEmpty()){
+                        for(Object id : calendar){
+                            notifyUsersSharing(request, user, id.toString(), calendarEvent, isCreated);
+                        }
+                    }
                 }
+
             }
         });
     }
@@ -312,7 +318,8 @@ public class EventHelper extends MongoDbControllerHelper {
                                 ) + " " + calendarEvent.getString("title"));
 
                         p.put("pushNotif", pushNotif);
-                        notification.notifyTimeline(request, template, user, recipients, calendarId, calendarEvent.getString("id"), p);
+                        notification.notifyTimeline(request, template, user, recipients, calendarId, calendarEvent.getString("id"),
+                                p, true);
                     }
                 }
             }
