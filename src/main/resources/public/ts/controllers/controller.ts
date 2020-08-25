@@ -555,6 +555,7 @@ export const calendarController =  ng.controller('CalendarController',
     };
 
     /**
+
      * Select all recurrent events associated to the current event
      * @param calendarEvent calendar Event
      */

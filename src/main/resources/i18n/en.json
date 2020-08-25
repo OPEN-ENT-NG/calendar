@@ -72,8 +72,7 @@
     "calendar.recurrence.day.of.month": "days of month",
     "calendar.recurrence.day.of.week": "days of week",
     "calendar.confirm.delete.recurrent.event": "Confirm deletion of recurrent events",
-    "calendar.recurrent.event.remove": "Remiove this event from recurrence",
-    "calendar.recurrent.event.delete.others": "Delete other events from recurrence",
+    "calendar.recurrent.event.remove": "Remove this event from recurrence",
     "calendar.event.not.all.calendar.rights": "You cannot modify this event because you do not have the necessary rights on one of the calendars.",
     "calendar.recurrent.event.delete.others": "Delete other events from recurrence",
     "calendar.remove.all.recurrent": "Delete all the recurrence"
