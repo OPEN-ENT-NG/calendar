@@ -36,8 +36,11 @@ import fr.wseduc.webutils.I18n;
 import fr.wseduc.webutils.collections.Joiner;
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
+import net.atos.entng.calendar.Calendar;
 import net.atos.entng.calendar.services.EventServiceMongo;
 
+import org.entcore.common.events.EventStore;
+import org.entcore.common.events.EventStoreFactory;
 import org.entcore.common.mongodb.MongoDbControllerHelper;
 import org.entcore.common.neo4j.Neo4j;
 import org.entcore.common.notification.TimelineHelper;
@@ -61,18 +64,21 @@ public class EventHelper extends MongoDbControllerHelper {
     private static final String CALENDAR_ID_PARAMETER = "id";
 
     private Neo4j neo4j = Neo4j.getInstance();
-
+    static final String RESOURCE_NAME = "agenda_event";
     private static final String EVENT_ID_PARAMETER = "eventid";
 
     private final EventServiceMongo eventService;
 
     private final TimelineHelper notification;
+    private final org.entcore.common.events.EventHelper eventHelper;
 
     public EventHelper(String collection, CrudService eventService, TimelineHelper timelineHelper) {
         super(collection, null);
         this.eventService = (EventServiceMongo) eventService;
         this.crudService = eventService;
         notification = timelineHelper;
+        final EventStore eventStore = EventStoreFactory.getFactory().getEventStore(Calendar.class.getSimpleName());
+        this.eventHelper = new org.entcore.common.events.EventHelper(eventStore);
     }
 
     @Override
@@ -109,6 +115,7 @@ public class EventHelper extends MongoDbControllerHelper {
                                             message.put("end_date", (String) null);
                                             notifyEventCreatedOrUpdated(request, user, message, true);
                                             renderJson(request, event.right().getValue(), 200);
+                                            eventHelper.onCreateResource(request, RESOURCE_NAME);
                                         } else if (event.isLeft()) {
                                             log.error("Error when getting notification informations.");
                                         }

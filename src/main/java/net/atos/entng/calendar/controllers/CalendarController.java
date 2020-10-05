@@ -22,46 +22,50 @@ package net.atos.entng.calendar.controllers;
 import fr.wseduc.rs.*;
 import fr.wseduc.security.ActionType;
 import fr.wseduc.security.SecuredAction;
+import fr.wseduc.webutils.Either;
 import fr.wseduc.webutils.I18n;
+import fr.wseduc.webutils.http.Renders;
 import fr.wseduc.webutils.request.RequestUtils;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.json.JsonObject;
+import org.entcore.common.controller.ControllerHelper;
+import org.entcore.common.events.EventHelper;
 import org.entcore.common.events.EventStore;
 import org.entcore.common.events.EventStoreFactory;
+import org.entcore.common.http.response.DefaultResponseHandler;
 import org.entcore.common.mongodb.MongoDbControllerHelper;
-import org.entcore.common.user.UserUtils;
 import org.entcore.common.user.UserInfos;
+import org.entcore.common.user.UserUtils;
 import org.vertx.java.core.http.RouteMatcher;
 
 import java.util.Calendar;
 import java.util.Map;
 
 public class CalendarController extends MongoDbControllerHelper {
+    static final String RESOURCE_NAME = "agenda";
+    // Used for module "statistics"
+    private final EventHelper eventHelper;
 
-	// Used for module "statistics"
-	private EventStore eventStore;
-	private enum CalendarEvent { ACCESS }
-
-	@Override
-	public void init(Vertx vertx, JsonObject config, RouteMatcher rm,
-			Map<String, fr.wseduc.webutils.security.SecuredAction> securedActions) {
-		super.init(vertx, config, rm, securedActions);
-		eventStore = EventStoreFactory.getFactory().getEventStore(Calendar.class.getSimpleName());
-	}
+    @Override
+    public void init(Vertx vertx, JsonObject config, RouteMatcher rm,
+                     Map<String, fr.wseduc.webutils.security.SecuredAction> securedActions) {
+        super.init(vertx, config, rm, securedActions);
+    }
 
     public CalendarController(String collection) {
         super(collection);
+        final EventStore eventStore = EventStoreFactory.getFactory().getEventStore(Calendar.class.getSimpleName());
+        this.eventHelper = new org.entcore.common.events.EventHelper(eventStore);
     }
 
     @Get("")
     @SecuredAction("calendar.view")
     public void view(HttpServerRequest request) {
         renderView(request);
-
-		// Create event "access to application Calendar" and store it, for module "statistics"
-		eventStore.createAndStoreEvent(CalendarEvent.ACCESS.name(), request);
+        // Create event "access to application Calendar" and store it, for module "statistics"
+        eventHelper.onAccess(request);
     }
 
     @Get("/calendars")
@@ -73,11 +77,12 @@ public class CalendarController extends MongoDbControllerHelper {
     @Post("/calendars")
     @SecuredAction("calendar.create")
     public void createCalendar(final HttpServerRequest request) {
-        RequestUtils.bodyToJson(request, pathPrefix + "calendar", new Handler<JsonObject>() {
-            @Override
-            public void handle(JsonObject event) {
-                create(request);
-            }
+        RequestUtils.bodyToJson(request, pathPrefix + "calendar", object -> {
+            super.create(request, r -> {
+                if(r.succeeded()){
+                    eventHelper.onCreateResource(request, RESOURCE_NAME);
+                }
+            });
         });
     }
 
@@ -149,7 +154,7 @@ public class CalendarController extends MongoDbControllerHelper {
             public void handle(final UserInfos user) {
                 if (user != null) {
                     final String id = request.params().get("id");
-                    if(id == null || id.trim().isEmpty()) {
+                    if (id == null || id.trim().isEmpty()) {
                         badRequest(request, "invalid.id");
                         return;
                     }
