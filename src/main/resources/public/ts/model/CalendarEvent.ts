@@ -121,7 +121,8 @@ export class CalendarEvent implements Selectable{
             isRecurrent: this.isRecurrent,
             index: this.index,
             startMoment: this.startMoment,
-            endMoment: this.endMoment,
+						endMoment: this.endMoment,
+						// Warning : if format() is changed below, it must be changed in net.atos.entng.calendar.helpers.EventHelper.create() too.
             notifStartMoment: this.notifStartMoment.format("DD/MM/YYYY HH:mm"),
             notifEndMoment: this.notifEndMoment.format("DD/MM/YYYY HH:mm"),
         }

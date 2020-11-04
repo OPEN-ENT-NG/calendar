@@ -103,7 +103,7 @@ public class EventHelper extends MongoDbControllerHelper {
                     RequestUtils.bodyToJson(request, new Handler<JsonObject>() {
                         @Override
                         public void handle(JsonObject object) {
-                            if (object.getString("startMoment").substring(0,10).equals(object.getString("endMoment").substring(0,10))) {
+                            if (object.getString("notifStartMoment").substring(0,10).equals(object.getString("notifEndMoment").substring(0,10))) {
                                 eventService.create(calendarId, object, user, new Handler<Either<String, JsonObject>>() {
                                     public void handle(Either<String, JsonObject> event) {
                                         if (event.isRight()) {
