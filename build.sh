@@ -52,7 +52,6 @@ buildNode () {
     echo "[buildNode] Branch name should not be empty!"
     exit -1
   fi
-  BRANCH_NAME="fix"
   if [ "$BRANCH_NAME" = 'master' ]; then
       echo "[buildNode] Use entcore version from package.json ($BRANCH_NAME)"
       case `uname -s` in
