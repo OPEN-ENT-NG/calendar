@@ -150,11 +150,22 @@ export class CalendarEvents extends Selection<CalendarEvent> {
         this.all = Mix.castArrayAs(CalendarEvent, data);
         let thisCalendarEvents = this;
         this.all.map(  calendarEvent => {
-            let idCalendars = calendarEvent.calendar;
-            calendarEvent.calendar = new Array<Calendar>();
-            idCalendars.forEach(function (id){
-                calendarEvent.calendar.push(thisCalendarEvents.getCalendarFromId(calendars, id));
-            });
+						// Let's reconstruct the "calendar" array from found _id(s).
+						let newArray = new Array<Calendar>();
+						let idCalendars: any = calendarEvent.calendar;
+						if( typeof idCalendars.forEach === "function" ) {
+							idCalendars.forEach(function (id){
+								newArray.push(thisCalendarEvents.getCalendarFromId(calendars, id));
+							});
+						} else if( typeof idCalendars === "string" ) { // Old data format (single _id)
+							newArray.push(thisCalendarEvents.getCalendarFromId(calendars, idCalendars));
+						} else { // Unknown data format
+							console.debug( "[CalendarEvent] Unexpected type of idCalendars" );
+							newArray.push( idCalendars );
+						}
+						calendarEvent.calendar = newArray;
+						
+						// Compute dates
             let startDate = moment(calendarEvent.startMoment).second(0).millisecond(0);
             calendarEvent.startMoment = startDate;
             calendarEvent.startMomentDate = startDate.format('DD/MM/YYYY');
