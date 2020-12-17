@@ -17,7 +17,7 @@
   },
   "homepage": "https://github.com/OPEN-ENT-NG/calendar#readme",
   "dependencies": {
-    "entcore": "~3.11.1-dev",
+    "entcore": "3.11.3",
     "@types/core-js": "0.9.42",
     "awesome-typescript-loader": "3.2.1",
     "axios": "0.16.2",
