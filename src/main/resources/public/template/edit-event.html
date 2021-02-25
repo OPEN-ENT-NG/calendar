@@ -33,7 +33,7 @@
                             <label class="twelve cell">
                                 <i18n>calendar.event.description</i18n>
                             </label>
-                            <textarea class="twelve cell" ng-model="calendarEvent.description"/>
+                            <textarea class="twelve cell" ng-model="calendarEvent.description"></textarea>
 
                             <label class="twelve cell">
                                 <i18n>calendar.event.location</i18n>
@@ -65,7 +65,7 @@
 
                             <div class="row" ng-if="calendarEvent.parentId">
                                 <input type="checkbox" ng-model="calendarEvent.detailToRecurrence"/>
-                                <label>Appliquer à toute la récurrence</label>
+                                <i18n>calendar.recurrence.apply</i18n>
                             </div>
 
                         </div>
@@ -138,14 +138,14 @@
                                 </div>
                             </div>
                             <div class="row" ng-if="calendarEvent.parentId">
-                                <label>Appliquer à toute la récurrence : </label>
+                                <i18n>calendar.recurrence.apply</i18n> : 
                                 <input type="checkbox" ng-model="calendarEvent.startDateToRecurrence"/>
-                                <label>Heure de début</label>
+                                <i18n>calendar.event.start.time</i18n>
                                 <input type="checkbox" ng-model="calendarEvent.endDateToRecurrence"/>
-                                <label>Heure de fin</label>
+                                <i18n>calendar.event.end.time</i18n>
                                 <span ng-if="!(calendarEvent.startDateToRecurrence && calendarEvent.endDateToRecurrence)">
                                 <input type="checkbox" ng-model="calendarEvent.durationToRecurrence"/>
-                                <label>Durée</label>
+                                <i18n>calendar.duration</i18n>
                             </span>
                             </div>
                         </div>
@@ -308,21 +308,21 @@
                                 </div>
                                 <div class="row">
                                     <input type="checkbox" ng-model="calendarEvent.noMoreRecurrent"/>
-                                    <label>Sortir cet évènement de la récurrence</label>
+                                    <i18n>calendar.event.remove.from.recurrence</i18n>
                                 </div>
                                 <div class="row" ng-if="calendarEvent.noMoreRecurrent">
                                     <input type="checkbox" ng-model="calendarEvent.noMoreRecurrence"
                                            ng-checked="!calendarEvent.noMoreRecurrent"/>
-                                    <label>Supprimer les autres évènements de la récurrence</label>
+                                    <i18n>calendar.event.remove.others.from.recurrence</i18n>
                                 </div>
                                 <div class="row">
                                     <input type="checkbox" ng-model="calendarEvent.deleteAllRecurrence"/>
-                                    <label>Supprimer tous les événements de la récurrence</label>
+                                    <i18n>calendar.event.remove.all.from.recurrence</i18n>
                                 </div>
                             </div>
                             <div class="row">
                                 <input type="checkbox" ng-model="calendarEvent.deleteAllRecurrence"/>
-                                <label>Supprimer tous les événements de la récurrence</label>
+                                <i18n>calendar.event.remove.all.from.recurrence</i18n>
                             </div>
                         </div>
                     </div>
