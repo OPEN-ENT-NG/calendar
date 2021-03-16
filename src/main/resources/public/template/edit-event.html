@@ -48,7 +48,7 @@
                                 [[calendar.title]][[$last ? '' : ', ']]</span>
                                 <multi-combo ng-if="!calendarEvent._id"
                                              class="twelve cell multi-combo"
-                                             title="Sélectionner un agenda"
+                                             title="[[ lang.translate('calendar.event.edit.select.one') ]]"
                                              ng-click="changeCalendarEventCalendar()"
                                              combo-model="calendarAsContribRight"
                                              search-on="title"
@@ -278,7 +278,7 @@
                             </div>
                             <div class="content" ng-if="calendarEvent.parentId && calendarEvent.isRecurrent">
                                 <div class="row">
-                                    <label>La récurrence est:
+                                    <label><i18n>calendar.event.edit.reccurrence.is</i18n>
                                         <i18n>calendar.recurrence.every</i18n>
                                         [[calendarEvent.recurrence.every]] </label>
                                     <label ng-if="calendarEvent.recurrence.type === 'every_day'">

@@ -119,5 +119,7 @@
     "calendar.duration": "Durée",
     "calendar.event.remove.from.recurrence": "Sortir cet évènement de la récurrence",
     "calendar.event.remove.others.from.recurrence": "Supprimer les autres évènements de la récurrence",
-    "calendar.event.remove.all.from.recurrence": "Supprimer tous les événements de la récurrence"
+    "calendar.event.remove.all.from.recurrence": "Supprimer tous les événements de la récurrence",
+    "calendar.event.edit.select.one": "Sélectionner un agenda",
+    "calendar.event.edit.reccurrence.is": "La récurrence est:"
 }
