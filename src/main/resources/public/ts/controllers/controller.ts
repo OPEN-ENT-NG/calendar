@@ -775,7 +775,12 @@ export const calendarController =  ng.controller('CalendarController',
         $scope.initEventDates($scope.calendarEvent.startMoment, $scope.calendarEvent.endMoment);
         $scope.showCalendarEventTimePicker = true;
     };
-
+    //unique
+    const unique = function<T>(array:T[]) {
+        return array.filter(function (value, index, self) { 
+            return self.indexOf(value) === index;
+        });
+    }
     /**
     *   Put the calendars that the user has the right to modify in calendarAsContribRight and tick the first in the list
     */
@@ -786,7 +791,9 @@ export const calendarController =  ng.controller('CalendarController',
                     $scope.calendarAsContribRight.push(calendar.title);
                 }
             });
+        $scope.calendarAsContribRight = unique($scope.calendarAsContribRight);
         $scope.selectedCalendarInEvent.push($scope.calendarAsContribRight[0]);
+        $scope.selectedCalendarInEvent = unique($scope.selectedCalendarInEvent);
     }
 
     /**
