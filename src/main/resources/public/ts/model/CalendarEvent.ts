@@ -163,7 +163,7 @@ export class CalendarEvents extends Selection<CalendarEvent> {
 							console.debug( "[CalendarEvent] Unexpected type of idCalendars" );
 							newArray.push( idCalendars );
 						}
-						calendarEvent.calendar = newArray;
+						calendarEvent.calendar = newArray.filter(e => e!= null);
 						
 						// Compute dates
             let startDate = moment(calendarEvent.startMoment).second(0).millisecond(0);

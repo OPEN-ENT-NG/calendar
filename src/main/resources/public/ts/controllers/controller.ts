@@ -839,7 +839,7 @@ export const calendarController =  ng.controller('CalendarController',
      */
     $scope.smallerRightEvent = (event : CalendarEvent): string => {
         let right = "manage";
-        event.calendar.forEach(
+        event.calendar.filter(e=>e != null).forEach(
             function(calendar){
                 if($scope.hasContribRight(calendar)){
                     if(!calendar.myRights.manage && right != "read"){
