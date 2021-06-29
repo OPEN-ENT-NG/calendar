@@ -50,8 +50,8 @@ public class CalendarRepositoryEvents extends MongoDbRepositoryEvents {
     }
 
     @Override
-    public void exportResources(JsonArray resourcesIds, String exportId, String userId, JsonArray g, String exportPath, String locale,
-                                String host, Handler<Boolean> handler)
+    public void exportResources(JsonArray resourcesIds, boolean exportDocuments, boolean exportSharedResources, String exportId, String userId,
+                                JsonArray g, String exportPath, String locale, String host, Handler<Boolean> handler)
     {
         QueryBuilder findByOwner = QueryBuilder.start("owner.userId").is(userId);
         QueryBuilder findByShared = QueryBuilder.start().or(
@@ -59,7 +59,7 @@ public class CalendarRepositoryEvents extends MongoDbRepositoryEvents {
             QueryBuilder.start("shared.groupId").in(g).get()
         );
 
-        QueryBuilder findByAuthorOrOwnerOrShared = QueryBuilder.start().or(findByOwner.get(),findByShared.get());
+        QueryBuilder findByAuthorOrOwnerOrShared = exportSharedResources == false ? findByOwner : QueryBuilder.start().or(findByOwner.get(),findByShared.get());
 
         JsonObject query;
 
@@ -116,7 +116,7 @@ public class CalendarRepositoryEvents extends MongoDbRepositoryEvents {
                                     {
                                         if (path != null)
                                         {
-                                            exportDocumentsDependancies(results.addAll(results2), path, new Handler<Boolean>()
+                                            Handler<Boolean> finish = new Handler<Boolean>()
                                             {
                                                 @Override
                                                 public void handle(Boolean bool)
@@ -128,7 +128,12 @@ public class CalendarRepositoryEvents extends MongoDbRepositoryEvents {
                                                         handler.handle(exported.get());
                                                     }
                                                 }
-                                            });
+                                            };
+
+                                            if(exportDocuments == true)
+                                                exportDocumentsDependancies(results.addAll(results2), path, finish);
+                                            else
+                                                finish.handle(Boolean.TRUE);
                                         }
                                         else
                                         {
