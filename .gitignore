@@ -39,3 +39,4 @@ node_modules
 npm-debug.log
 gradlew*
 gradle/
+/coverage/
