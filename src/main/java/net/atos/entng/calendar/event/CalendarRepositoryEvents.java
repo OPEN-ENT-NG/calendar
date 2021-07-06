@@ -49,6 +49,7 @@ public class CalendarRepositoryEvents extends MongoDbRepositoryEvents {
         this.collectionNameToImportPrefixMap.put(Calendar.CALENDAR_EVENT_COLLECTION, "ev_");
     }
 
+
     @Override
     public void exportResources(JsonArray resourcesIds, boolean exportDocuments, boolean exportSharedResources, String exportId, String userId,
                                 JsonArray g, String exportPath, String locale, String host, Handler<Boolean> handler)
