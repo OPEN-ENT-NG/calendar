@@ -19,6 +19,7 @@
 
 package net.atos.entng.calendar;
 
+import fr.wseduc.mongodb.MongoDb;
 import fr.wseduc.webutils.Server;
 import io.vertx.core.DeploymentOptions;
 import net.atos.entng.calendar.controllers.CalendarController;
@@ -26,6 +27,8 @@ import net.atos.entng.calendar.controllers.EventController;
 import net.atos.entng.calendar.event.CalendarRepositoryEvents;
 import net.atos.entng.calendar.event.CalendarSearchingEvents;
 import net.atos.entng.calendar.ical.ICalHandler;
+import net.atos.entng.calendar.services.CalendarService;
+import net.atos.entng.calendar.services.impl.CalendarServiceImpl;
 import net.atos.entng.calendar.services.impl.EventServiceMongoImpl;
 import org.entcore.common.http.BaseServer;
 import org.entcore.common.http.filter.ShareAndOwner;
@@ -48,7 +51,8 @@ public class Calendar extends BaseServer {
     public void start() throws Exception {
         super.start();
         CrudService eventService = new EventServiceMongoImpl(CALENDAR_EVENT_COLLECTION, vertx.eventBus());
-        
+        CalendarService calendarService = new CalendarServiceImpl(CALENDAR_COLLECTION, MongoDb.getInstance());
+
         final MongoDbConf conf = MongoDbConf.getInstance();
         conf.setCollection(CALENDAR_COLLECTION);
         conf.setResourceIdLabel("id");
@@ -64,7 +68,7 @@ public class Calendar extends BaseServer {
         }
         EventBus eb = Server.getEventBus(vertx);
         final TimelineHelper timelineHelper = new TimelineHelper(vertx, eb, config);
-        addController(new CalendarController(CALENDAR_COLLECTION));
+        addController(new CalendarController(CALENDAR_COLLECTION, calendarService));
         addController(new EventController(CALENDAR_EVENT_COLLECTION, eventService, timelineHelper));
     }
     
