@@ -70,7 +70,7 @@
                     <a href="/calendar/[[showButtonsCalendar._id]]/ical"><button><i18n>calendar.export</i18n></button></a>
                     <button ng-click="displayImportIcsPanel()"><i18n>calendar.import</i18n></button>
                     <button ng-click="editCalendar(showButtonsCalendar, $event)"><i18n>edit</i18n></button>
-                    <button ng-click="confirmRemoveCalendar(showButtonsCalendar, $event)"><i18n>remove</i18n></button>
+                    <button ng-click="confirmRemoveCalendar(showButtonsCalendar, $event)" ng-if="canBeDeleted()"><i18n>remove</i18n></button>
                     <button ng-click="shareCalendar(showButtonsCalendar, $event)"><i18n>share</i18n></button>
             </behaviour>
         </div>
