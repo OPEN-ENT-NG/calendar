@@ -22,7 +22,6 @@ import static fr.wseduc.webutils.http.Renders.getHost;
 import static org.entcore.common.mongodb.MongoDbResult.*;
 
 import fr.wseduc.webutils.I18n;
-import fr.wseduc.webutils.http.Renders;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.core.http.HttpServerRequest;
@@ -41,8 +40,8 @@ import fr.wseduc.mongodb.MongoQueryBuilder;
 
 
 public class CalendarServiceImpl implements CalendarService {
-    private MongoDb mongo;
-    private String collection;
+    private final MongoDb mongo;
+    private final String collection;
     protected static final Logger log = LoggerFactory.getLogger(CalendarServiceImpl.class);
 
 
@@ -51,12 +50,14 @@ public class CalendarServiceImpl implements CalendarService {
         this.mongo = mongo;
     }
 
+    private static final String IS_DEFAULT = "is_default";
+
     @Override
     public Future<Boolean> hasDefaultCalendar(UserInfos user) {
         Promise<Boolean> promise = Promise.promise();
         // Query
         QueryBuilder query = QueryBuilder.start("owner.userId").is(user.getUserId());
-        query.put("is_default").is(true);
+        query.put(IS_DEFAULT).is(true);
 
         mongo.findOne(this.collection, MongoQueryBuilder.build(query), validResultHandler(result -> {
             if(result.isLeft()) {
@@ -74,7 +75,7 @@ public class CalendarServiceImpl implements CalendarService {
     public Future<JsonObject> createDefaultCalendar(Boolean exists, UserInfos user, HttpServerRequest request) {
         Promise<JsonObject> promise = Promise.promise();
 
-        if (!exists) {
+        if (Boolean.FALSE.equals(exists)) {
             JsonObject defaultCalendar = new JsonObject();
             JsonObject now = MongoDb.now();
 
@@ -85,7 +86,7 @@ public class CalendarServiceImpl implements CalendarService {
             defaultCalendar.put("created", now);
             defaultCalendar.put("modified", now);
             defaultCalendar.put("owner", new JsonObject().put("userId", user.getUserId()).put("displayName", user.getUsername()));
-            defaultCalendar.put("is_default", true);
+            defaultCalendar.put(IS_DEFAULT, true);
 
 
             insertDefaultCalendar(promise, defaultCalendar);
@@ -93,6 +94,26 @@ public class CalendarServiceImpl implements CalendarService {
             JsonObject response = new JsonObject();
             promise.complete(response);
         }
+        return promise.future();
+    }
+
+    @Override
+    public Future<Boolean> isDefaultCalendar(String calendarId) {
+        Promise<Boolean> promise = Promise.promise();
+        // Query
+        QueryBuilder query = QueryBuilder.start("_id").is(calendarId);
+        query.put(IS_DEFAULT).is(true);
+
+        mongo.findOne(this.collection, MongoQueryBuilder.build(query), validResultHandler(result -> {
+            if(result.isLeft()) {
+                log.error("[Calendar@CalendarService::isDefaultCalendar]: an error has occurred while finding calendar: ",
+                        result.left().getValue());
+                promise.fail(result.left().getValue());
+                return;
+            }
+            boolean isDefault = !result.right().getValue().isEmpty();
+            promise.complete(isDefault);
+        }));
         return promise.future();
     }
 
