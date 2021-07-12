@@ -115,6 +115,7 @@
     "calendar.recurrence.daymap.sat":"Sa",
     "calendar.recurrence.daymap.sun":"Di",
     "calendar.error.date.saving":"Problème d'enregistrement de l'évènement : Les dates de début et fin ne sont pas les mêmes, veuillez contacter le service support",
+    "calendar.delete.error": "Une erreur est survenue lors de la supression du calendrier",
     "calendar.navigation.guard": "Les modifications que vous avez apportées ne seront peut-être pas enregistrées. Souhaitez vous quitter cette page?",
     "calendar.event.not.all.calendar.rights": "Vous ne pouvez pas modifier cet événement car vous n'avez pas les droits nécessaire sur l'un des agendas.",
     "calendar.duration": "Durée",
@@ -122,5 +123,6 @@
     "calendar.event.remove.others.from.recurrence": "Supprimer les autres évènements de la récurrence",
     "calendar.event.remove.all.from.recurrence": "Supprimer tous les événements de la récurrence",
     "calendar.event.edit.select.one": "Sélectionner un agenda",
-    "calendar.event.edit.reccurrence.is": "La récurrence est:"
+    "calendar.event.edit.reccurrence.is": "La récurrence est:",
+    "cannot.delete.default.calendar": "Votre calendrier par défaut ne peut pas être supprimé"
 }
