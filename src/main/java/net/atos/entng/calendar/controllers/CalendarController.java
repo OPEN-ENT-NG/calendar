@@ -22,22 +22,16 @@ package net.atos.entng.calendar.controllers;
 import fr.wseduc.rs.*;
 import fr.wseduc.security.ActionType;
 import fr.wseduc.security.SecuredAction;
-import fr.wseduc.webutils.Either;
 import fr.wseduc.webutils.I18n;
-import fr.wseduc.webutils.http.Renders;
 import fr.wseduc.webutils.request.RequestUtils;
-import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.json.JsonObject;
 import net.atos.entng.calendar.services.CalendarService;
-import net.atos.entng.calendar.services.impl.CalendarServiceImpl;
-import org.entcore.common.controller.ControllerHelper;
 import org.entcore.common.events.EventHelper;
 import org.entcore.common.events.EventStore;
 import org.entcore.common.events.EventStoreFactory;
-import org.entcore.common.http.response.DefaultResponseHandler;
 import org.entcore.common.mongodb.MongoDbControllerHelper;
 import org.entcore.common.user.UserInfos;
 import org.entcore.common.user.UserUtils;
@@ -115,7 +109,16 @@ public class CalendarController extends MongoDbControllerHelper {
     @Delete("/:id")
     @SecuredAction(value = "calendar.manager", type = ActionType.RESOURCE)
     public void deleteCalendar(HttpServerRequest request) {
-        delete(request);
+        String calendarId = request.params().get("id");
+        calendarService.isDefaultCalendar(calendarId)
+                .onSuccess(res -> {
+                    if (Boolean.FALSE.equals(res)) {
+                        delete(request);
+                    } else {
+                        forbidden(request, I18n.getInstance().translate("cannot.delete.default.calendar", getHost(request), I18n.acceptLanguage(request)));
+                    }
+                })
+                .onFailure(err -> renderError(request));
     }
 
     @Get("/share/json/:id")

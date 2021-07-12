@@ -1,4 +1,4 @@
-import {$, _, moment, ng , template, idiom as lang, notify} from "entcore";
+import {$, _, moment, ng, template, idiom as lang, notify, toasts} from "entcore";
 
 import {
     Calendar,
@@ -19,6 +19,7 @@ import {
     utcTime,
 } from "../model/Utils";
 import {calendar} from "entcore/types/src/ts/calendar";
+import {AxiosResponse} from "axios";
 
 export const calendarController =  ng.controller('CalendarController',
     ["$location",
@@ -718,6 +719,17 @@ export const calendarController =  ng.controller('CalendarController',
 
     };
 
+    /**
+     * Check if selected calendar is default calendar
+     * if so return false to disable 'delete' button
+     */
+    $scope.canBeDeleted = function () {
+        if ($scope.calendar && $scope.calendar.is_default) {
+            return false;
+        }
+        return true;
+    }
+
     $scope.removeCalendar = async () => {
         if ($scope.showButtonsCalendar._id == $scope.calendar._id) {
             $scope.showButtonsCalendar = undefined;
@@ -727,7 +739,17 @@ export const calendarController =  ng.controller('CalendarController',
         $scope.calendar.calendarEvents.forEach(function(calendarEvent) {
             calendarEvent.delete();
         });
-        await $scope.calendar.delete();
+
+        try {
+            await $scope.calendar.delete();
+        } catch (err) {
+            let error: AxiosResponse = err.response;
+            if (error.status === 403) {
+                toasts.warning(error.data.error);
+            } else {
+                toasts.warning(lang.translate('calendar.delete.error'));
+            }
+        }
         if($scope.calendars.all.length === 1) {
             template.close("calendar");
         }
