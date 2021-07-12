@@ -1,4 +1,4 @@
-import {$, _, moment, ng , template, idiom as lang, notify} from "entcore";
+import {$, _, moment, ng, template, idiom as lang, notify, toasts} from "entcore";
 
 import {
     Calendar,
@@ -718,6 +718,17 @@ export const calendarController =  ng.controller('CalendarController',
 
     };
 
+    /**
+     * Check if selected calendar is default calendar
+     * if so return false to disable 'delete' button
+     */
+    $scope.canBeDeleted = function () {
+        if ($scope.calendar && $scope.calendar.is_default) {
+            return false;
+        }
+        return true;
+    }
+
     $scope.removeCalendar = async () => {
         if ($scope.showButtonsCalendar._id == $scope.calendar._id) {
             $scope.showButtonsCalendar = undefined;
@@ -727,7 +738,12 @@ export const calendarController =  ng.controller('CalendarController',
         $scope.calendar.calendarEvents.forEach(function(calendarEvent) {
             calendarEvent.delete();
         });
-        await $scope.calendar.delete();
+
+        try {
+            await $scope.calendar.delete();
+        } catch (err) {
+            toasts.warning(err.response.data.error);
+        }
         if($scope.calendars.all.length === 1) {
             template.close("calendar");
         }

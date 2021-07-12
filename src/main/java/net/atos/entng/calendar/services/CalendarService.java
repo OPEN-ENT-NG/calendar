@@ -44,4 +44,12 @@ public interface CalendarService {
      */
     Future<JsonObject> createDefaultCalendar(Boolean exists, UserInfos user, HttpServerRequest request);
 
+    /**
+     * Is Default Calendar
+     *
+     * @param calendarId String with the id of the calendar requested to be deleted
+     * @return Future {@link Future<Boolean>} telling if calendar can be deleted or not
+     */
+    Future<Boolean> isDefaultCalendar(String calendarId);
+
 }
