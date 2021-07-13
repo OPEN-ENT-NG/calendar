@@ -39,7 +39,7 @@ clean () {
 buildNode () {
   case `uname -s` in
     MINGW*)
-      docker-compose run --rm -u "$USER_UID:$GROUP_GID" node sh -c "npm install --no-bin-link && snode_modules/gulp/bin/gulp.js build"
+      docker-compose run --rm -u "$USER_UID:$GROUP_GID" node sh -c "npm install --no-bin-link && node_modules/gulp/bin/gulp.js build"
       ;;
     *)
       docker-compose run --rm -u "$USER_UID:$GROUP_GID" node sh -c "npm install && node_modules/gulp/bin/gulp.js build"
