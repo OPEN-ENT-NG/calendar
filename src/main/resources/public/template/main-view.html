@@ -71,7 +71,7 @@
                     <button ng-click="displayImportIcsPanel()"><i18n>calendar.import</i18n></button>
                     <button ng-click="editCalendar(showButtonsCalendar, $event)"><i18n>edit</i18n></button>
                     <button ng-click="confirmRemoveCalendar(showButtonsCalendar, $event)" ng-if="canBeDeleted()"><i18n>remove</i18n></button>
-                    <button ng-click="shareCalendar(showButtonsCalendar, $event)"><i18n>share</i18n></button>
+                    <button ng-if="!showButtonsCalendar.is_default" ng-click="shareCalendar(showButtonsCalendar, $event)"><i18n>share</i18n></button>
             </behaviour>
         </div>
     </div>
@@ -87,15 +87,23 @@
                 <button ng-if="calendarEvents.selected.length === 1 && calendarEvents.selected[0].parentId &&
                 calendarEvents.selected[0].isRecurrent" ng-click="deleteAllRecurrenceList(calendarEvents.selected[0])">
                     <i18n>calendar.remove.all.recurrent</i18n></button>
+                <button ng-if="calendarEvents.selected.length === 1" ng-click="shareEvent(calendarEvents.selected[0], $event)"><i18n>share</i18n></button>
             </behaviour>
         </div>
     </div>
 </section>
 
 <!-- Lightbox : Share calendar -->
-<div ng-if="display.showPanel">
-    <lightbox show="display.showPanel" on-close="display.showPanel = false;">
-        <share-panel app-prefix="'calendar'" resources="calendar"></share-panel>
+<div ng-if="display.showPanelCalendar">
+    <lightbox show="display.showPanelCalendar" on-close="display.showPanelCalendar = false;">
+        <share-panel app-prefix="'calendar'" resources="calendar" auto-close="true"></share-panel>
+    </lightbox>
+</div>
+
+<!-- Lightbox : Share event -->
+<div ng-if="display.showPanelEvent" class="absolute-magnet">
+    <lightbox show="display.showPanelEvent" on-close="display.showPanelEvent = false;">
+        <share-panel app-prefix="'calendar/calendarevent'" resources="calendarEvent" auto-close="true"></share-panel>
     </lightbox>
 </div>
 

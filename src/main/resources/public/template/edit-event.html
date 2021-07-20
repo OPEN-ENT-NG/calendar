@@ -336,6 +336,10 @@
                     ng-disabled="form.$invalid || calendarEvent.startMoment > calendarEvent.endMoment || !isCalendarSelectedInEvent()">
                 <i18n>save</i18n>
             </button>
+            <button class="right-magnet" ng-click="saveAndShareEvent(calendarEvent, $event)"
+                    ng-disabled="form.$invalid || calendarEvent.startMoment > calendarEvent.endMoment || !isCalendarSelectedInEvent()">
+                <i18n>calendar.event.save.and.share</i18n>
+            </button>
 
         </form>
     </section>

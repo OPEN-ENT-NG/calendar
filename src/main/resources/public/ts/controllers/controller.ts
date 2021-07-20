@@ -86,6 +86,7 @@ export const calendarController =  ng.controller('CalendarController',
                     $scope.calendars.preference.sync()
                 ]);
                 $scope.loadSelectedCalendars();
+                $scope.firstOwnedEvent();
                 $scope.initEventDates(moment().utc().second(0).millisecond(0), moment().utc().second(0).millisecond(0).add(1, 'hours'));
                 setCalendarLang();
                 $scope.$apply();
@@ -354,6 +355,12 @@ export const calendarController =  ng.controller('CalendarController',
         });
     };
 
+    $scope.firstOwnedEvent = function() {
+        return _.find($scope.calendarEvents.all, function(calendarEvent) {
+            return $scope.isMyEvent(calendarEvent);
+        });
+    };
+
     $scope.loadSelectedCalendars = () => {
         if ($scope.calendars.preference) {
             var toSelectCalendars = $scope.calendars.all.filter(calendar => {
@@ -429,7 +436,7 @@ export const calendarController =  ng.controller('CalendarController',
      * @param calEvent event to check
      */
     $scope.isMyEvent = (calEvent : CalendarEvent): boolean => {
-        return calEvent.owner.userId == $scope.me.userId;
+        return calEvent.owner.userId === $scope.me.userId;
     };
 
     $scope.hasSharedCalendars = function() {
@@ -509,7 +516,7 @@ export const calendarController =  ng.controller('CalendarController',
     };
 
     $scope.viewCalendarEvent = calendarEvent => {
-        $scope.calendarEvent = calendarEvent;
+        $scope.calendarEvent = new CalendarEvent(calendarEvent);
         $scope.calendar = calendarEvent.calendar[0];
         $scope.createContentToWatch();
         $scope.calendarEvent.showDetails = true;
@@ -767,9 +774,30 @@ export const calendarController =  ng.controller('CalendarController',
 
     $scope.shareCalendar = function(calendar, event) {
         $scope.calendar = calendar;
-        $scope.display.showPanel = true;
+        $scope.display.showPanelCalendar = true;
         event.stopPropagation();
     };
+
+    $scope.shareEvent = function(calendarEvent, event) {
+        $scope.calendarEvent = calendarEvent;
+        $scope.display.showPanelEvent = true;
+        event.stopPropagation();
+    };
+
+    $scope.saveAndShareEvent = async function(calendarEvent, event) {
+        try {
+            await $scope.saveCalendarEventEdit(calendarEvent, event, true);
+        } catch (err)  {
+            console.log(err);
+            $scope.display.showPanelEvent = false;
+            let error: AxiosResponse = err.response;
+            if (error.status === 401){
+                toasts.warning(error.data.error);
+            } else {
+                toasts.warning(lang.translate('calendar.event.save.error'));
+            }
+        };
+    }
 
     $scope.createCalendarEvent = newItem => {
         $scope.calendarAsContribRight = new Array<String>();
@@ -966,28 +994,44 @@ export const calendarController =  ng.controller('CalendarController',
         }
     };
 
-    $scope.saveCalendarEventEdit = async (calendarEvent = $scope.calendarEvent) => {
+    $scope.saveCalendarEventEdit = async (calendarEvent = $scope.calendarEvent, event?, shareOption?: boolean) => {
         async function doItemCalendarEvent(items, count) {
             if (items.length === count) {
-                    calendarEvent.noMoreRecurrent = calendarEvent.noMoreRecurrent && false;
-                    calendarEvent.noMoreRecurrence = calendarEvent.noMoreRecurrence && false;
-                    calendarEvent.detailToRecurrence = calendarEvent.detailToRecurrence && false;
-                    calendarEvent.startDateToRecurrence = calendarEvent.startDateToRecurrence && false;
-                    calendarEvent.endDateToRecurrence = calendarEvent.endDateToRecurrence && false;
-                    calendarEvent.durationToRecurrence = calendarEvent.durationToRecurrence && false;
-                    calendarEvent.alldayToRecurrence = calendarEvent.alldayToRecurrence && false;
+                calendarEvent.noMoreRecurrent = calendarEvent.noMoreRecurrent && false;
+                calendarEvent.noMoreRecurrence = calendarEvent.noMoreRecurrence && false;
+                calendarEvent.detailToRecurrence = calendarEvent.detailToRecurrence && false;
+                calendarEvent.startDateToRecurrence = calendarEvent.startDateToRecurrence && false;
+                calendarEvent.endDateToRecurrence = calendarEvent.endDateToRecurrence && false;
+                calendarEvent.durationToRecurrence = calendarEvent.durationToRecurrence && false;
+                calendarEvent.alldayToRecurrence = calendarEvent.alldayToRecurrence && false;
                 $scope.closeCalendarEvent();
                 $scope.refreshCalendarEvents();
                 $scope.calendarEvents.applyFilters();
                 $scope.display.calendar = true;
+                if (shareOption) {
+                    if (calendarEvent.isRecurrent && !calendarEvent.created){
+                        if (!$scope.display.showEventPanel) {
+                           $scope.shareEvent($scope.recurrentCalendarEventToShare ? $scope.recurrentCalendarEventToShare : {}, event);
+                        }
+                    } else {
+                        $scope.shareEvent($scope.calendarEvent, event);
+                    }
+                }
             } else {
-                let itemCalendarEvent = new CalendarEvent(items[count].calEvent);
+                items[count].calEvent.owner = {
+                    userId: model.me.userId,
+                    displayName: model.me.username
+                };
+                let itemCalendarEvent = items[count].calEvent;
                 let action = items[count].action;
                 if (action === 'save') {
                     if (itemCalendarEvent.isRecurrent && count!== 0) {
                         var parentId = items[0].calEvent._id;
                         if (items[0].calEvent.parentId) {
                             parentId = items[0].calEvent.parentId;
+                        }
+                        if ($scope.recurrentCalendarEventToShare === null) {
+                            $scope.recurrentCalendarEventToShare = items[count].calEvent;
                         }
                         itemCalendarEvent.parentId = parentId;
                     }
@@ -997,12 +1041,12 @@ export const calendarController =  ng.controller('CalendarController',
                                 count++;
                                 doItemCalendarEvent(items, count);
                             })
-                            .catch(() =>{
+                            .catch((e) =>{
+                                console.error(e);
                                 notify.error(lang.translate('calendar.error.date.saving'));
                                 count = items.length;
                                 doItemCalendarEvent(items, count);
                             })
-
                 } else {
                     await itemCalendarEvent.delete();
                         count++;
@@ -1010,6 +1054,7 @@ export const calendarController =  ng.controller('CalendarController',
                 }
             }
         }
+        $scope.recurrentCalendarEventToShare = null;
         $scope.createContentToWatch();
         var items = [];
         calendarEvent.startMoment = moment(calendarEvent.startMoment).seconds(0).milliseconds(0);

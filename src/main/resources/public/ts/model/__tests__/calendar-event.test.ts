@@ -4,7 +4,10 @@ import MockAdapter from 'axios-mock-adapter';
 
 describe('CalendarEvent', () => {
 
-    const calendarEvent = new CalendarEvent();
+
+    const calendarEvent = Object.create(CalendarEvent.prototype, {
+        'myRights': {}
+    })
 
     it('should return data when delete with calendarEvent is correctly called', () => {
         let mock = new MockAdapter(axios);
