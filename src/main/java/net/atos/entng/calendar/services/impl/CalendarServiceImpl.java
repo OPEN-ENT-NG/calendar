@@ -81,7 +81,7 @@ public class CalendarServiceImpl implements CalendarService {
 
             String title = I18n.getInstance().translate("calendar.default.title", getHost(request), I18n.acceptLanguage(request));
 
-            defaultCalendar.put("title", title);
+            defaultCalendar.put("title", title + " " + user.getLastName() + " " + user.getFirstName());
             defaultCalendar.put("color", "grey");
             defaultCalendar.put("created", now);
             defaultCalendar.put("modified", now);
