@@ -29,6 +29,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import com.mongodb.QueryBuilder;
 import fr.wseduc.webutils.Either;
@@ -36,6 +38,8 @@ import fr.wseduc.webutils.I18n;
 import fr.wseduc.webutils.collections.Joiner;
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
+import io.vertx.core.Promise;
+import io.vertx.ext.auth.User;
 import net.atos.entng.calendar.Calendar;
 import net.atos.entng.calendar.services.EventServiceMongo;
 
@@ -43,6 +47,7 @@ import org.entcore.common.events.EventStore;
 import org.entcore.common.events.EventStoreFactory;
 import org.entcore.common.mongodb.MongoDbControllerHelper;
 import org.entcore.common.neo4j.Neo4j;
+import org.entcore.common.neo4j.Neo4jResult;
 import org.entcore.common.notification.TimelineHelper;
 import org.entcore.common.service.CrudService;
 import org.entcore.common.user.UserInfos;
@@ -443,5 +448,68 @@ public class EventHelper extends MongoDbControllerHelper {
             }
         });
     }
+
+    @SuppressWarnings("unchecked")
+    public void addEventToUsersCalendar(JsonObject shared, UserInfos user) {
+        // objectif: mettre l'id de l'agenda par défaut de l'utilisateur dans la liste des agendas de l'evenement
+        // 1) recupere tous les user id (en incluant group id)
+        //
+        List<String> sharedIds = new ArrayList<>(shared.getJsonObject("users").fieldNames());
+        sharedIds.addAll(shared.getJsonObject("groups").fieldNames());
+        JsonObject param = new JsonObject().put("userId", user.getUserId());
+
+        neo4j.execute(getNeoQuery(sharedIds), param, Neo4jResult.validResultHandler(res -> {
+            if (res.isLeft()) {
+                String message = String.format("[Calendar@%s::addEventToUsersCalendar] An error has occured" +
+                        " during fetch users from its id/groups: %s", this.getClass().getSimpleName(), res.left().getValue());
+                log.error(message);
+            } else {
+                List<String> userIds = ((List<JsonObject>) res.right().getValue().getList())
+                        .stream()
+                        .map(id -> id.getString("id"))
+                        .collect(Collectors.toList());
+                log.info(userIds);
+            }
+        }));
+    }
+
+    private Future<JsonObject> fetchCalendarId(String eventId) {
+        Promise<JsonObject> promise = Promise.promise();
+        eventService.getCalendarEventById(eventId, event -> {
+            if (event.isLeft()) {
+                String message = String.format("[Calendar@%s::fetchCalendarId] An error has occured" +
+                        " during fetch calendar event by id: %s", this.getClass().getSimpleName(), event.left().getValue());
+                log.error(message, event.left().getValue());
+                promise.fail(event.left().getValue());
+            } else {
+                promise.complete(event.right().getValue());
+            }
+
+        });
+        return promise.future();
+    }
+
+    @SuppressWarnings("unchecked")
+    private Future<List<String>> fetchUserIds(List<String> sharedIds, UserInfos user) {
+        Promise<List<String>> promise = Promise.promise();
+        JsonObject param = new JsonObject().put("userId", user.getUserId());
+        neo4j.execute(getNeoQuery(sharedIds), param, Neo4jResult.validResultHandler(res -> {
+            if (res.isLeft()) {
+                String message = String.format("[Calendar@%s::fetchUserIds] An error has occured" +
+                        " during fetch users from its id/groups: %s", this.getClass().getSimpleName(), res.left().getValue());
+                log.error(message);
+                promise.fail(res.left().getValue());
+            } else {
+                List<String> userIds = ((List<JsonObject>) res.right().getValue().getList())
+                        .stream()
+                        .map(id -> id.getString("id"))
+                        .collect(Collectors.toList());
+                promise.complete(userIds);
+            }
+        }));
+        return promise.future();
+    }
+
+
 
 }

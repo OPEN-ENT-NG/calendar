@@ -1,11 +1,11 @@
 import http from "axios";
-import { moment} from "entcore";
+import {_, Behaviours, moment, Rights, Shareable} from "entcore";
 import { timeConfig } from "./constantes";
 import {Calendar, Calendars} from "./";
 import { Mix, Selectable, Selection } from "entcore-toolkit";
 import {getTime, makerFormatTimeInput, utcTime} from './Utils'
 
-export class CalendarEvent implements Selectable{
+export class CalendarEvent implements Selectable, Shareable{
     _id: String;
     selected: boolean;
     title: string;
@@ -30,6 +30,7 @@ export class CalendarEvent implements Selectable{
     color:Array<string>;
     shared:any;
     owner:any;
+    myRights: any;
     start_date: Date;
     end_date: Date;
     beginning: Date;
@@ -41,14 +42,17 @@ export class CalendarEvent implements Selectable{
     startDateToRecurrence: boolean;
     deleteAllRecurrence: boolean;
 
-    constructor (calendarEvent? : Object){
-        this.allday= false;
-        this.isRecurrent= false;
-        this.index= 0;
-        if(calendarEvent) {
+    constructor (calendarEvent? : Object) {
+        this.myRights = new Rights(this);
+        this.allday = false;
+        this.isRecurrent = false;
+        this.index = 0;
+
+        if(!_.isEmpty(calendarEvent)) {
             for (let key in calendarEvent){
                 if(typeof calendarEvent[key] !== "function") this[key] = calendarEvent[key];
             }
+            this.myRights.fromBehaviours();
         }
     }
 
@@ -110,23 +114,28 @@ export class CalendarEvent implements Selectable{
     }
 
     toJSON(){
-        return {
+        let body: any = {
             title: this.title,
             description: this.description,
             location: this.location,
-            calendar: this.getCalendarId(),
             allday: this.allday,
             recurrence: this.recurrence,
             parentId : this.parentId,
             isRecurrent: this.isRecurrent,
             index: this.index,
             startMoment: this.startMoment,
-						endMoment: this.endMoment,
-						// Warning : if format() is changed below, it must be changed in net.atos.entng.calendar.helpers.EventHelper.create() too.
+            endMoment: this.endMoment,
+            // Warning : if format() is changed below, it must be changed in net.atos.entng.calendar.helpers.EventHelper.create() too.
             notifStartMoment: this.notifStartMoment.format("DD/MM/YYYY HH:mm"),
             notifEndMoment: this.notifEndMoment.format("DD/MM/YYYY HH:mm"),
         }
+        if (!this._id) {
+            body.calendar = this.getCalendarId();
+        }
+        return body;
     };
+
+
 }
 
 export class CalendarEvents extends Selection<CalendarEvent> {
@@ -147,25 +156,26 @@ export class CalendarEvents extends Selection<CalendarEvent> {
 
     async sync (calendar, calendars){
         let { data } = await http.get('/calendar/' + calendar._id+ '/events');
-        this.all = Mix.castArrayAs(CalendarEvent, data);
+        this.all = [];
+        data.forEach(event => this.all.push(new CalendarEvent(event)));
         let thisCalendarEvents = this;
-        this.all.map(  calendarEvent => {
-						// Let's reconstruct the "calendar" array from found _id(s).
-						let newArray = new Array<Calendar>();
-						let idCalendars: any = calendarEvent.calendar;
-						if( typeof idCalendars.forEach === "function" ) {
-							idCalendars.forEach(function (id){
-								newArray.push(thisCalendarEvents.getCalendarFromId(calendars, id));
-							});
-						} else if( typeof idCalendars === "string" ) { // Old data format (single _id)
-							newArray.push(thisCalendarEvents.getCalendarFromId(calendars, idCalendars));
-						} else { // Unknown data format
-							console.debug( "[CalendarEvent] Unexpected type of idCalendars" );
-							newArray.push( idCalendars );
-						}
-						calendarEvent.calendar = newArray.filter(e => e!= null);
-						
-						// Compute dates
+        this.all.map(calendarEvent => {
+            // Let's reconstruct the "calendar" array from found _id(s).
+            let newArray = new Array<Calendar>();
+            let idCalendars: any = calendarEvent.calendar;
+            if( typeof idCalendars.forEach === "function" ) {
+                idCalendars.forEach(function (id){
+                    newArray.push(thisCalendarEvents.getCalendarFromId(calendars, id));
+                });
+            } else if( typeof idCalendars === "string" ) { // Old data format (single _id)
+                newArray.push(thisCalendarEvents.getCalendarFromId(calendars, idCalendars));
+            } else { // Unknown data format
+                console.debug( "[CalendarEvent] Unexpected type of idCalendars" );
+                newArray.push( idCalendars );
+            }
+            calendarEvent.calendar = newArray.filter(e => e!= null);
+
+            // Compute dates
             let startDate = moment(calendarEvent.startMoment).second(0).millisecond(0);
             calendarEvent.startMoment = startDate;
             calendarEvent.startMomentDate = startDate.format('DD/MM/YYYY');
@@ -180,6 +190,7 @@ export class CalendarEvents extends Selection<CalendarEvent> {
             calendarEvent.endTime = makerFormatTimeInput(moment(endDate), moment(endDate));
             calendarEvent.is_periodic = false;
             calendarEvent.color = calendar.color;
+
             return calendarEvent;
         });
     };
