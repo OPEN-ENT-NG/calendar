@@ -19,19 +19,25 @@
 
 package net.atos.entng.calendar.controllers;
 
+import com.mongodb.QueryBuilder;
+import fr.wseduc.mongodb.MongoQueryBuilder;
 import fr.wseduc.rs.*;
 import fr.wseduc.security.ActionType;
 import fr.wseduc.security.SecuredAction;
 import fr.wseduc.webutils.I18n;
 import fr.wseduc.webutils.request.RequestUtils;
 import io.vertx.core.Handler;
+import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.json.JsonObject;
+import net.atos.entng.calendar.security.ShareEventConf;
 import net.atos.entng.calendar.services.CalendarService;
 import org.entcore.common.events.EventHelper;
 import org.entcore.common.events.EventStore;
 import org.entcore.common.events.EventStoreFactory;
+import org.entcore.common.http.filter.ResourceFilter;
+import org.entcore.common.mongodb.MongoDbConf;
 import org.entcore.common.mongodb.MongoDbControllerHelper;
 import org.entcore.common.user.UserInfos;
 import org.entcore.common.user.UserUtils;
@@ -39,6 +45,9 @@ import org.vertx.java.core.http.RouteMatcher;
 
 import java.util.Calendar;
 import java.util.Map;
+
+import static net.atos.entng.calendar.Calendar.CALENDAR_EVENT_COLLECTION;
+import static org.entcore.common.mongodb.MongoDbResult.validResultHandler;
 
 public class CalendarController extends MongoDbControllerHelper {
     static final String RESOURCE_NAME = "agenda";
@@ -123,9 +132,14 @@ public class CalendarController extends MongoDbControllerHelper {
 
     @Get("/share/json/:id")
     @ApiDoc("Share calendar by id.")
+    @ResourceFilter(ShareEventConf.class)
     @SecuredAction(value = "calendar.manager", type = ActionType.RESOURCE)
     public void shareCalendar(final HttpServerRequest request) {
         shareJson(request, false);
+
+        final MongoDbConf confEvent = MongoDbConf.getInstance();
+        confEvent.setCollection(net.atos.entng.calendar.Calendar.CALENDAR_COLLECTION);
+        confEvent.setResourceIdLabel("id");
     }
 
     @Put("/share/json/:id")
@@ -165,6 +179,7 @@ public class CalendarController extends MongoDbControllerHelper {
 
     @Put("/share/resource/:id")
     @ApiDoc("Share calendar by id.")
+    @ResourceFilter(ShareEventConf.class)
     @SecuredAction(value = "calendar.manager", type = ActionType.RESOURCE)
     public void shareResource(final HttpServerRequest request) {
         UserUtils.getUserInfos(eb, request, new Handler<UserInfos>() {
@@ -194,6 +209,31 @@ public class CalendarController extends MongoDbControllerHelper {
                 }
             }
         });
+    }
+
+    private void proceedOnShare(HttpServerRequest request, UserInfos user) {
+        if (user != null) {
+            final String id = request.params().get("id");
+            if (id == null || id.trim().isEmpty()) {
+                badRequest(request, "invalid.id");
+                return;
+            }
+
+            JsonObject params = new JsonObject();
+            params.put("profilUri", "/userbook/annuaire#" + user.getUserId() + "#" + user.getType());
+            params.put("username", user.getUsername());
+            params.put("calendarUri", "/calendar#/view/" + id);
+            params.put("resourceUri", params.getString("calendarUri"));
+
+            JsonObject pushNotif = new JsonObject()
+                    .put("title", "push.notif.calendar.share")
+                    .put("body", user.getUsername() + " " + I18n.getInstance().translate("calendar.shared.push.notif.body",
+                            getHost(request), I18n.acceptLanguage(request)));
+
+            params.put("pushNotif", pushNotif);
+
+            shareResource(request, "calendar.share", false, params, "title");
+        }
     }
 
 

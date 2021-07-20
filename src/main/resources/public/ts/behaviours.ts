@@ -2,6 +2,8 @@ import { Behaviours, model, _ } from 'entcore';
 import http from "axios";
 import { CalendarEvent } from "./model";
 
+console.log("behaviours");
+
 const calendarBehaviours = {
 	resources: {
 		contrib: {
@@ -35,8 +37,7 @@ Behaviours.register('calendar', {
 				model.me.userId === rightsContainer.owner.userId) {
 				if (resource.myRights[behaviour] !== undefined) {
 					resource.myRights[behaviour] = resource.myRights[behaviour] && calendarBehaviours.resources[behaviour];
-				}
-				else {
+				} else {
 					resource.myRights[behaviour] = calendarBehaviours.resources[behaviour];
 				}
 			}
