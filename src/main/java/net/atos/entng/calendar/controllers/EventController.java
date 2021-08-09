@@ -21,13 +21,12 @@ package net.atos.entng.calendar.controllers;
 
 import fr.wseduc.rs.*;
 import fr.wseduc.webutils.I18n;
-import net.atos.entng.calendar.Calendar;
 import net.atos.entng.calendar.helpers.EventHelper;
 
 import net.atos.entng.calendar.security.CustomWidgetFilter;
 import net.atos.entng.calendar.security.ShareEventConf;
+import net.atos.entng.calendar.services.ServiceFactory;
 import org.entcore.common.http.filter.ResourceFilter;
-import org.entcore.common.mongodb.MongoDbConf;
 import org.entcore.common.mongodb.MongoDbControllerHelper;
 import org.entcore.common.notification.TimelineHelper;
 import org.entcore.common.service.CrudService;
@@ -38,20 +37,17 @@ import io.vertx.core.json.JsonObject;
 import fr.wseduc.security.ActionType;
 import fr.wseduc.security.SecuredAction;
 import fr.wseduc.webutils.request.RequestUtils;
-import org.entcore.common.user.UserInfos;
 import org.entcore.common.user.UserUtils;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class EventController extends MongoDbControllerHelper {
 
     private final EventHelper eventHelper;
 
-    public EventController(String collection, CrudService eventService, TimelineHelper timelineHelper) {
+    public EventController(String collection, CrudService eventService, ServiceFactory serviceFactory, TimelineHelper timelineHelper) {
         super(collection);
-        eventHelper = new EventHelper(collection, eventService, timelineHelper);
+        eventHelper = new EventHelper(collection, eventService, serviceFactory, timelineHelper);
     }
 
     @Get("/:id/events")
@@ -107,6 +103,8 @@ public class EventController extends MongoDbControllerHelper {
     @ResourceFilter(ShareEventConf.class)
     @SecuredAction(value = "calendar.manager", type = ActionType.RESOURCE)
     public void shareResource(final HttpServerRequest request) {
+        String host = getHost(request);
+        String lang = I18n.acceptLanguage(request);
         RequestUtils.bodyToJson(request, body ->
                 UserUtils.getUserInfos(eb, request, user -> {
                     if (user != null) {
@@ -129,7 +127,7 @@ public class EventController extends MongoDbControllerHelper {
 
                         params.put("pushNotif", pushNotif);
                         shareResource(request, "calendar.share", false, params, "title");
-                        eventHelper.addEventToUsersCalendar(body, user);
+                        eventHelper.addEventToUsersCalendar(id, body, user, host, lang);
                     }
         }));
     }

@@ -28,21 +28,24 @@ import net.atos.entng.calendar.event.CalendarRepositoryEvents;
 import net.atos.entng.calendar.event.CalendarSearchingEvents;
 import net.atos.entng.calendar.ical.ICalHandler;
 import net.atos.entng.calendar.services.CalendarService;
+import net.atos.entng.calendar.services.ServiceFactory;
 import net.atos.entng.calendar.services.impl.CalendarServiceImpl;
 import net.atos.entng.calendar.services.impl.EventServiceMongoImpl;
 import org.entcore.common.http.BaseServer;
 import org.entcore.common.http.filter.ShareAndOwner;
 import org.entcore.common.mongodb.MongoDbConf;
+import org.entcore.common.neo4j.Neo4j;
 import org.entcore.common.notification.TimelineHelper;
 import org.entcore.common.service.CrudService;
 import io.vertx.core.eventbus.EventBus;
+import org.entcore.common.sql.Sql;
 
 
 public class Calendar extends BaseServer {
-    public final static String CALENDAR_NAME = "CALENDAR";
+    public static final String CALENDAR_NAME = "CALENDAR";
 
-    public final static String CALENDAR_COLLECTION = "calendar";
-    public final static String CALENDAR_EVENT_COLLECTION = "calendarevent";
+    public static final String CALENDAR_COLLECTION = "calendar";
+    public static final String CALENDAR_EVENT_COLLECTION = "calendarevent";
 
     public static final String MANAGE_RIGHT_ACTION = "net-atos-entng-calendar-controllers-CalendarController|updateCalendar";
 
@@ -51,7 +54,7 @@ public class Calendar extends BaseServer {
     public void start() throws Exception {
         super.start();
         CrudService eventService = new EventServiceMongoImpl(CALENDAR_EVENT_COLLECTION, vertx.eventBus());
-        CalendarService calendarService = new CalendarServiceImpl(CALENDAR_COLLECTION, MongoDb.getInstance());
+        ServiceFactory serviceFactory = new ServiceFactory(vertx, Neo4j.getInstance(), Sql.getInstance(), MongoDb.getInstance());
 
         final MongoDbConf conf = MongoDbConf.getInstance();
         conf.setCollection(CALENDAR_COLLECTION);
@@ -68,8 +71,8 @@ public class Calendar extends BaseServer {
         }
         EventBus eb = Server.getEventBus(vertx);
         final TimelineHelper timelineHelper = new TimelineHelper(vertx, eb, config);
-        addController(new CalendarController(CALENDAR_COLLECTION, calendarService));
-        addController(new EventController(CALENDAR_EVENT_COLLECTION, eventService, timelineHelper));
+        addController(new CalendarController(CALENDAR_COLLECTION, serviceFactory));
+        addController(new EventController(CALENDAR_EVENT_COLLECTION, eventService, serviceFactory, timelineHelper));
     }
     
 }

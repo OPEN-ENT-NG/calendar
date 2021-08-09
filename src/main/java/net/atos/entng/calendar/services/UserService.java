@@ -19,43 +19,23 @@
 
 package net.atos.entng.calendar.services;
 
+
 import io.vertx.core.Future;
-import io.vertx.core.json.JsonArray;
+import net.atos.entng.calendar.models.User;
 import org.entcore.common.user.UserInfos;
-import io.vertx.core.json.JsonObject;
 
 import java.util.List;
 
-public interface CalendarService {
-
-
-    Future<JsonArray> list(List<String> calendarIds);
+public interface UserService {
 
     /**
-     * Get Default Calendar
+     * fetch users from shared data
      *
-     * @param user {@link UserInfos}
-     * @return FutureObject containing calendar {@link JsonObject}
-     */
-    Future<JsonObject> getDefaultCalendar(UserInfos user);
-
-
-    /**
-     * Create Default Calendar
+     * @param ids             list of ids being user or group identifier {@link List<String>}
+     * @param user            user info (in this case, we using only its id) {@link UserInfos}
      *
-     * @param user User Object containing user id and displayed name
-     * @param host domain host
-     * @param lang accepted lang
-     * @return Future {@link Future<JsonObject>} containing newly created default calendar or empty
+     * @return {@link Future} of {@link List<User>} containing list of user fetched
      */
-    Future<JsonObject> createDefaultCalendar(UserInfos user, String host, String lang);
-
-    /**
-     * Is Default Calendar
-     *
-     * @param calendarId String with the id of the calendar requested to be deleted
-     * @return Future {@link Future<Boolean>} telling if calendar can be deleted or not
-     */
-    Future<Boolean> isDefaultCalendar(String calendarId);
-
+    Future<List<User>> fetchUser(List<String> ids, UserInfos user);
 }
+

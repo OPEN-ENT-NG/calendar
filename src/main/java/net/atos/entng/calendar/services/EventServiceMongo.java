@@ -40,6 +40,8 @@ public interface EventServiceMongo {
 
     void update(String calendarId, String eventId, JsonObject body, UserInfos user, Handler<Either<String, JsonObject>> handler);
 
+    void update(String eventId, JsonObject body, UserInfos user, Handler<Either<String, JsonObject>> handler);
+
     void delete(String calendarId, String eventId, UserInfos user, Handler<Either<String, JsonObject>> handler);
 
     void getIcal(String calendarId, UserInfos user, Handler<Message<JsonObject>> handler);
