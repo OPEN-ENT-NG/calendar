@@ -53,7 +53,7 @@ public class CalendarServiceImplTest {
             return null;
         }).when(mongo).findOne(Mockito.anyString(), Mockito.any(JsonObject.class), Mockito.any(Handler.class));
 
-        calendarService.hasDefaultCalendar(user);
+        calendarService.getDefaultCalendar(user);
     }
 
     @Test

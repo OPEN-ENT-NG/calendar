@@ -30,7 +30,6 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import com.mongodb.QueryBuilder;
 import fr.wseduc.webutils.Either;
@@ -39,15 +38,17 @@ import fr.wseduc.webutils.collections.Joiner;
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
-import io.vertx.ext.auth.User;
 import net.atos.entng.calendar.Calendar;
+import net.atos.entng.calendar.models.User;
+import net.atos.entng.calendar.services.CalendarService;
 import net.atos.entng.calendar.services.EventServiceMongo;
 
+import net.atos.entng.calendar.services.ServiceFactory;
+import net.atos.entng.calendar.services.UserService;
 import org.entcore.common.events.EventStore;
 import org.entcore.common.events.EventStoreFactory;
 import org.entcore.common.mongodb.MongoDbControllerHelper;
 import org.entcore.common.neo4j.Neo4j;
-import org.entcore.common.neo4j.Neo4jResult;
 import org.entcore.common.notification.TimelineHelper;
 import org.entcore.common.service.CrudService;
 import org.entcore.common.user.UserInfos;
@@ -73,14 +74,18 @@ public class EventHelper extends MongoDbControllerHelper {
     private static final String EVENT_ID_PARAMETER = "eventid";
 
     private final EventServiceMongo eventService;
+    private final CalendarService calendarService;
+    private final UserService userService;
 
     private final TimelineHelper notification;
     private final org.entcore.common.events.EventHelper eventHelper;
 
-    public EventHelper(String collection, CrudService eventService, TimelineHelper timelineHelper) {
+    public EventHelper(String collection, CrudService eventService, ServiceFactory serviceFactory, TimelineHelper timelineHelper) {
         super(collection, null);
         this.eventService = (EventServiceMongo) eventService;
         this.crudService = eventService;
+        this.calendarService = serviceFactory.calendarService();
+        this.userService = serviceFactory.userService();
         notification = timelineHelper;
         final EventStore eventStore = EventStoreFactory.getFactory().getEventStore(Calendar.class.getSimpleName());
         this.eventHelper = new org.entcore.common.events.EventHelper(eventStore);
@@ -449,31 +454,206 @@ public class EventHelper extends MongoDbControllerHelper {
         });
     }
 
-    @SuppressWarnings("unchecked")
-    public void addEventToUsersCalendar(JsonObject shared, UserInfos user) {
-        // objectif: mettre l'id de l'agenda par défaut de l'utilisateur dans la liste des agendas de l'evenement
-        // 1) recupere tous les user id (en incluant group id)
-        //
+    /**
+     * method launched in background to add extra calendar into Calendar Event
+     *
+     * @param eventId       calendar event identifier {@link String}
+     * @param shared        body's shared sent {@link JsonObject}
+     * @param user          user info {@link UserInfos}
+     * @param host          host param {@link String}
+     * @param lang          lang param {@link String}
+     */
+    public void addEventToUsersCalendar(String eventId, JsonObject shared, UserInfos user, String host, String lang) {
         List<String> sharedIds = new ArrayList<>(shared.getJsonObject("users").fieldNames());
         sharedIds.addAll(shared.getJsonObject("groups").fieldNames());
-        JsonObject param = new JsonObject().put("userId", user.getUserId());
 
-        neo4j.execute(getNeoQuery(sharedIds), param, Neo4jResult.validResultHandler(res -> {
-            if (res.isLeft()) {
-                String message = String.format("[Calendar@%s::addEventToUsersCalendar] An error has occured" +
-                        " during fetch users from its id/groups: %s", this.getClass().getSimpleName(), res.left().getValue());
-                log.error(message);
-            } else {
-                List<String> userIds = ((List<JsonObject>) res.right().getValue().getList())
-                        .stream()
-                        .map(id -> id.getString("id"))
-                        .collect(Collectors.toList());
-                log.info(userIds);
-            }
-        }));
+        Future<List<User>> userIdsFuture = userService.fetchUser(sharedIds, user);             // from payload API sent us
+        Future<JsonObject> calendarsEventFuture = fetchCalendarsAndEventById(eventId);         // calendar Event and all calendars
+
+        CompositeFuture.all(userIdsFuture, calendarsEventFuture)
+                .compose(ar -> retrieveAllUsersFromCalendarsEvent(user, calendarsEventFuture))
+                .compose(shareIdsFromCalendar -> proceedOnUsersFetched(eventId, userIdsFuture.result(), calendarsEventFuture.result(),
+                        shareIdsFromCalendar, host, lang, user))
+                .onFailure(err -> {
+                    String message = String.format("[Calendar@%s::addEventToUsersCalendar] An error has occured" +
+                            " during fetching userIds or calendar event, see previous logs: %s",
+                            this.getClass().getSimpleName(), err.getMessage());
+                    log.error(message, err.getMessage());
+                });
     }
 
-    private Future<JsonObject> fetchCalendarId(String eventId) {
+    /**
+     * With calendarsEventFuture {@link Future<JsonObject>} containing
+     * {'calendarEvent': {@link JsonObject}, 'calendars': {@link JsonArray}}
+     * will fetch all userIds and groupId to fetch all User
+     *
+     * @param user                      user info {@link UserInfos}
+     * @param calendarsEventFuture      calendars and event data as {@link JsonObject}
+     *
+     * @return {@link Future} of {@link List<User>} containing list of User fetched
+     */
+    @SuppressWarnings("unchecked")
+    private Future<List<User>> retrieveAllUsersFromCalendarsEvent(UserInfos user, Future<JsonObject> calendarsEventFuture) {
+        JsonObject calendarsEvent = calendarsEventFuture.result();
+
+        List<String> shareIdsFromAllCalendar = ((List<JsonObject>) calendarsEvent.getJsonArray("calendars", new JsonArray()).getList()).stream()
+                .flatMap(calendar -> ((List<JsonObject>) calendar.getJsonArray("shared", new JsonArray()).getList())
+                        .stream()
+                        .map(s -> s.getString("userId", s.getString("groupId", null)))
+                )
+                .filter(Objects::nonNull)
+                .distinct()
+                .collect(Collectors.toList());
+
+        return userService.fetchUser(shareIdsFromAllCalendar, user);
+    }
+
+    /**
+     * After all data fetched (users, calendar Event and calendars), will proceed on making
+     * differences between users fetched from payload and calendars in order to get users that do not belong to both list
+     * Afterwards, we will proceed on each user in order to get their default calendar identifier and add to our original event
+     *
+     * @param eventId                   calendar event identifer {@link String}
+     * @param usersFromPayload          list of user identifier fetched from payload shared body sent info {@link List<User>}
+     * @param calendarsEventFuture      calendarEvent and calendars as {@link JsonObject}
+     * @param usersFromSharedCalendars  list of shared containing user and group identifier from all calendars {@link List<User>}
+     * @param host                      host param {@link String}
+     * @param lang                      lang param {@link String}
+     * @param userInfos                 user session infos {@link Object}
+     *
+     * @return {@link Future} of {@link Void}
+     */
+    private Future<Void> proceedOnUsersFetched(String eventId, List<User> usersFromPayload, JsonObject calendarsEventFuture,
+                                               List<User> usersFromSharedCalendars, String host, String lang, UserInfos userInfos) {
+        Promise<Void> promise = Promise.promise();
+
+        // difference to get users ids that is not in both Set
+        Set<String> idsFromCalendar = usersFromSharedCalendars.stream().map(User::id).collect(Collectors.toSet());
+        usersFromPayload.removeIf(user -> idsFromCalendar.contains(user.id()));
+
+        // we fetch originalCalendars where event has been created to keep persisting its ids
+        List<String> originalCalendars = determineOriginalCalendars(calendarsEventFuture, userInfos);
+
+        List<Future<String>> futures = new ArrayList<>();
+        for (User userNotAccess: usersFromPayload) {
+            futures.add(fetchDefaultCalendar(userNotAccess, host, lang));
+        }
+
+        FutureHelper.all(futures)
+                .onSuccess(result -> {
+                    List<String> calendarIds = futures.stream().map(Future::result).collect(Collectors.toList());
+                    calendarIds.addAll(originalCalendars);
+                    eventService.update(eventId, new JsonObject().put("calendar", new JsonArray(calendarIds)), null, event -> {
+                        if (event.isLeft()) {
+                            log.info(String.format("[Calendar@%s::proceedOnUsersFetched] An error has occured: %s",
+                                    this.getClass().getSimpleName(), event.left().getValue()), event.left().getValue());
+                        }
+                    });
+                })
+                .onFailure(err -> log.info(String.format("[Calendar@%s::proceedOnUsersFetched] An error has occured: %s",
+                        this.getClass().getSimpleName(), err.getMessage()), err.getMessage()));
+        return promise.future();
+    }
+
+    /**
+     * Determine among these calendars who were the originals when the calendar event was created to keep persisting
+     * its identifier(s)
+     *
+     * @param calendarEvent      calendarEvent and calendars as {@link JsonObject}
+     * @param userInfos                 user session infos {@link Object}
+     *
+     * @return {@link Future} of {@link List<String>} the "original(s)" calendar(s)
+     */
+    @SuppressWarnings("unchecked")
+    private List<String> determineOriginalCalendars(JsonObject calendarEvent, UserInfos userInfos) {
+        JsonObject event = calendarEvent.getJsonObject("calendarEvent", new JsonObject());
+        JsonArray calendars = calendarEvent.getJsonArray("calendars", new JsonArray());
+        return (((List<JsonObject>) calendars.getList())
+                .stream()
+                .filter(calendar -> {
+                    JsonObject calendarOwner = calendar.getJsonObject("owner", new JsonObject());
+                    JsonObject eventOwner = event.getJsonObject("owner", new JsonObject());
+                    Boolean doesNotContainDefault = Boolean.FALSE.equals(calendar.containsKey("is_default"));
+                    Boolean isDefaultCalendarOwner = Boolean.TRUE.equals(calendar.containsKey("is_default")) &&
+                            Boolean.TRUE.equals(calendarOwner.getString("userId").equals(eventOwner.getString("userId")));
+                    Boolean isSessionOwner = Boolean.TRUE.equals(calendar.containsKey("is_default")) &&
+                            Boolean.TRUE.equals(calendarOwner.getString("userId").equals((userInfos.getUserId())));
+                    return doesNotContainDefault || isDefaultCalendarOwner || isSessionOwner;
+                }))
+                .map(calendar -> calendar.getString("_id"))
+                .collect(Collectors.toList());
+
+    }
+
+
+    /**
+     * retrieve default calendar identifier
+     *
+     * @param user  user data {@link User}
+     * @param host  host param {@link String}
+     * @param lang  lang param {@link String}
+     *
+     * @return {@link Future} of {@link String} default calendar identifier
+     */
+    private Future<String> fetchDefaultCalendar(User user, String host, String lang) {
+        Promise<String> promise = Promise.promise();
+        UserInfos userInfos = new UserInfos();
+        userInfos.setUserId(user.id());
+        userInfos.setUsername(user.displayName());
+        calendarService.getDefaultCalendar(userInfos)
+                .onSuccess(calendar -> {
+                    if (calendar.isEmpty() || calendar.fieldNames().isEmpty()) {
+                        calendarService.createDefaultCalendar(userInfos, host, lang)
+                                .onSuccess(res -> promise.complete(res.getString("_id")))
+                                .onFailure(promise::fail);
+                    } else {
+                        promise.complete(calendar.getString("_id"));
+                    }
+                })
+                .onFailure(promise::fail);
+        return promise.future();
+    }
+
+
+    /**
+     * fetch calendarEvent and all calendars linked to calendarEvent
+     *
+     * @param eventId       calendar event identifier {@link String}
+     *
+     * @return {@link Future} of {@link JsonObject} containing JsonObject of
+     * {'calendarEvent': {@link JsonObject}, 'calendars': {@link JsonArray}}
+     */
+    @SuppressWarnings("unchecked")
+    private Future<JsonObject> fetchCalendarsAndEventById(String eventId) {
+        Promise<JsonObject> promise = Promise.promise();
+        // Object sequentially built as :
+
+        // calendarEvent -> JsonObject calendar
+        // calendars -> JsonArray containing all calendars belonging to calendar event
+        JsonObject calendarAndEvent = new JsonObject();
+        fetchCalendarEventById(eventId)
+                .compose(calendarEvent -> {
+                    calendarAndEvent.put("calendarEvent", new JsonObject(calendarEvent.toString()));
+                    List<String> calendarList = calendarEvent.getJsonArray("calendar", new JsonArray()).getList();
+                    return calendarService.list(calendarList);
+                })
+                .onSuccess(ar -> {
+                    calendarAndEvent.put("calendars", ar);
+                    promise.complete(calendarAndEvent);
+                })
+                .onFailure(promise::fail);
+
+        return promise.future();
+    }
+
+    /**
+     * fetch calendarEvent
+     *
+     * @param eventId       calendar event identifier {@link String}
+     *
+     * @return {@link Future} of {@link JsonObject} containing calendarEvent
+     */
+    private Future<JsonObject> fetchCalendarEventById(String eventId) {
         Promise<JsonObject> promise = Promise.promise();
         eventService.getCalendarEventById(eventId, event -> {
             if (event.isLeft()) {
@@ -488,28 +668,5 @@ public class EventHelper extends MongoDbControllerHelper {
         });
         return promise.future();
     }
-
-    @SuppressWarnings("unchecked")
-    private Future<List<String>> fetchUserIds(List<String> sharedIds, UserInfos user) {
-        Promise<List<String>> promise = Promise.promise();
-        JsonObject param = new JsonObject().put("userId", user.getUserId());
-        neo4j.execute(getNeoQuery(sharedIds), param, Neo4jResult.validResultHandler(res -> {
-            if (res.isLeft()) {
-                String message = String.format("[Calendar@%s::fetchUserIds] An error has occured" +
-                        " during fetch users from its id/groups: %s", this.getClass().getSimpleName(), res.left().getValue());
-                log.error(message);
-                promise.fail(res.left().getValue());
-            } else {
-                List<String> userIds = ((List<JsonObject>) res.right().getValue().getList())
-                        .stream()
-                        .map(id -> id.getString("id"))
-                        .collect(Collectors.toList());
-                promise.complete(userIds);
-            }
-        }));
-        return promise.future();
-    }
-
-
 
 }

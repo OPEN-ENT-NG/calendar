@@ -25,8 +25,10 @@ import fr.wseduc.webutils.I18n;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.core.http.HttpServerRequest;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
+import net.atos.entng.calendar.models.User;
 import net.atos.entng.calendar.services.CalendarService;
 
 import org.entcore.common.user.UserInfos;
@@ -37,6 +39,7 @@ import com.mongodb.QueryBuilder;
 import fr.wseduc.mongodb.MongoDb;
 import fr.wseduc.mongodb.MongoQueryBuilder;
 
+import java.util.List;
 
 
 public class CalendarServiceImpl implements CalendarService {
@@ -53,8 +56,32 @@ public class CalendarServiceImpl implements CalendarService {
     private static final String IS_DEFAULT = "is_default";
 
     @Override
-    public Future<Boolean> hasDefaultCalendar(UserInfos user) {
-        Promise<Boolean> promise = Promise.promise();
+    public Future<JsonArray> list(List<String> calendarIds) {
+        Promise<JsonArray> promise = Promise.promise();
+        // Query
+        QueryBuilder query = QueryBuilder.start("_id").in(calendarIds);
+        JsonObject sort = new JsonObject().put("modified", -1);
+
+        // Projection
+        JsonObject projection = new JsonObject();
+
+        mongo.find(this.collection, MongoQueryBuilder.build(query), sort, projection, validResultsHandler(event -> {
+            if (event.isLeft()) {
+                String message = String.format("[Calendar@%s::list] An error has occured" +
+                        " during fetch calendars: %s", this.getClass().getSimpleName(), event.left().getValue());
+                log.error(message, event.left().getValue());
+                promise.fail(event.left().getValue());
+            } else {
+                promise.complete(event.right().getValue());
+            }
+        }));
+
+        return promise.future();
+    }
+
+    @Override
+    public Future<JsonObject> getDefaultCalendar(UserInfos user) {
+        Promise<JsonObject> promise = Promise.promise();
         // Query
         QueryBuilder query = QueryBuilder.start("owner.userId").is(user.getUserId());
         query.put(IS_DEFAULT).is(true);
@@ -66,34 +93,29 @@ public class CalendarServiceImpl implements CalendarService {
                 promise.fail(result.left().getValue());
                 return;
             }
-            promise.complete(!result.right().getValue().isEmpty());
+            promise.complete(result.right().getValue());
         }));
         return promise.future();
     }
 
     @Override
-    public Future<JsonObject> createDefaultCalendar(Boolean exists, UserInfos user, HttpServerRequest request) {
+    public Future<JsonObject> createDefaultCalendar(UserInfos user, String host, String lang) {
         Promise<JsonObject> promise = Promise.promise();
 
-        if (Boolean.FALSE.equals(exists)) {
-            JsonObject defaultCalendar = new JsonObject();
-            JsonObject now = MongoDb.now();
+        JsonObject defaultCalendar = new JsonObject();
+        JsonObject now = MongoDb.now();
 
-            String title = I18n.getInstance().translate("calendar.default.title", getHost(request), I18n.acceptLanguage(request));
+        String title = I18n.getInstance().translate("calendar.default.title", host, lang);
 
-            defaultCalendar.put("title", title + " " + user.getLastName() + " " + user.getFirstName());
-            defaultCalendar.put("color", "grey");
-            defaultCalendar.put("created", now);
-            defaultCalendar.put("modified", now);
-            defaultCalendar.put("owner", new JsonObject().put("userId", user.getUserId()).put("displayName", user.getUsername()));
-            defaultCalendar.put(IS_DEFAULT, true);
+        defaultCalendar.put("title", title + " " + user.getUsername());
+        defaultCalendar.put("color", "grey");
+        defaultCalendar.put("created", now);
+        defaultCalendar.put("modified", now);
+        defaultCalendar.put("owner", new JsonObject().put("userId", user.getUserId()).put("displayName", user.getUsername()));
+        defaultCalendar.put(IS_DEFAULT, true);
 
+        insertDefaultCalendar(promise, defaultCalendar);
 
-            insertDefaultCalendar(promise, defaultCalendar);
-        } else {
-            JsonObject response = new JsonObject();
-            promise.complete(response);
-        }
         return promise.future();
     }
 
