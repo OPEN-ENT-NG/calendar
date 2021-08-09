@@ -19,20 +19,18 @@
 
 package net.atos.entng.calendar.controllers;
 
-import com.mongodb.QueryBuilder;
-import fr.wseduc.mongodb.MongoQueryBuilder;
 import fr.wseduc.rs.*;
 import fr.wseduc.security.ActionType;
 import fr.wseduc.security.SecuredAction;
 import fr.wseduc.webutils.I18n;
 import fr.wseduc.webutils.request.RequestUtils;
 import io.vertx.core.Handler;
-import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.json.JsonObject;
 import net.atos.entng.calendar.security.ShareEventConf;
 import net.atos.entng.calendar.services.CalendarService;
+import net.atos.entng.calendar.services.ServiceFactory;
 import org.entcore.common.events.EventHelper;
 import org.entcore.common.events.EventStore;
 import org.entcore.common.events.EventStoreFactory;
@@ -46,9 +44,6 @@ import org.vertx.java.core.http.RouteMatcher;
 import java.util.Calendar;
 import java.util.Map;
 
-import static net.atos.entng.calendar.Calendar.CALENDAR_EVENT_COLLECTION;
-import static org.entcore.common.mongodb.MongoDbResult.validResultHandler;
-
 public class CalendarController extends MongoDbControllerHelper {
     static final String RESOURCE_NAME = "agenda";
     // Used for module "statistics"
@@ -61,9 +56,9 @@ public class CalendarController extends MongoDbControllerHelper {
         super.init(vertx, config, rm, securedActions);
     }
 
-    public CalendarController(String collection, CalendarService calendarService) {
+    public CalendarController(String collection, ServiceFactory serviceFactory) {
         super(collection);
-        this.calendarService = calendarService;
+        this.calendarService = serviceFactory.calendarService();
         final EventStore eventStore = EventStoreFactory.getFactory().getEventStore(Calendar.class.getSimpleName());
         this.eventHelper = new org.entcore.common.events.EventHelper(eventStore);
     }
@@ -71,13 +66,19 @@ public class CalendarController extends MongoDbControllerHelper {
     @Get("")
     @SecuredAction("calendar.view")
     public void view(HttpServerRequest request) {
+        String host = getHost(request);
+        String lang = I18n.acceptLanguage(request);
         UserUtils.getUserInfos(eb, request, user -> {
             if (user != null) {
-                calendarService.hasDefaultCalendar(user)
-                        .compose(res -> calendarService.createDefaultCalendar(res, user, request))
-                        .onSuccess(res -> {
-                            //renderview when process checkIfDefaultExists
-                            renderView(request);
+                calendarService.getDefaultCalendar(user)
+                        .onSuccess(calendar -> {
+                            if (calendar.isEmpty() || calendar.fieldNames().isEmpty()) {
+                                calendarService.createDefaultCalendar(user, host, lang)
+                                        .onSuccess(res -> renderView(request))
+                                        .onFailure(err -> renderError(request));
+                            } else {
+                                renderView(request);
+                            }
                             // Create event "access to application Calendar" and store it, for module "statistics"
                             eventHelper.onAccess(request);
                         })
