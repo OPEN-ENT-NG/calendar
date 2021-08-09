@@ -141,6 +141,24 @@ public class EventServiceMongoImpl extends MongoDbCrudService implements EventSe
     }
 
     @Override
+    public void update(String eventId, JsonObject body, UserInfos user, Handler<Either<String, JsonObject>> handler) {
+        // Query
+        QueryBuilder query = QueryBuilder.start("_id").is(eventId);
+
+        // Clean data
+        body.remove("_id");
+
+        // Modifier
+        MongoUpdateBuilder modifier = new MongoUpdateBuilder();
+        for (String attr : body.fieldNames()) {
+            modifier.set(attr, body.getValue(attr));
+        }
+        modifier.set("modified", MongoDb.now());
+        mongo.update(this.collection, MongoQueryBuilder.build(query), modifier.build(), validActionResultHandler(handler));
+
+    }
+
+    @Override
     public void delete(String calendarId, String eventId, UserInfos user, Handler<Either<String, JsonObject>> handler) {
         QueryBuilder query = QueryBuilder.start("_id").is(eventId);
         query.put("calendar").is(calendarId);
