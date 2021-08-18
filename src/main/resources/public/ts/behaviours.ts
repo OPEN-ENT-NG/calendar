@@ -3,8 +3,6 @@ import http from "axios";
 import { CalendarEvent } from "./model";
 import { rights } from "./model/constantes";
 
-console.log("behaviours");
-
 Behaviours.register('calendar', {
 	behaviours: rights,
 	resourceRights: function (resource) {

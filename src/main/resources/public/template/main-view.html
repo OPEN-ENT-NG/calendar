@@ -1,37 +1,13 @@
-<section class="cell three" ng-if="!isEmpty()">
-    <nav class="vertical row">
-        <ul>
-            <!-- My calendars -->
-            <li>
-                <a class="selected"><i18n>calendar.my.calendars</i18n></a>
-                <ul ng-if="ownCalendars()" class="colored">
-                    <li ng-repeat="cl in calendars.all | filter:isMyCalendar | orderBy: '+title'">
-                        <a class="[[cl.color]]" ng-class="{'selected': cl.selected, 'notselected': !cl.selected}" ng-click="openOrCloseCalendar(cl, true)">
-                            <span>[[cl.title]]</span>
-                            <input type="checkbox" class="calendar-checkbox" ng-click="$event.stopPropagation();" ng-model="cl.showButtons" ng-change="hideOtherCalendarCheckboxes(cl)"/>
-                        </a>
-                    </li>
-                </ul>
-                <ul ng-if="!ownCalendars()"><li><i18n>calendar.calendars.empty</i18n></li></ul>
-            </li>
-            <!-- Shared calendars -->
-            <li>
-                <a class="selected"><i18n>calendar.shared.calendars</i18n></a>
-                <ul ng-if="hasSharedCalendars()" class="colored">
-                    <li ng-repeat="cl in calendars.all | filter:isCalendarSharedWithMe | orderBy: '+title'">
-                        <a class="[[cl.color]]" ng-class="{'selected': cl.selected, 'notselected': !cl.selected}" ng-click="openOrCloseCalendar(cl, true)">
-                            <span>[[cl.title]]</span>
-                            <input ng-if="cl.myRights.manage" type="checkbox" class="calendar-checkbox" ng-click="$event.stopPropagation();" ng-model="cl.showButtons" ng-change="hideOtherCalendarCheckboxes(cl)"/>
-                        </a>
-                    </li>
-                </ul>
-                <ul ng-if="!hasSharedCalendars()"><li><i18n>calendar.calendars.empty</i18n></li></ul>
-            </li> 
-            <!-- <div ng-if="calendars.empty() === true && !display.list && !display.calendar"><[[showCalendar()]]</div> -->
-        </ul>
-    <hr />
-    </nav>
-</section>
+<div>
+    <side-bar list="display.list"
+              calendars="calendars"
+              calendar="calendar"
+              show-buttons-calendar="showButtonsCalendar"
+              on-show-calendar="showCalendar()"
+              on-show-list="showList()"
+              on-open-or-close-calendar="openOrCloseCalendar">
+    </side-bar>
+</div>
 
 <section ng-if="isEmpty() && !calendarCreationScreen">
     <!-- Consultation -->
@@ -57,7 +33,7 @@
     </div>
 </section>
 
-<section class="cell nine">
+<section class="cell top-spacing-four nine">
     <container template="calendar"></container>
 </section>
 
@@ -69,7 +45,7 @@
                     <a href="/calendar/[[showButtonsCalendar._id]]/ical"><button><i18n>calendar.export</i18n></button></a>
                     <button ng-click="displayImportIcsPanel()"><i18n>calendar.import</i18n></button>
                     <button ng-click="editCalendar(showButtonsCalendar, $event)"><i18n>edit</i18n></button>
-                    <button ng-click="confirmRemoveCalendar(showButtonsCalendar, $event)" ng-if="canBeDeleted()"><i18n>remove</i18n></button>
+                    <button ng-click="confirmRemoveCalendar(showButtonsCalendar, $event)" ng-if="!showButtonsCalendar.is_default"><i18n>remove</i18n></button>
                     <button ng-if="!showButtonsCalendar.is_default" ng-click="shareCalendar(showButtonsCalendar, $event)"><i18n>share</i18n></button>
             </behaviour>
         </div>
