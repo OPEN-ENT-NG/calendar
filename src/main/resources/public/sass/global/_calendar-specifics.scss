@@ -1,5 +1,6 @@
 body.calendar {
 
+  @import "mixins";
   @import 'components/index';
 
   .calendar.widget {
