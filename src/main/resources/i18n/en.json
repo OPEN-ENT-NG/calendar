@@ -81,5 +81,8 @@
     "calendar.event.save.and.restrict": "Save and restrict",
     "calendar.event.save.and.share": "Save and share",
     "calendar.share.recurrence.only.first": "Only the first recurrence of this event will be shared.",
-    "calendar.event.save.error": "Error when saving the event."
+    "calendar.event.save.error": "Error when saving the event.",
+    "calendar.display.mode": "Display mode",
+    "calendar.calendar.view": "Calendar",
+    "calendar.list.view": "List"
 }
