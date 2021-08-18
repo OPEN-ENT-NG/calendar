@@ -1,0 +1,74 @@
+<div class="sidebar cell three top-spacing-four">
+    <article class="no-padding">
+        <div ng-if="!vm.isEmpty()">
+            <!-- Display mode -->
+            <div class="row sidebar-title right-spacing">
+                <h5 class="sidebar-title-calendar-display large cell twelve left-spacing"><i18n>calendar.display.mode</i18n></h5>
+            </div>
+
+            <section class="cell twelve bottom-spacing top-spacing bg-white">
+                <label class="cell twelve choice-view flex-row">
+                    <!-- switch calendar mode -->
+                    <div class="six sidebar-calendar-choice-view right-spacing-small left-spacing-four top-spacing bottom-spacing
+                     file-selector ng-pristine ng-untouched ng-valid ng-not-empty selected" ng-click="vm.onShowCalendar()">
+                        <i class="show-calendar" ng-class="{ selected: vm.list === false }"
+                           tooltip="calendar.icon.show.calendar"></i>
+                        <i18n class="top-spacing left-spacing-small ">calendar.calendar.view</i18n>
+                    </div>
+
+                    <!-- switch list mode -->
+                    <div class="six sidebar-calendar-choice-view right-spacing-small left-spacing-four top-spacing bottom-spacing
+                     file-selector" ng-click="vm.onShowList()">
+                        <i class="show-list" ng-class="{ selected: vm.list === true }"
+                           tooltip="calendar.icon.show.events.list"></i>
+                        <i18n class="top-spacing left-spacing-small">calendar.list.view</i18n>
+                    </div>
+                </label>
+            </section>
+
+
+            <!-- List of calendars -->
+            <div class="row sidebar-title right-spacing">
+                <h5 class="large cell twelve left-spacing sidebar-title-calendar-display"><i18n>calendar.my.calendars</i18n></h5>
+            </div>
+
+            <section class="block-container">
+                <nav class="vertical">
+                    <ul>
+                        <!-- My calendars -->
+                        <li>
+                            <a class="selected"><i18n>calendar.my.calendars</i18n></a>
+                            <ul class="colored">
+                                <li ng-repeat="cl in vm.calendars.all | filter:vm.isMyCalendar | orderBy: '+title'">
+                                    <a class="[[cl.color]]" ng-class="{'selected': cl.selected, 'notselected': !cl.selected}"
+                                       ng-click="vm.onOpenOrCloseCalendar(cl, true)">
+                                        <span>[[cl.title]]</span>
+                                        <input type="checkbox" class="calendar-checkbox" ng-click="$event.stopPropagation();"
+                                               ng-model="cl.showButtons" ng-change="vm.hideOtherCalendarCheckboxes(cl)"/>
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+                        <!-- Shared calendars -->
+                        <li>
+                            <a class="selected"><i18n>calendar.shared.calendars</i18n></a>
+                            <ul ng-if="vm.hasSharedCalendars()" class="colored">
+                                <li ng-repeat="cl in vm.calendars.all | filter:vm.isCalendarSharedWithMe | orderBy: '+title'">
+                                    <a class="[[cl.color]]" ng-class="{'selected': cl.selected, 'notselected': !cl.selected}"
+                                       ng-click="vm.onOpenOrCloseCalendar(cl, true)">
+                                        <span>[[cl.title]]</span>
+                                        <input ng-if="cl.myRights.manage" type="checkbox" class="calendar-checkbox"
+                                               ng-click="$event.stopPropagationCallback();" ng-model="cl.showButtons"
+                                               ng-change="vm.hideOtherCalendarCheckboxes(cl)"/>
+                                    </a>
+                                </li>
+                            </ul>
+                            <ul ng-if="!vm.hasSharedCalendars()"><li><i18n>calendar.calendars.empty</i18n></li></ul>
+                        </li>
+                    </ul>
+                </nav>
+            </section>
+
+        </div>
+    </article>
+</div>

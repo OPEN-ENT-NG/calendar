@@ -1,0 +1,22 @@
+.sidebar {
+  &-title {
+    background-color: $calendar-blue;
+
+    &-calendar-display {
+      color: $calendar-white;
+      fill: $calendar-white;
+      text-transform: uppercase;
+    }
+  }
+
+  &-calendar-choice-view {
+    display: inline-flex;
+    align-items: center;
+  }
+}
+
+
+
+
+
+

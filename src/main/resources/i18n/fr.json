@@ -128,5 +128,8 @@
     "calendar.event.save.and.restrict": "Enregistrer et restreindre",
     "calendar.event.save.and.share": "Enregistrer et partager",
     "calendar.share.recurrence.only.first": "Seule la première récurrence de cet évènement sera partagée.",
-    "calendar.event.save.error": "Problème d'enregistrement de l'évènement."
+    "calendar.event.save.error": "Problème d'enregistrement de l'évènement.",
+    "calendar.display.mode": "Mode d'affichage",
+    "calendar.calendar.view": "Calendaire",
+    "calendar.list.view": "Liste"
 }

@@ -113,8 +113,8 @@ export const calendarController =  ng.controller('CalendarController',
     };
 
     $scope.isEmpty = () => {
-        return $scope.calendars 
-            && $scope.calendars.all 
+        return $scope.calendars
+            && $scope.calendars.all
             && $scope.calendars.all.length < 1;
     }
 
@@ -415,22 +415,8 @@ export const calendarController =  ng.controller('CalendarController',
         template.open('calendar', 'read-calendar');
     };
 
-    $scope.ownCalendars = function() {
-        var ownCalendars =  $scope.calendars.all.some(function(calendar) {
-            if ($scope.isMyCalendar(calendar)) {
-                return true;
-            }
-            return false;
-        });
-        return ownCalendars;
-    };
-
     $scope.isMyCalendar = function(calendar) {
         return calendar.owner.userId == $scope.me.userId;
-    };
-
-    $scope.isCalendarSharedWithMe = function(calendar) {
-        return calendar.shared && calendar.owner.userId != $scope.me.userId;
     };
 
     /**
@@ -441,15 +427,6 @@ export const calendarController =  ng.controller('CalendarController',
         return calEvent.owner.userId === $scope.me.userId;
     };
 
-    $scope.hasSharedCalendars = function() {
-        var hasSharedCalendars = $scope.calendars.all.some(function(calendar) {
-            if ($scope.isCalendarSharedWithMe(calendar)) {
-                return true;
-            }
-            return false;
-        });
-        return hasSharedCalendars;
-    };
 
     $scope.initEventDates = function(startMoment, endMoment) {
         var event = $scope.calendarEvent;
@@ -498,17 +475,6 @@ export const calendarController =  ng.controller('CalendarController',
         }
     };
 
-
-    $scope.hideOtherCalendarCheckboxes = function(calendar) {
-        $scope.calendar = calendar;
-        $scope.showButtonsCalendar = calendar;
-        $scope.calendars.all.forEach(function(item) {
-            if (item._id != calendar._id) {
-                item.showButtons = false;
-            }
-        });
-        $scope.display.showToggleButtons = calendar.showButtons;
-    };
 
     $scope.newCalendar = function() {
         $scope.calendarCreationScreen = true;
@@ -742,22 +708,8 @@ export const calendarController =  ng.controller('CalendarController',
 
     };
 
-    /**
-     * Check if selected calendar is default calendar
-     * if so return false to disable 'delete' button
-     */
-    $scope.canBeDeleted = function () {
-        if ($scope.calendar && $scope.calendar.is_default) {
-            return false;
-        }
-        return true;
-    }
 
     $scope.removeCalendar = async () => {
-        if ($scope.showButtonsCalendar._id == $scope.calendar._id) {
-            $scope.showButtonsCalendar = undefined;
-            $scope.showToggleButtons = undefined;
-        }
         $scope.display.showToggleButtons = false;
         $scope.calendar.calendarEvents.forEach(function(calendarEvent) {
             calendarEvent.delete();
@@ -806,7 +758,6 @@ export const calendarController =  ng.controller('CalendarController',
             await $scope.saveCalendarEventEdit(calendarEvent, event, true);
             $scope.sendNotif = true;
         } catch (err)  {
-            console.log(err);
             $scope.display.showPanelEvent = false;
             let error: AxiosResponse = err.response;
             if (error.status === 401){
