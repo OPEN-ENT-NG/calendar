@@ -329,15 +329,16 @@
                 </article>
             </div>
 
-            <button ng-if="calendarEvent._id" class="right-magnet" ng-click="confirmRemoveCalendarEvent(calendarEvent, $event)">
+            <button ng-if="calendarEvent._id" class="right-magnet" ng-click="confirmRemoveCalendarEvent(calendarEvent, $event)"
+                    ng-disabled="!hasRightOnSharedEvent(calendarEvent, rights.resources.updateEvent.right)">
                 <i18n>remove</i18n>
             </button>
             <button class="right-magnet" ng-click="saveCalendarEventEdit(calendarEvent)"
-                    ng-disabled="form.$invalid || calendarEvent.startMoment > calendarEvent.endMoment || !isCalendarSelectedInEvent()">
+                    ng-disabled="form.$invalid || calendarEvent.startMoment > calendarEvent.endMoment || !isCalendarSelectedInEvent() || !hasRightOnSharedEvent(calendarEvent, rights.resources.updateEvent.right)">
                 <i18n>save</i18n>
             </button>
             <button class="right-magnet" ng-click="saveAndShareEvent(calendarEvent, $event)"
-                    ng-disabled="form.$invalid || calendarEvent.startMoment > calendarEvent.endMoment || !isCalendarSelectedInEvent()">
+                    ng-disabled="form.$invalid || calendarEvent.startMoment > calendarEvent.endMoment || !isCalendarSelectedInEvent() || !hasRightOnSharedEvent(calendarEvent, rights.resources.shareEvent.right)">
                 <i18n>calendar.event.save.and.share</i18n>
             </button>
 
