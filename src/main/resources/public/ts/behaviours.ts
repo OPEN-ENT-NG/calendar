@@ -1,28 +1,12 @@
 import { Behaviours, model, _ } from 'entcore';
 import http from "axios";
 import { CalendarEvent } from "./model";
+import { rights } from "./model/constantes";
 
 console.log("behaviours");
 
-const calendarBehaviours = {
-	resources: {
-		contrib: {
-			right: 'net-atos-entng-calendar-controllers-EventController|createEvent'
-		},
-		manage: {
-			right: 'net-atos-entng-calendar-controllers-CalendarController|updateCalendar'
-		},
-		share: {
-			right: 'net-atos-entng-calendar-controllers-CalendarController|shareCalendar'
-		}
-	},
-	workflow: {
-		admin: 'net.atos.entng.calendar.controllers.CalendarController|createCalendar'
-	},
-	viewRights: ['net-atos-entng-calendar-controllers-CalendarController|view']
-};
 Behaviours.register('calendar', {
-	behaviours: calendarBehaviours,
+	behaviours: rights,
 	resourceRights: function (resource) {
 		var rightsContainer = resource;
 		 if (resource instanceof CalendarEvent && resource.calendar) {
@@ -31,14 +15,14 @@ Behaviours.register('calendar', {
 		if (!resource.myRights) {
 			resource.myRights = {};
 		}
-		for (var behaviour in calendarBehaviours.resources) {
-			if (model.me.hasRight(rightsContainer, calendarBehaviours.resources[behaviour]) ||
+		for (var behaviour in rights.resources) {
+			if (model.me.hasRight(rightsContainer, rights.resources[behaviour]) ||
 				model.me.userId === resource.owner.userId ||
 				model.me.userId === rightsContainer.owner.userId) {
 				if (resource.myRights[behaviour] !== undefined) {
-					resource.myRights[behaviour] = resource.myRights[behaviour] && calendarBehaviours.resources[behaviour];
+					resource.myRights[behaviour] = resource.myRights[behaviour] && rights.resources[behaviour];
 				} else {
-					resource.myRights[behaviour] = calendarBehaviours.resources[behaviour];
+					resource.myRights[behaviour] = rights.resources[behaviour];
 				}
 			}
 		}
@@ -46,7 +30,7 @@ Behaviours.register('calendar', {
 	},
 	workflow: function () {
 		var workflow = {};
-		var calendarWorkflow = calendarBehaviours.workflow;
+		var calendarWorkflow = rights.workflow;
 		for (var prop in calendarWorkflow) {
 			if (model.me.hasWorkflow(calendarWorkflow[prop])) {
 				workflow[prop] = true;
