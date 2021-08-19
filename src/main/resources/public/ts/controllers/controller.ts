@@ -12,6 +12,7 @@ import {
     timeConfig,
     recurrence,
     LANG_CALENDAR,
+    rights
 } from "../model/constantes";
 import {
     isSameAfter,
@@ -59,6 +60,7 @@ export const calendarController =  ng.controller('CalendarController',
         $scope.calendarCreationScreen = false;
         $scope.calendarAsContribRight = new Array<String>();
         $scope.selectedCalendarInEvent = new Array<String>();
+        $scope.rights = rights;
 
         template.open('main', 'main-view');
         template.open('top-menu', 'top-menu');
@@ -526,7 +528,7 @@ export const calendarController =  ng.controller('CalendarController',
                  $scope.calendarEvent.recurrence.week_days = recurrence.week_days;
              }
         }
-        if (!calendarEvent._id || $scope.hasManageRightOrIsEventOwner(calendarEvent)){
+        if (!calendarEvent._id || ($scope.hasManageRightOrIsEventOwner(calendarEvent) && $scope.hasRightOnSharedEvent(calendarEvent, rights.resources.updateEvent.right))){
         template.open('lightbox', 'edit-event');
         } else {
         template.open('lightbox', 'view-event');
@@ -695,6 +697,20 @@ export const calendarController =  ng.controller('CalendarController',
             });
         }
     };
+
+    $scope.hasRightOnSharedEvent = (calEvent : CalendarEvent, right : string): boolean => {
+        if (!calEvent.shared || calEvent.owner.userId === $scope.me.userId){
+            return true;
+        } else {
+            let numberOfRights : number;
+            numberOfRights = (calEvent.shared
+                .filter(share => share[right]
+                    && (share["userId"] === $scope.me.userId
+                    || $scope.me.groupsIds.includes(share["groupId"]))).length);
+
+            return (numberOfRights>0);
+        }
+    }
 
     $scope.hasReadRight = function(calendar) {
         if (calendar) {
