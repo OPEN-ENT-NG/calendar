@@ -74,7 +74,7 @@
     "calendar.recurrence.day.of.week": "days of week",
     "calendar.confirm.delete.recurrent.event": "Confirm deletion of recurrent events",
     "calendar.recurrent.event.remove": "Remove this event from recurrence",
-    "calendar.event.not.all.calendar.rights": "You cannot modify this event because you do not have the necessary rights on one of the calendars.",
+    "calendar.event.not.all.calendar.rights": "You do not have editing rights on this event.",
     "calendar.recurrent.event.delete.others": "Delete other events from recurrence",
     "calendar.remove.all.recurrent": "Delete all the recurrence",
     "calendar.delete.error": "Default calendar cannot be deleted",
