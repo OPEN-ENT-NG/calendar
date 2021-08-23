@@ -20,6 +20,8 @@
 package net.atos.entng.calendar.services.impl;
 
 import static fr.wseduc.webutils.Utils.handlerToAsyncHandler;
+import static fr.wseduc.webutils.Utils.validResults;
+import static net.atos.entng.calendar.Calendar.CALENDAR_COLLECTION;
 import static org.entcore.common.mongodb.MongoDbResult.validActionResultHandler;
 import static org.entcore.common.mongodb.MongoDbResult.validResultHandler;
 import static org.entcore.common.mongodb.MongoDbResult.validResultsHandler;
@@ -27,11 +29,16 @@ import static org.entcore.common.mongodb.MongoDbResult.validResultsHandler;
 import java.net.SocketException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.util.*;
 
+import io.vertx.core.Promise;
+import io.vertx.core.json.Json;
 import net.atos.entng.calendar.ical.ICalHandler;
+import net.atos.entng.calendar.services.CalendarService;
 import net.atos.entng.calendar.services.EventServiceMongo;
+import net.atos.entng.calendar.services.ServiceFactory;
 import net.fortuna.ical4j.util.UidGenerator;
+import net.atos.entng.calendar.services.UserService;
 
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.entcore.common.service.impl.MongoDbCrudService;
@@ -41,6 +48,8 @@ import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.eventbus.Message;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import io.vertx.core.logging.Logger;
+import io.vertx.core.logging.LoggerFactory;
 
 import com.mongodb.QueryBuilder;
 
@@ -52,22 +61,69 @@ import fr.wseduc.webutils.Either;
 public class EventServiceMongoImpl extends MongoDbCrudService implements EventServiceMongo {
 
     private final EventBus eb;
+    private final UserService userService;
+    protected static final Logger log = LoggerFactory.getLogger(CalendarServiceImpl.class);
 
-    public EventServiceMongoImpl(String collection, EventBus eb) {
+    public EventServiceMongoImpl(String collection, EventBus eb, ServiceFactory serviceFactory) {
         super(collection);
         this.eb = eb;
+        this.userService = serviceFactory.userService();
     }
 
     @Override
     public void list(String calendarId, UserInfos user, final Handler<Either<String, JsonArray>> handler) {
-        // Query
-        QueryBuilder query = QueryBuilder.start("calendar").is(calendarId);
-        JsonObject sort = new JsonObject().put("modified", -1);
+        Promise<JsonObject> promise = Promise.promise();
 
-        // Projection
-        JsonObject projection = new JsonObject();
+        QueryBuilder queryCalendar = QueryBuilder.start("_id").is(calendarId);
 
-        mongo.find(this.collection, MongoQueryBuilder.build(query), sort, projection, validResultsHandler(handler));
+        mongo.findOne(CALENDAR_COLLECTION, MongoQueryBuilder.build(queryCalendar), validActionResultHandler(result -> {
+            if (result.isLeft()) {
+                log.error("[Calendar@EventServiceMongo::list]: an error has occurred while finding targeted " +
+                        "calendar: ", result.left().getValue());
+                promise.fail(result.left().getValue());
+                return;
+            }
+            //result right
+            JsonObject currentCalendar = result.right().getValue();
+
+            //get calendar owner
+            String currentCalendarOwnerId = currentCalendar
+                    .getJsonObject("result", new JsonObject())
+                    .getJsonObject("owner", new JsonObject())
+                    .getString("userId");
+
+            Boolean userIsCalendarOwner = user.getUserId().equals(currentCalendarOwnerId);
+
+            JsonObject queryEvent = new JsonObject().put("calendar", calendarId);
+
+            if (Boolean.FALSE.equals(userIsCalendarOwner)) {
+                JsonObject userIsEventOwner = new JsonObject().put("owner.userId", user.getUserId());
+                JsonObject isNotSharedEvent = new JsonObject().put("shared", new JsonObject().put("$exists", false));
+                JsonObject sharedIsEmpty = new JsonObject().put("shared", new JsonObject().put("$size", 0));
+                JsonObject sharedContainsUserId = new JsonObject().put("shared.userId",
+                        new JsonObject().put("$in",new JsonArray().add(user.getUserId())));
+                JsonObject sharedContainsUserGroupIds = new JsonObject().put("shared.groupId",
+                        new JsonObject().put("$in", user.getGroupsIds()));
+
+                queryEvent.put("$or",
+                        new JsonArray()
+                                .add(userIsEventOwner)
+                                .add(isNotSharedEvent)
+                                //case 'shared' field is empty
+                                .add(sharedIsEmpty)
+                                //case shared to the user individually
+                                .add(sharedContainsUserId)
+                                //case shared to the user by groupId
+                                .add(sharedContainsUserGroupIds)
+
+                );
+            }
+            JsonObject sort = new JsonObject().put("modified", -1);
+            // Projection
+            JsonObject projection = new JsonObject();
+
+            mongo.find(this.collection, queryEvent, sort, projection, validResultsHandler(handler));
+        }));
     }
 
     @Override
@@ -91,7 +147,7 @@ public class EventServiceMongoImpl extends MongoDbCrudService implements EventSe
         body.put("created", now);
         body.put("modified", now);
         body.put("icsUid", icsUid);
-        if(body.getValue("calendar") == null){
+        if (body.getValue("calendar") == null) {
             body.put("calendar", new JsonArray().add(calendarId));
         }
         mongo.save(this.collection, body, validActionResultHandler(handler));
@@ -253,21 +309,20 @@ public class EventServiceMongoImpl extends MongoDbCrudService implements EventSe
     }
 
     @Override
-    public void findOne(String collection, QueryBuilder query, Handler<Either<String, JsonObject>> handler){
+    public void findOne(String collection, QueryBuilder query, Handler<Either<String, JsonObject>> handler) {
         JsonObject projection = new JsonObject();
         mongo.findOne(collection, MongoQueryBuilder.build(query), validResultHandler(handler));
     }
 
     @Override
-    public void getCalendarEventById(String eventId, Handler<Either<String, JsonObject>> handler){
+    public void getCalendarEventById(String eventId, Handler<Either<String, JsonObject>> handler) {
         JsonObject projection = new JsonObject();
         QueryBuilder query = QueryBuilder.start("_id").is(eventId);
         mongo.findOne("calendarevent", MongoQueryBuilder.build(query), validResultHandler(handler));
     }
 
     @Override
-    public void getEventsByCalendarAndDate(String[] calendars, int nbLimit, Handler<Either<String, JsonArray>> handler)
-    {
+    public void getEventsByCalendarAndDate(String[] calendars, int nbLimit, Handler<Either<String, JsonArray>> handler) {
         QueryBuilder query;
         DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSX");
         String dateToIso = df.format(new Date());
@@ -280,4 +335,5 @@ public class EventServiceMongoImpl extends MongoDbCrudService implements EventSe
                 sort, null, -1, nbLimit, 2147483647,
                 validResultsHandler(handler));
     }
+
 }
