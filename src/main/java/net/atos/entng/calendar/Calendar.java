@@ -53,8 +53,8 @@ public class Calendar extends BaseServer {
     @Override
     public void start() throws Exception {
         super.start();
-        CrudService eventService = new EventServiceMongoImpl(CALENDAR_EVENT_COLLECTION, vertx.eventBus());
         ServiceFactory serviceFactory = new ServiceFactory(vertx, Neo4j.getInstance(), Sql.getInstance(), MongoDb.getInstance());
+        CrudService eventService = new EventServiceMongoImpl(CALENDAR_EVENT_COLLECTION, vertx.eventBus(), serviceFactory);
 
         final MongoDbConf conf = MongoDbConf.getInstance();
         conf.setCollection(CALENDAR_COLLECTION);
