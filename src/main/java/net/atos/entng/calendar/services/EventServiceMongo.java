@@ -59,4 +59,5 @@ public interface EventServiceMongo {
      * @param handler handler
      */
     void getEventsByCalendarAndDate(String[] calendars, int nbLimit,  Handler<Either<String, JsonArray>> handler);
+
 }
