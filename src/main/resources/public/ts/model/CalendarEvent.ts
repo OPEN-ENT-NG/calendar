@@ -41,6 +41,7 @@ export class CalendarEvent implements Selectable, Shareable{
     detailToRecurrence: boolean;
     startDateToRecurrence: boolean;
     deleteAllRecurrence: boolean;
+    sendNotif: boolean;
 
     constructor (calendarEvent? : Object) {
         this.myRights = new Rights(this);
@@ -131,6 +132,9 @@ export class CalendarEvent implements Selectable, Shareable{
         }
         if (!this._id) {
             body.calendar = this.getCalendarId();
+        }
+        if (this.sendNotif === false){
+            body.sendNotif = this.sendNotif;
         }
         return body;
     };

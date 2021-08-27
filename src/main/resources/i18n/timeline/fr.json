@@ -11,6 +11,7 @@
     "timeline.calendar.add": "a ajouté un événement à l'agenda",
     "timeline.calendar.update": "a mis à jour un événement dans l'agenda",
     "timeline.calendar.of.calendar": "du module de gestion d'agenda",
+    "timeline.event.shared": "vous a donné accès à l'évènement",
     "push.notif.calendar.share": "Agenda: Nouvel agenda",
     "push.notif.event.created": "Agenda: Nouvel événement",
     "push.notif.event.updated": "Agenda: Un événement à été modifié"
