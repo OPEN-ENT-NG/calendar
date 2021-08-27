@@ -117,8 +117,8 @@ public class EventController extends MongoDbControllerHelper {
                         JsonObject params = new JsonObject();
                         params.put("profilUri", "/userbook/annuaire#" + user.getUserId() + "#" + user.getType());
                         params.put("username", user.getUsername());
-                        params.put("calendarUri", "/calendar#/view/" + id);
-                        params.put("resourceUri", params.getString("calendarUri"));
+                        params.put("eventUri", "/calendar#/view/" + id);
+                        params.put("resourceUri", params.getString("eventUri"));
 
                         JsonObject pushNotif = new JsonObject()
                                 .put("title", "push.notif.calendar.share")

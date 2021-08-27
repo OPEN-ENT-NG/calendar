@@ -802,7 +802,9 @@ export const calendarController =  ng.controller('CalendarController',
 
     $scope.saveAndShareEvent = async function(calendarEvent, event) {
         try {
+            $scope.sendNotif = false;
             await $scope.saveCalendarEventEdit(calendarEvent, event, true);
+            $scope.sendNotif = true;
         } catch (err)  {
             console.log(err);
             $scope.display.showPanelEvent = false;
@@ -1051,18 +1053,21 @@ export const calendarController =  ng.controller('CalendarController',
                         }
                         itemCalendarEvent.parentId = parentId;
                     }
-                        itemCalendarEvent.save()
-                            .then(() => {
-                                items[count].calEvent._id =  itemCalendarEvent._id;
-                                count++;
-                                doItemCalendarEvent(items, count);
-                            })
-                            .catch((e) =>{
-                                console.error(e);
-                                notify.error(lang.translate('calendar.error.date.saving'));
-                                count = items.length;
-                                doItemCalendarEvent(items, count);
-                            })
+                    if (!itemCalendarEvent.created && $scope.sendNotif === false){
+                        itemCalendarEvent.sendNotif = $scope.sendNotif;
+                    }
+                    itemCalendarEvent.save()
+                        .then(() => {
+                            items[count].calEvent._id =  itemCalendarEvent._id;
+                            count++;
+                            doItemCalendarEvent(items, count);
+                        })
+                        .catch((e) =>{
+                            console.error(e);
+                            notify.error(lang.translate('calendar.error.date.saving'));
+                            count = items.length;
+                            doItemCalendarEvent(items, count);
+                        })
                 } else {
                     await itemCalendarEvent.delete();
                         count++;
