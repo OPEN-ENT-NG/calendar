@@ -1,8 +1,18 @@
 {
-    "timeline.calendar.has.created": "a créé un",
-    "timeline.calendar.event": "évènement",
-    "timeline.calendar.from": "du",
-    "timeline.calendar.to": "au",
-    "timeline.calendar.shared": "vous a donné accès à l'agenda",
-    "timeline.calendar.of.calendar": "du module de gestion d'agendas" 
+    "calendar": "Calendar",
+    "calendar.share": "Share a calendar",
+    "calendar.create": "Create a calendar",
+    "calendar.update": "Update an event",
+    "timeline.calendar.has.created": "has created",
+    "timeline.calendar.event": "event",
+    "timeline.calendar.from": "from",
+    "timeline.calendar.to": "to",
+    "timeline.calendar.shared": "has given you access to the calendar",
+    "timeline.calendar.add": "has added an event to the calendar",
+    "timeline.calendar.update": "has updated an event in the calendar",
+    "timeline.calendar.of.calendar": "from the calendar management module",
+    "timeline.event.shared": "has given you access to the event",
+    "push.notif.calendar.share": "Calendar: new calendar",
+    "push.notif.event.created": "Calendar: new event",
+    "push.notif.event.updated": "Calendar: an event has been updated"
 }
