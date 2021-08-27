@@ -26,13 +26,10 @@ import fr.wseduc.webutils.Either;
 import fr.wseduc.webutils.I18n;
 import fr.wseduc.webutils.http.Renders;
 import fr.wseduc.webutils.request.RequestUtils;
-import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.json.JsonObject;
-import net.atos.entng.calendar.services.CalendarService;
-import net.atos.entng.calendar.services.impl.CalendarServiceImpl;
 import org.entcore.common.controller.ControllerHelper;
 import org.entcore.common.events.EventHelper;
 import org.entcore.common.events.EventStore;
@@ -50,7 +47,6 @@ public class CalendarController extends MongoDbControllerHelper {
     static final String RESOURCE_NAME = "agenda";
     // Used for module "statistics"
     private final EventHelper eventHelper;
-    private final CalendarService calendarService;
 
     @Override
     public void init(Vertx vertx, JsonObject config, RouteMatcher rm,
@@ -58,9 +54,8 @@ public class CalendarController extends MongoDbControllerHelper {
         super.init(vertx, config, rm, securedActions);
     }
 
-    public CalendarController(String collection, CalendarService calendarService) {
+    public CalendarController(String collection) {
         super(collection);
-        this.calendarService = calendarService;
         final EventStore eventStore = EventStoreFactory.getFactory().getEventStore(Calendar.class.getSimpleName());
         this.eventHelper = new org.entcore.common.events.EventHelper(eventStore);
     }
@@ -68,19 +63,9 @@ public class CalendarController extends MongoDbControllerHelper {
     @Get("")
     @SecuredAction("calendar.view")
     public void view(HttpServerRequest request) {
-        UserUtils.getUserInfos(eb, request, user -> {
-            if (user != null) {
-                calendarService.hasDefaultCalendar(user)
-                        .compose(res -> calendarService.createDefaultCalendar(res, user, request))
-                        .onSuccess(res -> {
-                            //renderview when process checkIfDefaultExists
-                            renderView(request);
-                            // Create event "access to application Calendar" and store it, for module "statistics"
-                            eventHelper.onAccess(request);
-                        })
-                        .onFailure(err -> renderError(request));
-            }
-        });
+        renderView(request);
+        // Create event "access to application Calendar" and store it, for module "statistics"
+        eventHelper.onAccess(request);
     }
 
     @Get("/calendars")

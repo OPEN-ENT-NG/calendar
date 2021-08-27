@@ -39,7 +39,6 @@
     "calendar.import": "Importer",
     "calendar.export": "Exporter",
     "calendar.calendars.empty": "Pas d'agenda",
-    "calendar.default.title": "Mon agenda",
     "calendar.shared.calendars": "Agendas partagés",
     "calendar.event.recurrence": "Récurrence",
     "calendar.ics.file.import.report": "Rapport d'import de fichier ICS",

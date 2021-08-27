@@ -41,7 +41,6 @@
     "calendar.import": "Import",
     "calendar.export": "Export",
     "calendar.calendars.empty": "No calendar",
-    "calendar.default.title": "My calendar",
     "calendar.shared.calendars": "Shared calendars",
     "calendar.event.recurrence": "Recurrence",
     "calendar.ics.file.import.report": "ICS import file report",
