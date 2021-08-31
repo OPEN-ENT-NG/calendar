@@ -19,7 +19,7 @@
 
 package net.atos.entng.calendar.helpers;
 
-import static net.atos.entng.calendar.Calendar.CALENDAR_NAME;
+import static net.atos.entng.calendar.Calendar.*;
 import static org.entcore.common.http.response.DefaultResponseHandler.arrayResponseHandler;
 import static org.entcore.common.http.response.DefaultResponseHandler.defaultResponseHandler;
 import static org.entcore.common.http.response.DefaultResponseHandler.notEmptyResponseHandler;
@@ -30,6 +30,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import com.mongodb.QueryBuilder;
 import fr.wseduc.webutils.Either;
@@ -49,6 +50,7 @@ import org.entcore.common.events.EventStore;
 import org.entcore.common.events.EventStoreFactory;
 import org.entcore.common.mongodb.MongoDbControllerHelper;
 import org.entcore.common.neo4j.Neo4j;
+import org.entcore.common.neo4j.Neo4jResult;
 import org.entcore.common.notification.TimelineHelper;
 import org.entcore.common.service.CrudService;
 import org.entcore.common.user.UserInfos;
@@ -123,6 +125,7 @@ public class EventHelper extends MongoDbControllerHelper {
                                             message.put("eventId", eventId.getString("_id"));
                                             message.put("start_date", (String) null);
                                             message.put("end_date", (String) null);
+                                            message.put("sendNotif", object.containsKey("sendNotif")? object.getBoolean("sendNotif"):null);
                                             notifyEventCreatedOrUpdated(request, user, message, true);
                                             renderJson(request, event.right().getValue(), 200);
                                             eventHelper.onCreateResource(request, RESOURCE_NAME);
@@ -164,6 +167,7 @@ public class EventHelper extends MongoDbControllerHelper {
                                         message.put("eventId", eventId);
                                         message.put("start_date", (String) null);
                                         message.put("end_date", (String) null);
+                                        message.put("sendNotif", object.containsKey("sendNotif")? object.getBoolean("sendNotif"):null);
                                         notifyEventCreatedOrUpdated(request, user, message, false);
                                         renderJson(request, event.right().getValue(), 200);
                                     } else if (event.isLeft()) {
@@ -281,116 +285,197 @@ public class EventHelper extends MongoDbControllerHelper {
                 if (event.isRight()) {
                     JsonObject calendarEvent = event.right().getValue();
                     JsonArray calendar = calendarEvent.getJsonArray("calendar", new JsonArray());
+
+                    Boolean restrictedEvent = calendarEvent.containsKey("shared") && Boolean.FALSE.equals(calendarEvent.getJsonArray("shared").isEmpty());
                     if(!calendar.isEmpty()){
                         for(Object id : calendar){
-                            notifyUsersSharing(request, user, id.toString(), calendarEvent, isCreated);
+                            if(message.getBoolean("sendNotif") == null || Boolean.FALSE.equals(isCreated)) {
+                                notifyUsersSharing(request, user, id.toString(), calendarEvent, isCreated, restrictedEvent);
+                            }
                         }
                     }
+
                 }
 
             }
+        });
+    }
+
+
+    /**
+     *
+     * @param request HttpServerRequest request from the server
+     * @param user User Object user that created/edited the event
+     * @param calendarId JsonObject calendar in which the event appears
+     * @param calendarEvent JsonObject event that is created/edited
+     * @param restrictedEvent Boolean that tells if event is restricted or not
+     */
+    public void notifyUsersSharing(final HttpServerRequest request, final UserInfos user, final String calendarId,
+                                   final JsonObject calendarEvent, final boolean isCreated, Boolean restrictedEvent) {
+        String collection;
+        QueryBuilder query;
+        JsonObject keys;
+        JsonArray fetch;
+
+        collection = CALENDAR_COLLECTION;
+        query = QueryBuilder.start("_id").is(calendarId);
+        keys = new JsonObject().put("calendar", 1);
+        fetch = new JsonArray().add("shared");
+
+
+        findRecipiants(collection, query, keys, fetch, user, restrictedEvent, calendarEvent, event ->
+                sendNotificationToRecipients(event, isCreated, user, calendarEvent, calendarId, request));
+    }
+
+    @SuppressWarnings("unchecked")
+    private void sendNotificationToRecipients(Map<String, Object> event, boolean isCreated, UserInfos user, JsonObject calendarEvent, String calendarId, HttpServerRequest request) {
+        if (event != null) {
+            List<String> recipients = (List<String>) event.get("recipients");
+            String calendarTitle = (String) event.get("calendarTitle");
+            if (recipients != null) {
+                String template = isCreated ? "calendar.create" : "calendar.update";
+
+                JsonObject p = new JsonObject()
+                        .put("uri",
+                                "/userbook/annuaire#" + user.getUserId() + "#" + user.getType())
+                        .put("username", user.getUsername())
+                        .put("CalendarTitle", calendarTitle)
+                        .put("postTitle", calendarEvent.getString("title"))
+                        .put("profilUri",
+                                "/userbook/annuaire#" + user.getUserId() + "#" + user.getType())
+                        .put("calendarUri",
+                                "/calendar#/view/" + calendarId)
+                        .put("resourceUri", "/calendar#/view/" + calendarId)
+                        .put("startMoment", calendarEvent.getString("notifStartMoment"))
+                        .put("endMoment", calendarEvent.getString("notifEndMoment"))
+                        .put("eventTitle", calendarEvent.getString("title"));
+                JsonObject pushNotif = new JsonObject()
+                        .put("title", isCreated ? "push.notif.event.created" : "push.notif.event.updated")
+                        .put("body", user.getUsername() + " " + I18n.getInstance().translate(
+                                isCreated ? "calendar.event.created.push.notif.body" : "calendar.event.updated.push.notif.body",
+                                getHost(request), I18n.acceptLanguage(request)
+                        ) + " " + calendarEvent.getString("title"));
+
+                p.put("pushNotif", pushNotif);
+                notification.notifyTimeline(request, template, user, recipients, calendarId, calendarEvent.getString("id"),
+                        p, true);
+            }
+        }
+    }
+
+    private void findRecipiants(String collection, QueryBuilder query, JsonObject keys, final JsonArray fetch,
+                                final UserInfos user, Boolean restrictedEvent, JsonObject calendarEvent, Handler<Map<String, Object>> handler) {
+        findRecipiants(collection, query, keys, fetch, null, user, restrictedEvent, calendarEvent, handler);
+
+    }
+
+    @SuppressWarnings("unhandle")
+    private void findRecipiants(String collection, QueryBuilder query, JsonObject keys, final JsonArray fetch,
+                                final String filterRights, final UserInfos user, Boolean restrictedEvent, JsonObject calendarEvent,
+                                final Handler<Map<String, Object>> handler) {
+        // getting the calendar id
+        // end handle
+        eventService.findOne(collection, query, event -> {
+            if (event.isRight()) {
+                final JsonObject calendar = event.right().getValue();
+                JsonArray shared = calendar.getJsonArray("shared", new JsonObject().getJsonArray("groupId")); //.getJsonObject("calendar", new JsonObject()).getArray("shared");
+                if (shared != null) {
+                    List<String> shareIds = getSharedIds(shared, filterRights);
+                    if (!shareIds.isEmpty()) {
+                        Map<String, Object> params = new HashMap<>();
+                        params.put("userId", user.getUserId());
+                        neo4j.execute(getNeoQuery(shareIds), params, res -> {
+                            if ("ok".equals(res.body().getString("status"))) {
+                                JsonArray listOfUsers = res.body().getJsonArray("result");
+                                // param => rajouter la logique
+                                if (restrictedEvent){
+                                    restrictListOfUsers(listOfUsers, user, calendar, calendarEvent, handler);
+                                } else {
+                                    proceedOnUserList(listOfUsers, calendar, handler);
+                                }
+                            } else {
+                                handler.handle(null);
+                            }
+                        }); // end neo4j.execute
+                    } // end if (!shareIds.isEmpty())
+                    else {
+                        handler.handle(null);
+                    }
+                } // end if shared != null
+            } // end  if (event.isRight())
         });
     }
 
     /**
+     * Prepare notification user list so that it contains only the people the event is shared with and that have access to the calendar,
+     * and the calendar owner and the event owner if they are different from the person editing
      *
-     * @param request
-     * @param user
-     * @param calendarId
-     * @param calendarEvent
+     * @param listOfUsers JsonArray of the ids of the users with access to the calendar
+     * @param user User Object, the user that edited the event
+     * @param calendar JsonObject, the targeted calendar
+     * @param calendarEvent JsonObject the edited event
+     * @param handler Handler used by notifyUsersSharing()
      */
-    public void notifyUsersSharing(final HttpServerRequest request, final UserInfos user, final String calendarId, final JsonObject calendarEvent, final boolean isCreated ){
-        QueryBuilder query = QueryBuilder.start("_id").is(calendarId);
-        JsonObject keys = new JsonObject().put("calendar", 1);
-        JsonArray fetch = new JsonArray().add("shared");
+    @SuppressWarnings("unchecked")
+    private void restrictListOfUsers(JsonArray listOfUsers, final UserInfos user, JsonObject calendar, JsonObject calendarEvent,
+                                     final Handler<Map<String, Object>> handler) {
 
-        findRecipiants("calendar", query, keys, fetch, user, new Handler<Map<String, Object>>() {
-            @Override
-            public void handle(Map<String, Object> event) {
-                if (event != null) {
-                    List<String> recipients = (List<String>) event.get("recipients");
-                    String calendarTitle = (String) event.get("calendarTitle");
-                    if (recipients != null) {
-                        String template = isCreated ? "calendar.create" : "calendar.update";
+        //make array with userIds & groupIds from event
+        List<String> calendarEventShared = getSharedIds(calendarEvent.getJsonArray("shared", new JsonArray()));
 
-                        JsonObject p = new JsonObject()
-                                .put("uri",
-                                        "/userbook/annuaire#" + user.getUserId() + "#" + user.getType())
-                                .put("username", user.getUsername())
-                                .put("CalendarTitle", calendarTitle)
-                                .put("postTitle", calendarEvent.getString("title"))
-                                .put("profilUri",
-                                "/userbook/annuaire#" + user.getUserId() + "#" + user.getType())
-                                .put("calendarUri",
-                                        "/calendar#/view/" + calendarId)
-                                .put("resourceUri", "/calendar#/view/" + calendarId)
-                                .put("startMoment", calendarEvent.getString("notifStartMoment"))
-                                .put("endMoment", calendarEvent.getString("notifEndMoment"))
-                                .put("eventTitle", calendarEvent.getString("title"));
-                        JsonObject pushNotif = new JsonObject()
-                                .put("title", isCreated ? "push.notif.event.created" : "push.notif.event.updated")
-                                .put("body", user.getUsername() + " " + I18n.getInstance().translate(
-                                        isCreated ? "calendar.event.created.push.notif.body" : "calendar.event.updated.push.notif.body",
-                                        getHost(request), I18n.acceptLanguage(request)
-                                ) + " " + calendarEvent.getString("title"));
+        //get all userIds from groups for event
+        userService.fetchUser(calendarEventShared, user)
+            .onSuccess(e -> {
+                List<String> calendarEventShareIds = e.stream().map(User::id).collect(Collectors.toList());
 
-                        p.put("pushNotif", pushNotif);
-                        notification.notifyTimeline(request, template, user, recipients, calendarId, calendarEvent.getString("id"),
-                                p, true);
-                    }
+                //keep ids from shareIds that appear in calendarEventShareIds
+                List<String> userIds = ((List<JsonObject>) listOfUsers.getList())
+                        .stream()
+                        .map((currentUser) -> currentUser.getString("id"))
+                        .collect(Collectors.toList());
+                userIds.retainAll(calendarEventShareIds);
+
+                if (!user.getUserId().equals(calendar.getJsonObject("owner").getString("userId"))) {
+                    userIds.add(calendar.getJsonObject("owner").getString("userId"));
                 }
-            }
-        });
+                if (!user.getUserId().equals(calendarEvent.getJsonObject("owner").getString("userId"))){
+                    userIds.add(calendarEvent.getJsonObject("owner").getString("userId"));
+                }
+
+                JsonArray finalUserIds = new JsonArray(userIds.stream()
+                        .map((currentUser) -> new JsonObject().put("id", currentUser))
+                        .collect(Collectors.toList()));
+
+                proceedOnUserList(finalUserIds, calendar, handler);
+            })
+            .onFailure( err -> {
+                String message = String.format("[Calendar@%s::restrictListOfUsers] An error has occured" +
+                                " during fetching userIds, see previous logs: %s",
+                        this.getClass().getSimpleName(), err.getMessage());
+                log.error(message, err.getMessage());
+            });
     }
 
-    private void findRecipiants(String collection, QueryBuilder query, JsonObject keys,
-                                final JsonArray fetch, final UserInfos user, final Handler<Map<String, Object>> handler) {
-        findRecipiants(collection, query, keys, fetch, null, user, handler);
-    }
-    private void findRecipiants(String collection, QueryBuilder query, JsonObject keys,
-                                final JsonArray fetch, final String filterRights, final UserInfos user,
-                                final Handler<Map<String, Object>> handler) {
-        // getting the calendar id
-        eventService.findOne(collection, query, new Handler<Either<String, JsonObject>>() {
-            public void handle(Either<String, JsonObject> event) {
-                if (event.isRight()) {
-                    final JsonObject calendar = event.right().getValue();
-                    JsonArray shared = calendar.getJsonArray("shared", new JsonObject().getJsonArray("groupId")); //.getJsonObject("calendar", new JsonObject()).getArray("shared");
-                    if (shared != null) {
-                        List<String> shareIds = getSharedIds(shared, filterRights);
-                        if (!shareIds.isEmpty()) {
-                            Map<String, Object> params = new HashMap<>();
-                            params.put("userId", user.getUserId());
-                            neo4j.execute(getNeoQuery(shareIds), params, new Handler<Message<JsonObject>>() {
-                                @Override
-                                public void handle(Message<JsonObject> res) {
-                                    if ("ok".equals(res.body().getString("status"))) {
-                                        JsonArray listOfUsers = res.body().getJsonArray("result");
-                                        List<String> recipients = new ArrayList<>();
-                                        for (Object attr : listOfUsers ) {
-                                            JsonObject obj = (JsonObject) attr;
-                                            String id = obj.getString("id");
-                                            if (id != null) {
-                                                recipients.add(id);
-                                            }
-                                        }
-                                        Map<String, Object> t = new HashMap<>();
-                                        t.put("recipients", recipients);
-                                        t.put("calendarTitle", calendar.getString("title"));
-                                        handler.handle(t);
-                                    } else {
-                                        handler.handle(null);
-                                    }
-                                }
-                            }); // end neo4j.execute
-                        } // end if (!shareIds.isEmpty())
-                        else {
-                            handler.handle(null);
-                        }
-                    } // end if shared != null
-                } // end  if (event.isRight())
-            } // end handle
-        });
+    /**
+     * Prepare information to notify users
+     *
+     * @param listOfUsers JsonArray of the users (ids) that should be notified
+     * @param calendar JsonObject of the current calendar
+     * @param handler Handler used by notifyUsersSharing()
+     */
+    private void proceedOnUserList(JsonArray listOfUsers, JsonObject calendar, Handler<Map<String, Object>> handler) {
+        List<String> recipients = new ArrayList<>();
+        for (Object attr : listOfUsers) {
+            JsonObject obj = (JsonObject) attr;
+            String id = obj.getString("id");
+            if (id != null) {
+                recipients.add(id);
+            }
+        }
+        Map<String, Object> t = new HashMap<>();
+        t.put("recipients", recipients);
+        t.put("calendarTitle", calendar.getString("title"));
+        handler.handle(t);
     }
 
     private List<String> getSharedIds(JsonArray shared){
@@ -415,8 +500,7 @@ public class EventHelper extends MongoDbControllerHelper {
     }
 
     private String getNeoQuery(List<String> shareIds) {
-        String query =
-                "MATCH (u:User) " +
+        return "MATCH (u:User) " +
                 "WHERE u.id IN ['" +
                 Joiner.on("','").join(shareIds) + "'] AND u.id <> {userId} " +
                 "RETURN distinct u.id as id"
@@ -440,9 +524,15 @@ public class EventHelper extends MongoDbControllerHelper {
                 "MATCH (n:CommunityGroup )<-[:IN]-(u:User) " +
                 "WHERE n.id IN ['" +
                 Joiner.on("','").join(shareIds) + "'] AND u.id <> {userId} " +
-                "RETURN distinct u.id as id ";
+                "RETURN distinct u.id as id"
 
-        return query;
+                + " UNION " +
+
+                "MATCH (n:Group )<-[:IN]-(u:User) " +
+                "WHERE n.id IN ['" +
+                Joiner.on("','").join(shareIds) + "'] AND u.id <> {userId} " +
+                "RETURN distinct u.id as id";
+
     }
 
     public void listWidgetEvents(final HttpServerRequest request, final String[] calendarIds, final int nbLimit) {
