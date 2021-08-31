@@ -3,10 +3,8 @@
 <span ng-if="notification.params.calendarUri">
     {{#i18n}}timeline.calendar.shared{{/i18n}}
     <a href="{{#host}}{{calendarUri}}{{/host}}">{{resourceName}}</a>
-    &nbsp;{{#i18n}}timeline.calendar.of.calendar{{/i18n}}
 </span>
 <span ng-if="notification.params.eventUri">
     {{#i18n}}timeline.event.shared{{/i18n}}
     <a href="{{#host}}{{eventUri}}{{/host}}">{{resourceName}}</a>
-    &nbsp;{{#i18n}}timeline.calendar.of.calendar{{/i18n}}
 </span>
