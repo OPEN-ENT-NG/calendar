@@ -99,6 +99,7 @@ public class EventServiceMongoImpl extends MongoDbCrudService implements EventSe
             if (Boolean.FALSE.equals(userIsCalendarOwner)) {
                 JsonObject userIsEventOwner = new JsonObject().put("owner.userId", user.getUserId());
                 JsonObject isNotSharedEvent = new JsonObject().put("shared", new JsonObject().put("$exists", false));
+                JsonObject sharedIsEmpty = new JsonObject().put("shared", new JsonObject().put("$size", 0));
                 JsonObject sharedContainsUserId = new JsonObject().put("shared.userId",
                         new JsonObject().put("$in",new JsonArray().add(user.getUserId())));
                 JsonObject sharedContainsUserGroupIds = new JsonObject().put("shared.groupId",
@@ -108,6 +109,8 @@ public class EventServiceMongoImpl extends MongoDbCrudService implements EventSe
                         new JsonArray()
                                 .add(userIsEventOwner)
                                 .add(isNotSharedEvent)
+                                //case 'shared' field is empty
+                                .add(sharedIsEmpty)
                                 //case shared to the user individually
                                 .add(sharedContainsUserId)
                                 //case shared to the user by groupId
