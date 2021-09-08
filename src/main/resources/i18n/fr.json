@@ -125,7 +125,7 @@
     "calendar.event.edit.select.one": "Sélectionner un agenda",
     "calendar.event.edit.reccurrence.is": "La récurrence est:",
     "cannot.delete.default.calendar": "Votre calendrier par défaut ne peut pas être supprimé",
-    "calendar.event.save.and.share": "Enregistrer et partager",
+    "calendar.event.save.and.share": "Enregistrer et restreindre",
     "calendar.share.recurrence.only.first": "Seule la première récurrence de cet évènement sera partagée.",
     "calendar.event.save.error": "Problème d'enregistrement de l'évènement."
 }
