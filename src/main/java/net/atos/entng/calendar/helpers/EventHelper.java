@@ -286,7 +286,8 @@ public class EventHelper extends MongoDbControllerHelper {
                     JsonObject calendarEvent = event.right().getValue();
                     JsonArray calendar = calendarEvent.getJsonArray("calendar", new JsonArray());
 
-                    Boolean restrictedEvent = calendarEvent.containsKey("shared") && Boolean.FALSE.equals(calendarEvent.getJsonArray("shared").isEmpty());
+                    Boolean restrictedEvent = (calendarEvent.containsKey("shared") || Boolean.TRUE.equals(calendarEvent.getBoolean("is_default")))
+                            && Boolean.FALSE.equals(calendarEvent.getJsonArray("shared").isEmpty());
                     if(!calendar.isEmpty()){
                         for(Object id : calendar){
                             if(message.getBoolean("sendNotif") == null || Boolean.FALSE.equals(isCreated)) {
@@ -402,6 +403,11 @@ public class EventHelper extends MongoDbControllerHelper {
                         handler.handle(null);
                     }
                 } // end if shared != null
+                if(shared == null && Boolean.TRUE.equals(calendar.getBoolean("is_default")) && restrictedEvent){
+                    JsonArray defaultCalendarOwner = new JsonArray().add(new JsonObject().put("id", calendar.getJsonObject("owner", new JsonObject())
+                            .getString("userId", null)));
+                    proceedOnUserList(defaultCalendarOwner, calendar, handler);
+                }
             } // end  if (event.isRight())
         });
     }
