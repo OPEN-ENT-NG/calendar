@@ -817,6 +817,16 @@ export const calendarController =  ng.controller('CalendarController',
         };
     }
 
+    $scope.nameOfShareButton = (calendarEvent) : string => {
+        let numberOfSharedCalendars = calendarEvent.calendar
+            .filter((calendar:Calendar): boolean => calendar.shared && (calendar.shared.length !== 0))
+            .length;
+
+        return (numberOfSharedCalendars === 0)?
+            lang.translate('calendar.event.save.and.share') :
+            lang.translate('calendar.event.save.and.restrict');
+    }
+
     $scope.createCalendarEvent = newItem => {
         $scope.calendarAsContribRight = new Array<String>();
         $scope.selectedCalendarInEvent = new Array<String>();
