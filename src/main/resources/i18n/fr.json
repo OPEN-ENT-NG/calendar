@@ -131,5 +131,7 @@
     "calendar.event.save.error": "Problème d'enregistrement de l'évènement.",
     "calendar.display.mode": "Mode d'affichage",
     "calendar.calendar.view": "Calendaire",
-    "calendar.list.view": "Liste"
+    "calendar.list.view": "Liste",
+    "calendar.list.empty": "Liste vide",
+    "calendar.list.no.events": "Il n'existe pas d'évènement entre les dates spécifiées."
 }
