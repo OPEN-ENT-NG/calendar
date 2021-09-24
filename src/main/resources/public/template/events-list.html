@@ -34,3 +34,9 @@
         </tr>
     </tbody>
 </table>
+
+<div class="emptyscreen ng-scope" ng-if="calendarEvents.filtered.length === 0 && calendarEvents.all.length !== 0">
+    <h2 class="emptyscreen-header"><i18n>calendar.list.empty</i18n></h2>
+    <div ng-include="'/calendar/public/img/empty-calendar.svg'"></div>
+    <p class="emptyscreen-footer"><i18n>calendar.list.no.events</i18n></p>
+</div>
