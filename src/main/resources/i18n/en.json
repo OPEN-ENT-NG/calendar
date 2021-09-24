@@ -84,5 +84,7 @@
     "calendar.event.save.error": "Error when saving the event.",
     "calendar.display.mode": "Display mode",
     "calendar.calendar.view": "Calendar",
-    "calendar.list.view": "List"
+    "calendar.list.view": "List",
+    "calendar.list.empty": "Empty list",
+    "calendar.list.no.events": "There are no events between the specified dates."
 }
