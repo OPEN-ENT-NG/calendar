@@ -329,6 +329,11 @@ export const calendarController =  ng.controller('CalendarController',
         }
     };
 
+    $scope.cropEventRecurrenceEndDate = (): string =>
+        $scope.calendarEvent && $scope.calendarEvent.recurrence && $scope.calendarEvent.recurrence.end_on ?
+            $scope.calendarEvent.recurrence.end_on.substr(0, 10)
+            : ""
+
     $scope.createChildCalendarEvent = function(calendarEvent) {
         var child  = new CalendarEvent();
         child.title = calendarEvent.title;
