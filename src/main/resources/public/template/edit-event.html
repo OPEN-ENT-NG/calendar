@@ -303,8 +303,8 @@
                                         <i18n>calendar.recurrence.occurrences</i18n>
                                     </label>
                                     <label ng-if="calendarEvent.recurrence.end_type === 'on'">
-                                        <i18n>calendar.recurrence.end.on</i18n>
-                                        [[calendarEvent.recurrence.end_on]]</label>
+                                        <i18n>calendar.recurrence.onlc</i18n>
+                                        [[cropEventRecurrenceEndDate()]]</label>
                                 </div>
                                 <div class="row">
                                     <input type="checkbox" ng-model="calendarEvent.noMoreRecurrent"/>
