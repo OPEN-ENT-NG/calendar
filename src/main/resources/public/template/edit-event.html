@@ -1,4 +1,4 @@
-<div class="row">
+<div class="row editEvent">
     <h2>
         <i18n ng-if="!calendarEvent._id">calendar.new.event</i18n>
         <i18n ng-if="calendarEvent._id">calendar.edit.event</i18n>
@@ -167,87 +167,101 @@
                                     <i18n>calendar.event.recurrence</i18n>
                                 </label>
                             </div>
-                            <div class="content" ng-if="!calendarEvent.parentId && calendarEvent.isRecurrent">
-
+                            <div class="content flex-row" ng-if="!calendarEvent.parentId && calendarEvent.isRecurrent">
                                 <div class="row">
-                                    <label>
-                                        <i18n>calendar.reccurent</i18n>
-                                    </label>
-                                    <select ng-model="calendarEvent.recurrence.type"
-                                            ng-change="changedRecurrenceType()">
-                                        <option value="every_day">[[lang.translate("calendar.recurrence.every.day")]]
-                                        </option>
-                                        <!--<option value="every_week_day">[[lang.translate("calendar.recurrence.every.week.day")]]</option>-->
-                                        <option value="every_week">
-                                            [[lang.translate("calendar.recurrence.every.week")]]
-                                        </option>
-                                        <!--<option value="every_month">[[lang.translate("calendar.recurrence.every.month")]]</option>
-                                        <option value="every_year">[[lang.translate("calendar.recurrence.every.year")]]</option>-->
-                                    </select>
-                                </div>
-
-                                <div class="row" ng-if="calendarEvent.recurrence.type === 'every_day'">
-                                    <i18n>calendar.recurrence.every</i18n>
-                                    <select ng-model="calendarEvent.recurrence.every"
-                                            ng-options="n for n in _.range(1, periods.every_day_max)"
-                                            ng-init="calendarEvent.recurrence.every">
-                                    </select>
-                                    <i18n>calendar.recurrence.days</i18n>
-                                </div>
-
-                                <div ng-if="calendarEvent.recurrence.type === 'every_week'">
                                     <div class="row">
+                                        <label>
+                                            <i18n>calendar.reccurent</i18n>
+                                        </label>
+                                        <select ng-model="calendarEvent.recurrence.type"
+                                                ng-change="changedRecurrenceType()">
+                                            <option value="every_day">[[lang.translate("calendar.recurrence.every.day")]]
+                                            </option>
+                                            <!--<option value="every_week_day">[[lang.translate("calendar.recurrence.every.week.day")]]</option>-->
+                                            <option value="every_week">
+                                                [[lang.translate("calendar.recurrence.every.week")]]
+                                            </option>
+                                            <!--<option value="every_month">[[lang.translate("calendar.recurrence.every.month")]]</option>
+                                            <option value="every_year">[[lang.translate("calendar.recurrence.every.year")]]</option>-->
+                                        </select>
+                                    </div>
+
+                                    <div class="row" ng-if="calendarEvent.recurrence.type === 'every_day'">
                                         <i18n>calendar.recurrence.every</i18n>
                                         <select ng-model="calendarEvent.recurrence.every"
-                                                ng-options="n for n in _.range(1, periods.every_week_max)"
-                                                ng-init="calendarEvent.recurrence.every"
-                                        >
+                                                ng-options="n for n in _.range(1, periods.every_day_max)"
+                                                ng-init="calendarEvent.recurrence.every">
                                         </select>
-                                        <i18n>calendar.recurrence.weeks</i18n>
+                                        <i18n>calendar.recurrence.days</i18n>
                                     </div>
-                                    <div class="row">
-                                        <i18n>calendar.recurrence.repeat.on</i18n>
-                                    </div>
-                                    <div class="row">
-                                        <label class="cell horizontal-spacing-twice"
-                                               ng-repeat="(key, value) in calendarEvent.recurrence.week_days">
-                                            <input type="checkbox" value="[[key]]"
-                                                   ng-model="calendarEvent.recurrence.week_days[key]"
-                                                   ng-required="!someSelectedValue(calendarEvent.recurrence.week_days)"/>
-                                            <span>[[ lang.translate(recurrence.dayMap[key]) ]]</span>
-                                        </label>
-                                    </div>
-                                </div>
 
-                                <div ng-if="calendarEvent.recurrence.type === 'every_month'">
-                                    <div class="row">
+                                    <div ng-if="calendarEvent.recurrence.type === 'every_week'">
+                                        <div class="row">
+                                            <i18n>calendar.recurrence.every</i18n>
+                                            <select ng-model="calendarEvent.recurrence.every"
+                                                    ng-options="n for n in _.range(1, periods.every_week_max)"
+                                                    ng-init="calendarEvent.recurrence.every"
+                                            >
+                                            </select>
+                                            <i18n>calendar.recurrence.weeks</i18n>
+                                        </div>
+                                        <div class="row">
+                                            <i18n>calendar.recurrence.repeat.on</i18n>
+                                        </div>
+                                        <div class="row">
+                                            <label class="cell right-spacing"
+                                                   ng-repeat="(key, value) in calendarEvent.recurrence.week_days">
+                                                <input type="checkbox" value="[[key]]"
+                                                       ng-model="calendarEvent.recurrence.week_days[key]"
+                                                       ng-required="!someSelectedValue(calendarEvent.recurrence.week_days)"/>
+                                                <span>[[ lang.translate(recurrence.dayMap[key]) ]]</span>
+                                            </label>
+                                        </div>
+                                    </div>
+
+                                    <div ng-if="calendarEvent.recurrence.type === 'every_month'">
+                                        <div class="row">
+                                            <i18n>calendar.recurrence.every</i18n>
+                                            <select>
+                                                <option ng-repeat="n in _.range(1, periods.every_month_max)">[[n]]</option>
+                                            </select>
+                                            <i18n>calendar.recurrence.monthes</i18n>
+                                        </div>
+                                        <div class="row">
+                                            <i18n>calendar.recurrence.repeat.each</i18n>
+                                            <input type="radio"/>
+                                            <i18n>calendar.recurrence.day.of.month</i18n>
+                                            <input type="radio"/>
+                                            <i18n>calendar.recurrence.day.of.week</i18n>
+                                        </div>
+                                    </div>
+
+                                    <div class="row" ng-if="calendarEvent.recurrence.type === 'every_year'">
                                         <i18n>calendar.recurrence.every</i18n>
                                         <select>
-                                            <option ng-repeat="n in _.range(1, periods.every_month_max)">[[n]]</option>
-                                        </select>
-                                        <i18n>calendar.recurrence.monthes</i18n>
-                                    </div>
-                                    <div class="row">
-                                        <i18n>calendar.recurrence.repeat.each</i18n>
-                                        <input type="radio"/>
-                                        <i18n>calendar.recurrence.day.of.month</i18n>
-                                        <input type="radio"/>
-                                        <i18n>calendar.recurrence.day.of.week</i18n>
+                                            <option ng-repeat="n in _.range(1, periods.every_year_max)">[[n]]</option>
+                                        </select>l
+                                        <i18n>calendar.recurrence.years</i18n>
                                     </div>
                                 </div>
-
-                                <div class="row" ng-if="calendarEvent.recurrence.type === 'every_year'">
-                                    <i18n>calendar.recurrence.every</i18n>
-                                    <select>
-                                        <option ng-repeat="n in _.range(1, periods.every_year_max)">[[n]]</option>
-                                    </select>l
-                                    <i18n>calendar.recurrence.years</i18n>
-                                </div>
-
-                                <div class="row">
+                                <div class="row  editEvent-itemColumn right-spacing top-spacing">
                                     <label>
                                         <i18n>calendar.recurrence.end</i18n>
                                     </label>
+                                </div>
+
+                                <div class="row top-spacing">
+                                    <div class="row">
+                                        <input type="radio" ng-model="calendarEvent.recurrence.end_type" value="on"
+                                               name="calendarEvent.recurrence.end_type"
+                                               ng-required="!calendarEvent.recurrence.end_type">
+                                        <label>
+                                            <i18n>calendar.recurrence.end.on</i18n>
+                                        </label>
+                                        <date-picker ng-required="calendarEvent.recurrence.end_type === 'on'"
+                                                     ng-model="calendarEvent.recurrence.end_on">
+                                        </date-picker>
+                                    </div>
                                     <div class="row">
                                         <input type="radio" ng-model="calendarEvent.recurrence.end_type" value="after"
                                                name="calendarEvent.recurrence.end_type"
@@ -263,17 +277,7 @@
                                             <i18n>calendar.recurrence.occurrences</i18n>
                                         </label>
                                     </div>
-                                    <div class="row">
-                                        <input type="radio" ng-model="calendarEvent.recurrence.end_type" value="on"
-                                               name="calendarEvent.recurrence.end_type"
-                                               ng-required="!calendarEvent.recurrence.end_type">
-                                        <label>
-                                            <i18n>calendar.recurrence.end.on</i18n>
-                                        </label>
-                                        <date-picker ng-required="calendarEvent.recurrence.end_type === 'on'"
-                                                     ng-model="calendarEvent.recurrence.end_on">
-                                        </date-picker>
-                                    </div>
+
                                 </div>
                             </div>
                             <div class="content" ng-if="calendarEvent.parentId && calendarEvent.isRecurrent">
@@ -337,7 +341,6 @@
                     ng-disabled="form.$invalid || calendarEvent.startMoment > calendarEvent.endMoment || !isCalendarSelectedInEvent() || !hasRightOnSharedEvent(calendarEvent, rights.resources.shareEvent.right)">
                 [[nameOfShareButton(calendarEvent)]]
             </button>
-
         </form>
     </section>
 </div>
