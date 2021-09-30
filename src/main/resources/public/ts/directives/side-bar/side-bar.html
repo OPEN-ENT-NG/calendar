@@ -1,27 +1,31 @@
-<div class="sidebar cell three top-spacing-four">
+<div class="sidebar top-spacing-four right-spacing">
     <article class="no-padding">
         <div ng-if="!vm.isEmpty()">
             <!-- Display mode -->
             <div class="row sidebar-title right-spacing">
-                <h5 class="sidebar-title-calendar-display large cell twelve left-spacing"><i18n>calendar.display.mode</i18n></h5>
+                <h4 class="sidebar-title-calendar-display large cell twelve left-spacing"><i18n>calendar.display.mode</i18n></h4>
             </div>
 
             <section class="cell twelve bottom-spacing top-spacing bg-white">
-                <label class="cell twelve choice-view flex-row">
+                <label class="cell twelve sidebar-calendar-choice-view flex-row">
                     <!-- switch calendar mode -->
-                    <div class="six sidebar-calendar-choice-view right-spacing-small left-spacing-four top-spacing bottom-spacing
-                     file-selector ng-pristine ng-untouched ng-valid ng-not-empty selected" ng-click="vm.onShowCalendar()">
-                        <i class="show-calendar" ng-class="{ selected: vm.list === false }"
-                           tooltip="calendar.icon.show.calendar"></i>
-                        <i18n class="top-spacing left-spacing-small ">calendar.calendar.view</i18n>
+                    <div class="six flex-row right-spacing-small left-spacing-four top-spacing bottom-spacing file-selector
+                    sidebar-calendar-choice-view-item" ng-click="vm.onShowCalendar()"
+                         ng-class="{selected: !vm.list}">
+                        <div ng-include="'/calendar/public/img/calendaire.svg'"
+                             class="show-calendar">
+                        </div>
+                        <i18n class="left-spacing-small top-spacing-small bottom-spacing">calendar.calendar.view</i18n>
                     </div>
 
                     <!-- switch list mode -->
-                    <div class="six sidebar-calendar-choice-view right-spacing-small left-spacing-four top-spacing bottom-spacing
-                     file-selector" ng-click="vm.onShowList()">
-                        <i class="show-list" ng-class="{ selected: vm.list === true }"
-                           tooltip="calendar.icon.show.events.list"></i>
-                        <i18n class="top-spacing left-spacing-small">calendar.list.view</i18n>
+                    <div class="six flex-row right-spacing-small left-spacing-four top-spacing bottom-spacing file-selector
+                    sidebar-calendar-choice-view-item"
+                         ng-click="vm.onShowList()" ng-class="{selected: vm.list}">
+                        <div ng-include="'/calendar/public/img/liste.svg'"
+                             class="show-list">
+                        </div>
+                        <i18n class="left-spacing-small top-spacing-small bottom-spacing">calendar.list.view</i18n>
                     </div>
                 </label>
             </section>
@@ -29,7 +33,7 @@
 
             <!-- List of calendars -->
             <div class="row sidebar-title right-spacing">
-                <h5 class="large cell twelve left-spacing sidebar-title-calendar-display"><i18n>calendar.my.calendars</i18n></h5>
+                <h4 class="large cell twelve left-spacing sidebar-title-calendar-display"><i18n>calendar.my.calendars</i18n></h4>
             </div>
 
             <section class="block-container">

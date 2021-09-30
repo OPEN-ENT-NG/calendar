@@ -3,15 +3,22 @@
     background-color: $calendar-blue;
 
     &-calendar-display {
-      color: $calendar-white;
-      fill: $calendar-white;
       text-transform: uppercase;
+      font-weight: normal;
+      color: $calendar-white;
     }
   }
 
   &-calendar-choice-view {
     display: inline-flex;
     align-items: center;
+
+    &-item {
+      opacity: 0.2;
+      &.selected {
+        opacity: 1;
+      }
+    }
   }
 }
 
