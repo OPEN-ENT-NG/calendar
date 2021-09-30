@@ -26,7 +26,7 @@
     background-color: #ec6045 !important;
 }
 .color-selector .cyan, .row .cyan , nav.vertical ul li a.cyan{
-    background-color: #23a3db !important;
+    background-color: $calendar-blue !important;
 }
 .color-selector .grey, .row .grey, nav.vertical ul li a.grey {
     background-color: #b7b8ba !important;
@@ -82,7 +82,6 @@ nav.vertical ul li a input.calendar-checkbox {
 }
 
 .filters div.dates div.cell {
-    margin-right: 20px;
     line-height: 40px;
     vertical-align: middle;
 }
@@ -126,6 +125,40 @@ calendar {
     .displayModeButtons {
         margin-top: 0;
     }
+
+    i.calendar {
+        padding-top: 15px;
+    }
+
+    legend, .legend>.month-day, button.cyan {
+        background: $calendar-blue !important;
+    }
+
+    button.previous-timeslots, button.next-timeslots {
+        margin-right: 0px;
+        margin-left: 0px;
+    }
+
+    .dates>i18n {
+        margin-left: 20px;
+    }
+
+    .dates>.date-picker-icon a {
+        width: 30px;
+        margin-left: 20px;
+    }
+}
+
+h1 a {
+    color: $calendar-blue !important;
+}
+
+.top-spacing-four {
+    margin-top: 0px !important;
+}
+
+.date-picker-icon>input[type=text] {
+    padding-left: 29px;
 }
 
 
