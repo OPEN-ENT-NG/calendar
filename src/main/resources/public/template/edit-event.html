@@ -311,7 +311,9 @@
                                         [[cropEventRecurrenceEndDate()]]</label>
                                 </div>
                                 <div class="row">
-                                    <input type="checkbox" ng-model="calendarEvent.noMoreRecurrent"/>
+                                    <input type="checkbox" ng-model="calendarEvent.noMoreRecurrent"
+                                           ng-checked="calendarEvent.noMoreRecurrent"
+                                           ng-click="unselectRecurrenceRemovalCheckbox(true)"/>
                                     <i18n>calendar.event.remove.from.recurrence</i18n>
                                 </div>
                                 <div class="row" ng-if="calendarEvent.noMoreRecurrent">
@@ -320,7 +322,9 @@
                                     <i18n>calendar.event.remove.others.from.recurrence</i18n>
                                 </div>
                                 <div class="row">
-                                    <input type="checkbox" ng-model="calendarEvent.deleteAllRecurrence"/>
+                                    <input type="checkbox" ng-model="calendarEvent.deleteAllRecurrence"
+                                           ng-checked="calendarEvent.deleteAllRecurrence"
+                                           ng-click="unselectRecurrenceRemovalCheckbox(false)"/>
                                     <i18n>calendar.event.remove.all.from.recurrence</i18n>
                                 </div>
                             </div>
@@ -330,15 +334,19 @@
             </div>
 
             <button ng-if="calendarEvent._id" class="right-magnet" ng-click="confirmRemoveCalendarEvent(calendarEvent, $event)"
-                    ng-disabled="!hasRightOnSharedEvent(calendarEvent, rights.resources.updateEvent.right)">
+                    ng-disabled="!hasRightOnSharedEvent(calendarEvent, rights.resources.updateEvent.right)
+                    || (calendarEvent.isRecurrent && !(calendarEvent.noMoreRecurrent || calendarEvent.deleteAllRecurrence))">
                 <i18n>remove</i18n>
             </button>
             <button class="right-magnet" ng-click="saveCalendarEventEdit(calendarEvent)"
-                    ng-disabled="form.$invalid || calendarEvent.startMoment > calendarEvent.endMoment || !isCalendarSelectedInEvent() || !hasRightOnSharedEvent(calendarEvent, rights.resources.updateEvent.right)">
+                    ng-disabled="form.$invalid || calendarEvent.startMoment > calendarEvent.endMoment || !isCalendarSelectedInEvent()
+                    || !hasRightOnSharedEvent(calendarEvent, rights.resources.updateEvent.right) || calendarEvent.deleteAllRecurrence
+                    || (calendarEvent.noMoreRecurrent && calendarEvent.noMoreRecurrence)">
                 <i18n>save</i18n>
             </button>
             <button class="right-magnet" ng-click="saveAndShareEvent(calendarEvent, $event)"
-                    ng-disabled="form.$invalid || calendarEvent.startMoment > calendarEvent.endMoment || !isCalendarSelectedInEvent() || !hasRightOnSharedEvent(calendarEvent, rights.resources.shareEvent.right)">
+                    ng-disabled="form.$invalid || calendarEvent.startMoment > calendarEvent.endMoment || !isCalendarSelectedInEvent()
+                    || !hasRightOnSharedEvent(calendarEvent, rights.resources.shareEvent.right)">
                 [[nameOfShareButton(calendarEvent)]]
             </button>
         </form>

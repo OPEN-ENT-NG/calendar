@@ -37,7 +37,8 @@ export class CalendarEvent implements Selectable, Shareable{
     end: Date;
     startTime: Date;
     endTime: Date;
-    noMoreRecurrence: boolean;
+    noMoreRecurrent: boolean; //event was part of a recurrence but is not anymore
+    noMoreRecurrence: boolean; //all the recurrence the event was part of is deleted
     detailToRecurrence: boolean;
     startDateToRecurrence: boolean;
     deleteAllRecurrence: boolean;
@@ -199,7 +200,7 @@ export class CalendarEvents extends Selection<CalendarEvent> {
         });
     };
 
-    getRecurrenceEvents (calendarEvent) {
+    getRecurrenceEvents (calendarEvent : CalendarEvent) {
         let calendarEvents = [];
         let parentId = calendarEvent.parentId ? calendarEvent.parentId : false;
         this.all.forEach(function (item) {
