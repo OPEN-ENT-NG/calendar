@@ -514,12 +514,27 @@ export const calendarController =  ng.controller('CalendarController',
         $scope.contentToWatch = "";
     };
 
-     $scope.confirmRemoveCalendarEvent = (calendarEvent, event) => {
+    $scope.unselectRecurrenceRemovalCheckbox = (uncheckDeleteAllRecurrence: boolean): void => {
+        if (uncheckDeleteAllRecurrence) {
+            $scope.calendarEvent.deleteAllRecurrence = false;
+        } else {
+            $scope.calendarEvent.noMoreRecurrent = false;
+            $scope.calendarEvent.noMoreRecurrence = false;
+        }
+    };
+
+    $scope.confirmRemoveCalendarEvent = (calendarEvent: CalendarEvent, event): void => {
         $scope.calendar.calendarEvents.deselectAll();
-        let infoEventSelected= $scope.calendar.calendarEvents.all
-            .filter( eventFiltered => calendarEvent._id === eventFiltered._id)[0];
-         if (calendarEvent.deleteAllRecurrence) {
-             selectOtherRecurrentEvents(calendarEvent);
+        let infoEventSelected = $scope.calendar.calendarEvents.all
+            .filter((eventFiltered: CalendarEvent) => calendarEvent._id === eventFiltered._id)[0];
+        if (calendarEvent.deleteAllRecurrence) {
+            selectOtherRecurrentEvents(calendarEvent);
+        }
+        if (calendarEvent.noMoreRecurrent && calendarEvent.noMoreRecurrence) {
+            selectOtherRecurrentEvents(calendarEvent);
+            let clickedEvent: CalendarEvent = $scope.calendarEvents.getRecurrenceEvents(calendarEvent)
+                .find((calEvent: CalendarEvent) => calEvent && calEvent._id && calEvent._id === calendarEvent._id);
+            if (clickedEvent) clickedEvent.selected = false;
         }
         $scope.display.confirmDeleteCalendarEvent = true;
         event.stopPropagation();
@@ -698,7 +713,7 @@ export const calendarController =  ng.controller('CalendarController',
     $scope.cancelCalendarEdit = function() {
         $scope.calendarCreationScreen = false;
         $scope.calendar = undefined;
-        
+
         if ($scope.isEmpty()) {
             template.close('calendar');
         } else {
@@ -815,7 +830,7 @@ export const calendarController =  ng.controller('CalendarController',
     };
     //unique
     const unique = function<T>(array:T[]) {
-        return array.filter(function (value, index, self) { 
+        return array.filter(function (value, index, self) {
             return self.indexOf(value) === index;
         });
     }
