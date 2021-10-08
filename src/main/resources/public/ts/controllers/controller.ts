@@ -488,7 +488,13 @@ export const calendarController =  ng.controller('CalendarController',
         template.open('calendar', 'edit-calendar');
     };
 
-    $scope.viewCalendarEvent = calendarEvent => {
+    /**
+     *Allows to view an event creation form
+     *
+     * @param calendarEvent the created event
+     * @param isCalendar allows to use the lightbox from the calendar directive
+     */
+    $scope.viewCalendarEvent = (calendarEvent, isCalendar ? : boolean) => {
         $scope.calendarEvent = new CalendarEvent(calendarEvent);
         $scope.calendar = calendarEvent.calendar[0];
         $scope.createContentToWatch();
@@ -499,12 +505,14 @@ export const calendarController =  ng.controller('CalendarController',
                  $scope.calendarEvent.recurrence.week_days = recurrence.week_days;
              }
         }
-        if (!calendarEvent._id || ($scope.hasManageRightOrIsEventOwner(calendarEvent) && $scope.hasRightOnSharedEvent(calendarEvent, rights.resources.updateEvent.right))){
-        template.open('lightbox', 'edit-event');
-        } else {
-        template.open('lightbox', 'view-event');
-        }
-         $scope.display.showEventPanel = true;
+         if (!isCalendar){
+             if (!calendarEvent._id || ($scope.hasManageRightOrIsEventOwner(calendarEvent) && $scope.hasRightOnSharedEvent(calendarEvent, rights.resources.updateEvent.right))){
+                 template.open('lightbox', 'edit-event');
+             } else {
+                 template.open('lightbox', 'view-event');
+             }
+             $scope.display.showEventPanel = true;
+         }
     };
 
     $scope.closeCalendarEvent = () => {
@@ -802,13 +810,19 @@ export const calendarController =  ng.controller('CalendarController',
         }
     }
 
-    $scope.createCalendarEvent = newItem => {
+    /**
+     * Prepare $scope.calendarEvent to create the event and call the method that will display the calendar creation form
+     * @param newItem the event information so far
+     * @param isCalendar allows to use the lightbox from the calendar directive
+     */
+    $scope.createCalendarEvent = (newItem?, isCalendar? :boolean) => {
         $scope.calendarAsContribRight = new Array<String>();
         $scope.selectedCalendarInEvent = new Array<String>();
         $scope.calendarEvent = new CalendarEvent();
         $scope.calendarEvent.recurrence = {};
         $scope.calendarEvent.calendar = new Array<Calendar>();
-        $scope.viewCalendarEvent($scope.calendarEvent);
+        isCalendar ? $scope.viewCalendarEvent($scope.calendarEvent, isCalendar)
+            : $scope.viewCalendarEvent($scope.calendarEvent);
         setListCalendarWithContribFilter();
         if(newItem){
             $scope.calendarEvent.startMoment = newItem.beginning;
