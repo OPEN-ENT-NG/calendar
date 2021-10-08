@@ -86,5 +86,11 @@
     "calendar.calendar.view": "Calendar",
     "calendar.list.view": "List",
     "calendar.list.empty": "Empty list",
-    "calendar.list.no.events": "There are no events between the specified dates."
+    "calendar.list.no.events": "There are no events between the specified dates.",
+    "calendar.event.only": "This event only",
+    "calendar.event.all.recurrences": "All occurrences of this recurrence",
+    "calendar.edit.recurrent.event": "Edit recurrent event",
+    "calendar.utils.edit": "Edit",
+    "calendar.event.recurrence.edition": "These changes will impact"
+
 }

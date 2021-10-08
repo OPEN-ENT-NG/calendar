@@ -1,0 +1,41 @@
+<div class="editRecurrentEvent">
+    <h2 class="centered eight row backgroundBlueTitle top-spacing-three">
+        <i18n>calendar.edit.recurrent.event</i18n>
+    </h2>
+    <div class="lightbox-container">
+        <div class="twelve cell ">
+
+            <div class="cell twelve twelve-mobile vertical-spacing">
+                <i18n>calendar.event.recurrence.edition</i18n>
+            </div>
+
+            <!--SELECT OPTIONS-->
+            <div class="cell twelve-mobile twelve vertical-spacing">
+                <!-- edit selected recurrent event only -->
+                <div>
+                    <label>
+                        <input type="radio" ng-model="calendarEvent.editAllRecurrence" ng-value="false">
+                        <i18n>calendar.event.only</i18n>
+                    </label>
+                </div>
+                <!-- edit all occurrences of the recurrence -->
+                <div>
+                    <label>
+                        <input type="radio" ng-model="calendarEvent.editAllRecurrence" ng-value="true">
+                        <i18n>calendar.event.all.recurrences</i18n>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <!--SUBMIT AND DELETE BUTTONS-->
+        <div class="right-magnet vertical-spacing">
+            <button class="cancel" type="button" ng-click="cancelRecurrentEventEdit()">
+                <i18n>cancel</i18n>
+            </button>
+            <button type="submit" ng-click="viewCalendarEvent(calendarEvent)" ng-disabled="calendarEvent.editAllRecurrence == undefined">
+                <i18n>calendar.utils.edit</i18n>
+            </button>
+        </div>
+    </div>
+</div>

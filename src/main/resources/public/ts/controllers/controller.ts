@@ -21,6 +21,7 @@ import {
 } from "../model/Utils";
 import {calendar} from "entcore/types/src/ts/calendar";
 import {AxiosResponse} from "axios";
+import {DateUtils} from "../utils/date.utils";
 
 export const calendarController =  ng.controller('CalendarController',
     ["$location",
@@ -329,10 +330,8 @@ export const calendarController =  ng.controller('CalendarController',
         }
     };
 
-    $scope.cropEventRecurrenceEndDate = (): string =>
-        $scope.calendarEvent && $scope.calendarEvent.recurrence && $scope.calendarEvent.recurrence.end_on ?
-            $scope.calendarEvent.recurrence.end_on.substr(0, 10)
-            : ""
+    $scope.cropEventDate = (calendarEventDate : string): string =>
+        DateUtils.getSimpleFRDateFormat(calendarEventDate);
 
     $scope.createChildCalendarEvent = function(calendarEvent) {
         var child  = new CalendarEvent();
@@ -506,12 +505,29 @@ export const calendarController =  ng.controller('CalendarController',
              }
         }
          if (!isCalendar){
-             if (!calendarEvent._id || ($scope.hasManageRightOrIsEventOwner(calendarEvent) && $scope.hasRightOnSharedEvent(calendarEvent, rights.resources.updateEvent.right))){
+             if (($scope.hasManageRightOrIsEventOwner(calendarEvent) && $scope.hasRightOnSharedEvent(calendarEvent, rights.resources.updateEvent.right))
+                 && calendarEvent.editAllRecurrence == undefined
+                 && calendarEvent.isRecurrent && calendarEvent._id){
+                 template.open('recurrenceLightbox', 'recurrent-event-edition-popup');
+                 $scope.display.showRecurrencePanel = true;
+             } else if(!calendarEvent._id || ($scope.hasManageRightOrIsEventOwner(calendarEvent) && $scope.hasRightOnSharedEvent(calendarEvent, rights.resources.updateEvent.right))) {
+                 if (calendarEvent.editAllRecurrence){
+                     //event content
+                     $scope.calendarEvent.detailToRecurrence = true;
+                     //event date/length
+                     $scope.calendarEvent.startDateToRecurrence = true;
+                     $scope.calendarEvent.endDateToRecurrence = true;
+                 }
+                 $scope.display.showRecurrencePanel = false;
+                 template.close('recurrenceLightbox');
                  template.open('lightbox', 'edit-event');
+                 // $scope.calendarEvent.editAllRecurrence = undefined;
+                 $scope.display.showEventPanel = true;
              } else {
                  template.open('lightbox', 'view-event');
+                 $scope.display.showEventPanel = true;
              }
-             $scope.display.showEventPanel = true;
+
          }
     };
 
@@ -1019,8 +1035,6 @@ export const calendarController =  ng.controller('CalendarController',
                 calendarEvent.detailToRecurrence = calendarEvent.detailToRecurrence && false;
                 calendarEvent.startDateToRecurrence = calendarEvent.startDateToRecurrence && false;
                 calendarEvent.endDateToRecurrence = calendarEvent.endDateToRecurrence && false;
-                calendarEvent.durationToRecurrence = calendarEvent.durationToRecurrence && false;
-                calendarEvent.alldayToRecurrence = calendarEvent.alldayToRecurrence && false;
                 $scope.closeCalendarEvent();
                 $scope.refreshCalendarEvents();
                 $scope.calendarEvents.applyFilters();
@@ -1135,7 +1149,6 @@ export const calendarController =  ng.controller('CalendarController',
             });
         }
         if ((calendarEvent.detailToRecurrence ||
-            calendarEvent.durationToRecurrence ||
             calendarEvent.startDateToRecurrence ||
             calendarEvent.endDateToRecurrence) &&
             calendarEvent.parentId) {
@@ -1148,55 +1161,33 @@ export const calendarController =  ng.controller('CalendarController',
                         cle.location = calendarEvent.location;
                         save = true;
                     }
-                    if (calendarEvent.durationToRecurrence) {
-                        if (!calendarEvent.allday) {
-                            let diff = moment(calendarEvent.endTime).diff(moment(calendarEvent.startTime), 'minutes');
-                            if (calendarEvent.startDateToRecurrence) {
-                                    cle.startMoment = moment(cle.startMoment)
-                                        .hours(moment(calendarEvent.startTime).hours())
-                                        .minutes(moment(calendarEvent.startTime).minutes());
-                                    cle.startTime = calendarEvent.startTime;
-                                    cle.allday = false;
-                            } else if (calendarEvent.endDateToRecurrence) {
-                                        cle.endMoment = moment(cle.endMoment)
-                                            .hours(moment(calendarEvent.endTime).hours())
-                                            .minutes(moment(calendarEvent.endTime).minutes());
-                                        cle.endTime = calendarEvent.endTime;
-                                        cle.allday = false;
-                            } else if (!cle.allday) {
-                                cle.endMoment = moment(cle.startMoment).add(diff, 'minutes');
-                                cle.endTime = makerFormatTimeInput(cle.endMoment, cle.endMoment);
-                            }
-                            if (!cle.allday) {
+                    if (calendarEvent.startDateToRecurrence
+                    && !calendarEvent.allday && !cle.allday
+                    && !moment(cle.startMoment).hours($scope.calendarEvent.startMoment.hours())
+                            .minutes($scope.calendarEvent.startMoment.minutes()).isAfter(cle.endMoment, 'minute')) {
+                                cle.startMoment = moment(cle.startMoment)
+                                    .hours(moment(calendarEvent.startTime).hours())
+                                    .minutes(moment(calendarEvent.startTime).minutes());
+                                cle.startTime = calendarEvent.startTime;
                                 save = true;
-                            }
-                        }
-                    } else {
-                        if (calendarEvent.startDateToRecurrence) {
-                            if (!calendarEvent.allday && !cle.allday) {
-                                if (!moment(cle.startMoment).hours($scope.calendarEvent.startMoment.hours()).minutes($scope.calendarEvent.startMoment.minutes()).isAfter(cle.endMoment, 'minute')) {
-                                    cle.startMoment = moment(cle.startMoment)
-                                        .hours(moment(calendarEvent.startTime).hours())
-                                        .minutes(moment(calendarEvent.startTime).minutes());
-                                    cle.startTime = calendarEvent.startTime;
-                                    save = true;
-                                }
-                            }
-                        }
-                        if (calendarEvent.endDateToRecurrence) {
-                            if (!calendarEvent.allday && !cle.allday) {
-                                if (!moment(cle.endMoment).hours($scope.calendarEvent.endMoment.hours()).minutes($scope.calendarEvent.endMoment.minutes()).isBefore(cle.startMoment, 'minute')) {
-                                    cle.endMoment = moment(cle.endMoment)
-                                        .hours(moment(calendarEvent.endTime).hours())
-                                        .minutes(moment(calendarEvent.endTime).minutes());
-                                    cle.endTime = calendarEvent.endTime;
-                                    save = true;
-                                }
-                            }
-                        }
                     }
-                    if (calendarEvent.alldayToRecurrence && calendarEvent.allday) {
+                    if (calendarEvent.endDateToRecurrence
+                    && !calendarEvent.allday && !cle.allday
+                    && !moment(cle.endMoment).hours($scope.calendarEvent.endMoment.hours())
+                            .minutes($scope.calendarEvent.endMoment.minutes()).isBefore(cle.startMoment, 'minute')) {
+                        cle.endMoment = moment(cle.endMoment)
+                            .hours(moment(calendarEvent.endTime).hours())
+                            .minutes(moment(calendarEvent.endTime).minutes());
+                        cle.endTime = calendarEvent.endTime;
+                        save = true;
+                    }
+                    if (calendarEvent.allday && calendarEvent.editAllRecurrence) {
                         cle.allday = true;
+                        save = true;
+                    } else if (!calendarEvent.allday && calendarEvent.editAllRecurrence){
+                        cle.allday = false;
+                        cle.startTime = calendarEvent.startTime;
+                        cle.endTime = calendarEvent.endTime;
                         save = true;
                     }
                     if (save) {
@@ -1212,6 +1203,10 @@ export const calendarController =  ng.controller('CalendarController',
     $scope.cancelEventEdit = function(){
         $scope.display.showEventPanel = undefined;
     };
+
+    $scope.cancelRecurrentEventEdit = (): void => {
+        $scope.display.showRecurrencePanel = undefined;
+    }
 
     $scope.switchSelectAllCalendarEvents = function() {
         if ($scope.display.selectAllCalendarEvents) {

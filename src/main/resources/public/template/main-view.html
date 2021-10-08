@@ -160,6 +160,13 @@
     </lightbox>
 </div>
 
+<!--Lightbox : Edit all recurrence or only event-->
+<div ng-if="display.showRecurrencePanel && calendarEvent.isRecurrent">
+    <lightbox show="display.showRecurrencePanel" on-close="cancelRecurrentEventEdit()">
+        <container template="recurrenceLightbox"></container>
+    </lightbox>
+</div>
+
 <!-- Lightbox : Confirm remove calendar event -->
 <div ng-if="display.confirmDeleteCalendarEvent">
     <lightbox class="remove-calendar-event" show="display.confirmDeleteCalendarEvent" on-close="cancelRemoveCalendarEvent()">
