@@ -41,8 +41,10 @@ export class CalendarEvent implements Selectable, Shareable{
     noMoreRecurrence: boolean; //all the recurrence the event was part of is deleted
     detailToRecurrence: boolean;
     startDateToRecurrence: boolean;
+    endDateToRecurrence: boolean;
     deleteAllRecurrence: boolean;
     sendNotif: boolean;
+    editAllRecurrence: boolean;
 
     constructor (calendarEvent? : Object) {
         this.myRights = new Rights(this);
