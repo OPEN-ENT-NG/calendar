@@ -7,15 +7,19 @@
       text-transform: uppercase;
       font-weight: normal;
       color: $calendar-white;
+      padding-left: 10px !important;
     }
   }
 
   &-calendar-choice-view {
-    display: inline-flex;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
     align-items: center;
 
     &-item {
       opacity: 0.2;
+      flex: 1;
       &.selected {
         opacity: 1;
       }
