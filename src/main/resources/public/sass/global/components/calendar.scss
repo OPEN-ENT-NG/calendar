@@ -147,6 +147,14 @@ calendar {
         width: 30px;
         margin-left: 20px;
     }
+
+    span {
+        overflow-wrap: break-word;
+    }
+
+    .calendar-current-week {
+        max-height: unset;
+    }
 }
 
 h1 a {
