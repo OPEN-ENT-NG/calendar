@@ -12,7 +12,8 @@ import {
     timeConfig,
     recurrence,
     LANG_CALENDAR,
-    rights
+    rights,
+    ACTIONS
 } from "../model/constantes";
 import {
     isSameAfter,
@@ -521,7 +522,6 @@ export const calendarController =  ng.controller('CalendarController',
                  $scope.display.showRecurrencePanel = false;
                  template.close('recurrenceLightbox');
                  template.open('lightbox', 'edit-event');
-                 // $scope.calendarEvent.editAllRecurrence = undefined;
                  $scope.display.showEventPanel = true;
              } else {
                  template.open('lightbox', 'view-event');
@@ -1035,9 +1035,15 @@ export const calendarController =  ng.controller('CalendarController',
         }
     };
 
-    $scope.saveCalendarEventEdit = async (calendarEvent = $scope.calendarEvent, event?, shareOption?: boolean) => {
+    $scope.saveCalendarEventEdit = async (calendarEvent = $scope.calendarEvent, event ?, shareOption ? : boolean) => {
+
+        const recurrenceItemsMinimumLength:number = 3;
+
         async function doItemCalendarEvent(items, count) {
-            if (items.length === count) {
+            /**
+             * Resets elements before closing event saving
+             */
+            function endRecurrenceSave() : void {
                 calendarEvent.noMoreRecurrent = calendarEvent.noMoreRecurrent && false;
                 calendarEvent.noMoreRecurrence = calendarEvent.noMoreRecurrence && false;
                 calendarEvent.detailToRecurrence = calendarEvent.detailToRecurrence && false;
@@ -1050,60 +1056,76 @@ export const calendarController =  ng.controller('CalendarController',
                 if (shareOption) {
                     if (calendarEvent.isRecurrent && !calendarEvent.created){
                         if (!$scope.display.showEventPanel) {
-                           $scope.shareEvent($scope.recurrentCalendarEventToShare ? $scope.recurrentCalendarEventToShare : {}, event);
+                            $scope.shareEvent($scope.recurrentCalendarEventToShare ? $scope.recurrentCalendarEventToShare : {}, event);
                         }
                     } else {
                         $scope.shareEvent($scope.calendarEvent, event);
                     }
                 }
-            } else {
-                items[count].calEvent.owner = {
-                    userId: model.me.userId,
-                    displayName: model.me.username
-                };
-                let itemCalendarEvent = items[count].calEvent;
-                let action = items[count].action;
-                if (action === 'save') {
-                    if (itemCalendarEvent.isRecurrent && count!== 0) {
-                        var parentId = items[0].calEvent._id;
-                        if (items[0].calEvent.parentId) {
-                            parentId = items[0].calEvent.parentId;
-                        }
-                        if ($scope.recurrentCalendarEventToShare === null) {
-                            $scope.recurrentCalendarEventToShare = items[count].calEvent;
-                        }
-                        itemCalendarEvent.parentId = parentId;
-                    }
-                    if (!itemCalendarEvent.created && $scope.sendNotif === false){
-                        itemCalendarEvent.sendNotif = $scope.sendNotif;
-                    }
-                    itemCalendarEvent.save()
-                        .then(() => {
-                            items[count].calEvent._id =  itemCalendarEvent._id;
-                            count++;
-                            doItemCalendarEvent(items, count);
-                        })
-                        .catch((e) =>{
-                            console.error(e);
-                            notify.error(lang.translate('calendar.error.date.saving'));
-                            count = items.length;
-                            doItemCalendarEvent(items, count);
-                        })
+            }
+
+            if (!$scope.calendarEvent.isRecurrent || items.length >= recurrenceItemsMinimumLength)  {
+                if (items.length === count) {
+                    endRecurrenceSave();
                 } else {
-                    await itemCalendarEvent.delete();
+                    items[count].calEvent.owner = {
+                        userId: model.me.userId,
+                        displayName: model.me.username
+                    };
+                    let itemCalendarEvent : any = items[count].calEvent;
+                    let action : string = items[count].action;
+                    if (action === ACTIONS.save) {
+                        if (itemCalendarEvent.isRecurrent && count!== 0) {
+                            var parentId : string = items[0].calEvent._id;
+                            if (items[0].calEvent.parentId) {
+                                parentId = items[0].calEvent.parentId;
+                            }
+                            if ($scope.recurrentCalendarEventToShare === null) {
+                                $scope.recurrentCalendarEventToShare = items[count].calEvent;
+                            }
+                            itemCalendarEvent.parentId = parentId;
+                        }
+                        if (!itemCalendarEvent.created && $scope.sendNotif === false){
+                            itemCalendarEvent.sendNotif = $scope.sendNotif;
+                        }
+                        if(items.length === recurrenceItemsMinimumLength){
+                            itemCalendarEvent.isRecurrent = false;
+                            itemCalendarEvent.recurrence = false;
+                            itemCalendarEvent.parentId = false;
+                            itemCalendarEvent.index = 0;
+                        }
+                        itemCalendarEvent.save()
+                            .then(() => {
+                                items[count].calEvent._id =  itemCalendarEvent._id;
+                                count++;
+                                doItemCalendarEvent(items, count);
+                            })
+                            .catch((e) =>{
+                                console.error(e);
+                                notify.error(lang.translate('calendar.error.date.saving'));
+                                count = items.length;
+                                doItemCalendarEvent(items, count);
+                            })
+                    } else {
+                        await itemCalendarEvent.delete();
                         count++;
                         doItemCalendarEvent(items, count);
+                    }
                 }
+            } else {
+                toasts.warning(lang.translate('calendar.error.date.saving'));
+                endRecurrenceSave();
             }
+
         }
         $scope.recurrentCalendarEventToShare = null;
         $scope.createContentToWatch();
-        var items = [];
+        let items = [];
         calendarEvent.startMoment = moment(calendarEvent.startMoment).seconds(0).milliseconds(0);
         calendarEvent.endMoment = moment(calendarEvent.endMoment).seconds(0).milliseconds(0);
         $scope.display.calendar = false;
-        var hasExistingRecurrence = false;
-        var recurrentCalendarEvents = $scope.calendarEvents.getRecurrenceEvents(calendarEvent);
+        let hasExistingRecurrence : boolean = false;
+        let recurrentCalendarEvents = $scope.calendarEvents.getRecurrenceEvents(calendarEvent);
 
         if (recurrentCalendarEvents.length > 1) {
             hasExistingRecurrence = true;
@@ -1114,7 +1136,7 @@ export const calendarController =  ng.controller('CalendarController',
                 calendarEvent.recurrence.end_on = moment(calendarEvent.recurrence.end_on).hours(0).minutes(0).seconds(0).milliseconds(0);
             }
         }
-        if (calendarEvent.noMoreRecurrent) {
+        if (calendarEvent.noMoreRecurrent || calendarEvent.noMoreRecurrence) {
             calendarEvent.isRecurrent = false;
         }
         if (!calendarEvent.isRecurrent) {
@@ -1127,31 +1149,31 @@ export const calendarController =  ng.controller('CalendarController',
             calendarEvent.index = 0;
         }
 
-        var parentAction = 'create';
+        let parentAction : string = ACTIONS.create;
         if (calendarEvent._id) {
             parentAction = 'update';
         }
-        var item = {'calEvent': calendarEvent, 'action': 'save'};
+        let item = {'calEvent': calendarEvent, 'action': ACTIONS.save};
         items.push(item);
         if (calendarEvent.isRecurrent && !calendarEvent.parentId && !hasExistingRecurrence) {
             Array.prototype.push.apply(items, $scope.handleRecurrence(calendarEvent));
         }
         if (calendarEvent.isRecurrent && !calendarEvent.parentId) {
-            var item = {'calEvent': calendarEvent, 'action': 'delete'};
-            if (parentAction === 'create') {
+            let item = {'calEvent': calendarEvent, 'action': ACTIONS.delete};
+            if (parentAction === ACTIONS.create) {
                 items.push(item);
             } else if (items.length > 1) {
                 items.push(item);
             } else {
                 calendarEvent.parentId = calendarEvent._id;
-                item.action = 'save';
+                item.action = ACTIONS.save;
                 items.push(item);
             }
         }
         if (calendarEvent.noMoreRecurrent && hasExistingRecurrence && calendarEvent.noMoreRecurrence) {
             recurrentCalendarEvents.forEach(function(cle) {
                 if (cle._id !== calendarEvent._id) {
-                    var item = {'calEvent': cle, 'action': 'delete'};
+                    let item = {'calEvent': cle, 'action': ACTIONS.delete};
                     items.push(item);
                 }
             });
@@ -1162,7 +1184,7 @@ export const calendarController =  ng.controller('CalendarController',
             calendarEvent.parentId) {
             recurrentCalendarEvents.forEach (function(cle) {
                 if (cle._id !== calendarEvent._id) {
-                    var save = false;
+                    let save : boolean = false;
                     if (calendarEvent.detailToRecurrence) {
                         cle.title = calendarEvent.title;
                         cle.description = calendarEvent.description;
@@ -1199,7 +1221,7 @@ export const calendarController =  ng.controller('CalendarController',
                         save = true;
                     }
                     if (save) {
-                        var item = {'calEvent': cle, 'action': 'save'};
+                        let item = {'calEvent': cle, 'action': ACTIONS.save};
                         items.push(item);
                     }
                 }
