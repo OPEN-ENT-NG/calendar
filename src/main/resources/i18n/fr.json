@@ -8,6 +8,7 @@
     "calendar.confirm.delete.calendar": "Confirmer la suppression de l'agenda",
     "calendar.new.event": "Créer un événement",
     "calendar.edit.event": "Éditer un événement",
+    "calendar.edit.recurrence": "Éditer une récurrence",
     "calendar.event.calendar": "Agenda",
     "calendar.event.header.details": "Détails",
     "calendar.event.header.dates": "Dates",
