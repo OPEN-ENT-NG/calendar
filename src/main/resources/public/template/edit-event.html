@@ -303,7 +303,7 @@
                     ng-disabled="form.$invalid || calendarEvent.startMoment > calendarEvent.endMoment || !isCalendarSelectedInEvent()
                     || !hasRightOnSharedEvent(calendarEvent, rights.resources.shareEvent.right)|| calendarEvent.deleteAllRecurrence
                     || calendarEvent.isRecurrent">
-                [[nameOfShareButton(calendarEvent)]]
+                [[nameOfShareButton(calendarEvent, "calendar")]]
             </button>
             <button ng-if="calendarEvent._id" class="right-magnet" ng-click="confirmRemoveCalendarEvent(calendarEvent, $event)"
                     ng-disabled="!hasRightOnSharedEvent(calendarEvent, rights.resources.updateEvent.right)
