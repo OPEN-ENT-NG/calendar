@@ -813,17 +813,24 @@ export const calendarController =  ng.controller('CalendarController',
         };
     }
 
-    $scope.nameOfShareButton = (calendarEvent) : string => {
-        if(calendarEvent && calendarEvent.calendar){
-            let numberOfSharedCalendars = calendarEvent.calendar
-                .filter((calendar:Calendar): boolean => calendar.shared && (calendar.shared.length !== 0))
-                .length;
-
-            return (numberOfSharedCalendars === 0)?
-                lang.translate('calendar.event.save.and.share') :
-                lang.translate('calendar.event.save.and.restrict');
-        } else {
+    $scope.nameOfShareButton = (calendarEvent: CalendarEvent, view: "calendar"|"list") : string => {
+        if (!calendarEvent || !calendarEvent.calendar) {
             return "";
+        }
+
+        let numberOfSharedCalendars: number = calendarEvent.calendar
+            .filter((calendar:Calendar): boolean => calendar.shared && (calendar.shared.length !== 0))
+            .length;
+
+        const isShared = (): boolean => numberOfSharedCalendars > 0;
+
+        switch(view) {
+            case "calendar":
+                return lang.translate(`calendar.event.save.and.${isShared() ? 'restrict' : 'share'}`);
+            case "list":
+                return lang.translate(`calendar.event.${isShared() ? 'restrict' : 'share'}`);
+            default:
+                return "";
         }
     }
 

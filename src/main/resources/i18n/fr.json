@@ -126,6 +126,8 @@
     "cannot.delete.default.calendar": "Votre calendrier par défaut ne peut pas être supprimé",
     "calendar.event.save.and.restrict": "Enregistrer et restreindre",
     "calendar.event.save.and.share": "Enregistrer et partager",
+    "calendar.event.restrict": "Restreindre",
+    "calendar.event.share": "Partager",
     "calendar.share.recurrence.only.first": "Seule la première récurrence de cet évènement sera partagée.",
     "calendar.event.save.error": "Problème d'enregistrement de l'évènement.",
     "calendar.display.mode": "Mode d'affichage",
