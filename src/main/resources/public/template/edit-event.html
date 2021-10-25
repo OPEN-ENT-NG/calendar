@@ -302,7 +302,7 @@
             <button class="right-magnet" ng-click="saveAndShareEvent(calendarEvent, $event)"
                     ng-disabled="form.$invalid || calendarEvent.startMoment > calendarEvent.endMoment || !isCalendarSelectedInEvent()
                     || !hasRightOnSharedEvent(calendarEvent, rights.resources.shareEvent.right)|| calendarEvent.deleteAllRecurrence
-                    || calendarEvent.isRecurrent">
+                    ||(calendarEvent.isRecurrent && !calendarEvent.noMoreRecurrent)">
                 [[nameOfShareButton(calendarEvent, "calendar")]]
             </button>
             <button ng-if="calendarEvent._id" class="right-magnet" ng-click="confirmRemoveCalendarEvent(calendarEvent, $event)"
