@@ -94,6 +94,6 @@
     "calendar.event.all.recurrences": "All occurrences of this recurrence",
     "calendar.edit.recurrent.event": "Edit recurrent event",
     "calendar.utils.edit": "Edit",
-    "calendar.event.recurrence.edition": "These changes will impact"
-
+    "calendar.event.recurrence.edition": "These changes will impact",
+    "calendar.error.date.saving": "Saving issue : data is not valid"
 }
