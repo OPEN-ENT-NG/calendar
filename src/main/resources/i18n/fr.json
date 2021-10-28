@@ -114,7 +114,7 @@
     "calendar.recurrence.daymap.fri":"Ve",
     "calendar.recurrence.daymap.sat":"Sa",
     "calendar.recurrence.daymap.sun":"Di",
-    "calendar.error.date.saving":"Problème d'enregistrement de l'évènement : Les dates de début et fin ne sont pas les mêmes, veuillez contacter le service support",
+    "calendar.error.date.saving": "Problème d'enregistrement : une donnée n'est pas valide",
     "calendar.delete.error": "Une erreur est survenue lors de la supression du calendrier",
     "calendar.navigation.guard": "Les modifications que vous avez apportées ne seront peut-être pas enregistrées. Souhaitez vous quitter cette page?",
     "calendar.event.not.all.calendar.rights": "Vous n'avez pas les droits de modification sur cet évènement.",
