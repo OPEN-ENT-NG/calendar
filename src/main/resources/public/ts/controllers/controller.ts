@@ -1,4 +1,4 @@
-import {$, _, moment, ng, template, idiom as lang, notify, toasts} from "entcore";
+import {$, _, moment, ng, template, idiom as lang, notify, toasts, angular} from "entcore";
 
 import {
     Calendar,
@@ -532,6 +532,12 @@ export const calendarController =  ng.controller('CalendarController',
     };
 
     $scope.closeCalendarEvent = () => {
+        if(!$scope.calendarEvent.title){
+            $scope.eventForm = angular.element(document.getElementById("event-form")).scope();
+            $scope.eventForm.form.$setPristine();
+            $scope.eventForm.form.$setUntouched();
+            $scope.$apply();
+        }
         template.close('lightbox');
         $scope.showCalendarEventTimePicker = false;
         $scope.display.showEventPanel = false;
