@@ -620,7 +620,7 @@ export const calendarController =  ng.controller('CalendarController',
             $scope.calendarEvent.parentId = false;
             $scope.calendarEvent.index = 0;
             $scope.calendarEvent.save();
-            $scope.$apply();
+            $scope.refreshCalendarEvents();
         }
         template.close('lightbox');
         $scope.display.confirmDeleteCalendarEvent = false;
