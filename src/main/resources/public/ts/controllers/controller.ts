@@ -614,6 +614,14 @@ export const calendarController =  ng.controller('CalendarController',
         }
         $scope.calendarEvents.deselectAll();
         $scope.display.selectAllCalendarEvents = $scope.display.selectAllCalendarEvents && false;
+        if ($scope.calendarEvent.noMoreRecurrence){
+            $scope.calendarEvent.isRecurrent = false;
+            $scope.calendarEvent.recurrence = false;
+            $scope.calendarEvent.parentId = false;
+            $scope.calendarEvent.index = 0;
+            $scope.calendarEvent.save();
+            $scope.$apply();
+        }
         template.close('lightbox');
         $scope.display.confirmDeleteCalendarEvent = false;
     };
