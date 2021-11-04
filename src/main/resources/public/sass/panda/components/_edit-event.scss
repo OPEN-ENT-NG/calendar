@@ -1,0 +1,13 @@
+.editEvent {
+  &-itemColumn {
+    width: max-content;
+  }
+
+  .content .flex-row {
+    height: 150px;
+  }
+
+  .content::after {
+    content: unset;
+  }
+}
