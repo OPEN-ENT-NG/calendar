@@ -63,6 +63,7 @@ export const calendarController =  ng.controller('CalendarController',
         $scope.calendarAsContribRight = new Array<String>();
         $scope.selectedCalendarInEvent = new Array<String>();
         $scope.rights = rights;
+        $scope.buttonAction = ACTIONS;
 
         template.open('main', 'main-view');
         template.open('top-menu', 'top-menu');
@@ -1309,6 +1310,50 @@ export const calendarController =  ng.controller('CalendarController',
             $scope.showCalendarEventTimePicker = false;
         }
     };
+
+    /**
+     * Returns true if the event edition form is in the right format:
+     * areFieldsInCommonValid is true, it has a title, at least one calendar selected
+     * and the event end time is after the event start time.
+     * Depending on the case, more conditions can apply.
+     * @param actionButton the action of the button calling the method
+     */
+    $scope.isEventFormValid = (calendarEvent, actionButton : "save"|"share"|"delete") : boolean => {
+        if (!calendarEvent) {
+            return false;
+        }
+
+        $scope.eventForm = angular.element(document.getElementById("event-form")).scope();
+        let areFieldsInCommonValid = (!$scope.eventForm.form.$invalid && $scope.isCalendarSelectedInEvent()
+            && $scope.isTimeValid());
+
+        switch(actionButton) {
+            case "save":
+                /** Recurrent event cannot be saved if the "Delete other events from recurrence" checkbox is checked*/
+                return (areFieldsInCommonValid && !(calendarEvent.isRecurrent && calendarEvent.noMoreRecurrent
+                    && calendarEvent.noMoreRecurrence));
+            case "share":
+                /** Recurrent event can only be shared if the "Remove this event from recurrence" checkbox is checked*/
+                return (areFieldsInCommonValid && !(calendarEvent.isRecurrent && !calendarEvent.noMoreRecurrent)
+                    && !calendarEvent.editAllRecurrence);
+            case "delete":
+                /** Recurrent event can only be deleted in one of these cases:
+                 * Edit "This event only" and then check "Remove this event from recurrence"
+                 * Edit "This event only" and then check "Delete other events from recurrence"
+                 * "Edit all occurrences of this recurrence"
+                 */
+                return (!calendarEvent.isRecurrent || calendarEvent.noMoreRecurrent || calendarEvent.editAllRecurrence);
+            default:
+                return false;
+        }
+    }
+
+    /**
+     * Returns true if the event start time is before the event end time or if the event lasts all day
+     */
+    $scope.isTimeValid = () : boolean => (($scope.calendarEvent.startTime && $scope.calendarEvent.endTime
+                && moment($scope.calendarEvent.startTime).isBefore(moment($scope.calendarEvent.endTime)))
+                || $scope.calendarEvent.allday);
 
     var updateCalendarList = function(start, end){
         model.calendarEvents.filters.startMoment.date(start.date());
