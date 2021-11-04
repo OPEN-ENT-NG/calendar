@@ -95,5 +95,6 @@
     "calendar.edit.recurrent.event": "Edit recurrent event",
     "calendar.utils.edit": "Edit",
     "calendar.event.recurrence.edition": "These changes will impact",
-    "calendar.error.date.saving": "Saving issue : data is not valid"
+    "calendar.error.date.saving": "Saving issue : data is not valid",
+    "calendar.error.time": "End time must be after start time."
 }
