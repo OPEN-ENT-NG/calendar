@@ -1,0 +1,35 @@
+.sidebar {
+
+  &-title {
+    background-color: $calendar-blue;
+
+    &-calendar-display {
+      text-transform: uppercase;
+      font-weight: normal;
+      color: $calendar-white;
+      padding-left: 10px !important;
+      margin: 10px 5px;
+    }
+  }
+
+  &-calendar-choice-view {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+
+    &-item {
+      opacity: 0.2;
+      flex: 1;
+      &.selected {
+        opacity: 1;
+      }
+    }
+  }
+}
+
+
+
+
+
+
