@@ -143,6 +143,9 @@ calendar {
         margin-right: 0px;
         margin-left: 0px;
     }
+    input[type="button"] i, input[type="submit"] i, a.button i, button i {
+        margin: 0!important;
+    }
 
     .dates>i18n {
         margin-left: 20px;
