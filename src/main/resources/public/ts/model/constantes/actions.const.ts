@@ -4,3 +4,5 @@ export const ACTIONS = {
     delete: 'delete',
     share: 'share'
 }
+
+export type ActionButtonType = "save" | "share" | "delete";

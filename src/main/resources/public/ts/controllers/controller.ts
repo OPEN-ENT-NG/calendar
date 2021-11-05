@@ -13,7 +13,7 @@ import {
     recurrence,
     LANG_CALENDAR,
     rights,
-    ACTIONS
+    ACTIONS, ActionButtonType
 } from "../model/constantes";
 import {
     isSameAfter,
@@ -1318,7 +1318,7 @@ export const calendarController =  ng.controller('CalendarController',
      * Depending on the case, more conditions can apply.
      * @param actionButton the action of the button calling the method
      */
-    $scope.isEventFormValid = (calendarEvent, actionButton : "save"|"share"|"delete") : boolean => {
+    $scope.isEventFormValid = (calendarEvent, actionButton: ActionButtonType) : boolean => {
         if (!calendarEvent) {
             return false;
         }
@@ -1328,15 +1328,15 @@ export const calendarController =  ng.controller('CalendarController',
             && $scope.isTimeValid());
 
         switch(actionButton) {
-            case "save":
+            case ACTIONS.save:
                 /** Recurrent event cannot be saved if the "Delete other events from recurrence" checkbox is checked*/
                 return (areFieldsInCommonValid && !(calendarEvent.isRecurrent && calendarEvent.noMoreRecurrent
                     && calendarEvent.noMoreRecurrence));
-            case "share":
+            case ACTIONS.share:
                 /** Recurrent event can only be shared if the "Remove this event from recurrence" checkbox is checked*/
                 return (areFieldsInCommonValid && !(calendarEvent.isRecurrent && !calendarEvent.noMoreRecurrent)
                     && !calendarEvent.editAllRecurrence);
-            case "delete":
+            case ACTIONS.delete:
                 /** Recurrent event can only be deleted in one of these cases:
                  * Edit "This event only" and then check "Remove this event from recurrence"
                  * Edit "This event only" and then check "Delete other events from recurrence"
