@@ -37,6 +37,7 @@
     "calendar.filters.date.from": "From",
     "calendar.filters.date.to": "to",
     "calendar.my.calendars": "My calendars",
+    "calendar.all.calendars": "Available calendars",
     "calendar.icon.show.events.list" : "List view",
     "calendar.icon.show.calendar": "Agenda view",
     "calendar.import": "Import",

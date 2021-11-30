@@ -35,6 +35,7 @@
     "calendar.filters.date.from": "Du",
     "calendar.filters.date.to": "au",
     "calendar.my.calendars": "Mes agendas",
+    "calendar.all.calendars": "Agendas disponibles",
     "calendar.icon.show.events.list" : "Vue liste",
     "calendar.icon.show.calendar": "Vue agenda",
     "calendar.import": "Importer",
