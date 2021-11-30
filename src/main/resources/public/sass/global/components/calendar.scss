@@ -13,26 +13,26 @@
     padding: 10px;
 }
 
-.color-selector .green, .row .green, nav.vertical ul li a.green {
+.color-selector .green, .row .green, nav.vertical ul li a.green, .calendarTooltip>.green {
     background-color: #28c7a9 !important;
 }
-.color-selector .purple, .row .purple, nav.vertical ul li a.purple {
+.color-selector .purple, .row .purple, nav.vertical ul li a.purple, .calendarTooltip>.purple {
     background-color: #ab6fc9 !important;
 }
-.color-selector .orange, .row .orange, nav.vertical ul li a.orange {
+.color-selector .orange, .row .orange, nav.vertical ul li a.orange, .calendarTooltip>.orange {
     background-color: #f4ce01 !important;
 }
-.color-selector .pink, .row .pink, nav.vertical ul li a.pink {
+.color-selector .pink, .row .pink, nav.vertical ul li a.pink, .calendarTooltip>.pink {
     background-color: #ec6045 !important;
 }
-.color-selector .cyan, .row .cyan , nav.vertical ul li a.cyan{
+.color-selector .cyan, .row .cyan , nav.vertical ul li a.cyan, .calendarTooltip>.cyan {
     background-color: $calendar-blue !important;
 }
-.color-selector .grey, .row .grey, nav.vertical ul li a.grey {
+.color-selector .grey, .row .grey, nav.vertical ul li a.grey, .calendarTooltip>.grey {
     background-color: #b7b8ba !important;
 }
 
-.color-selector .yellow, .row .yellow, nav.vertical ul li a.yellow {
+.color-selector .yellow, .row .yellow, nav.vertical ul li a.yellow, .calendarTooltip>.yellow {
     background-color: #ecbe30 !important;
 }
 
@@ -169,4 +169,15 @@ h1 a {
     padding-left: 29px;
 }
 
+.calendarTooltip {
+    padding: 11px;
+    text-align: center;
+    background-color: $calendar-white !important;
+
+    &-title{
+        color: $calendar-white !important;
+        border-radius: 9px;
+        padding: 1px 6px;
+    }
+}
 

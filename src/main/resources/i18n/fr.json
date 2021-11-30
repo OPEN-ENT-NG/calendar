@@ -23,7 +23,7 @@
     "calendar.event.end.date": "Date de fin",
     "calendar.event.start.time": "Heure de début",
     "calendar.event.end.time": "Heure de fin",
-    "calendar.event.owner": "Créateur de l'événement",
+    "calendar.event.owner": "Créateur de l'événement :",
     "calendar.events.not.imported": "événement(s) non importé(s)",
     "calendar.events.properly.imported": "événement(s) correctement importé(s)",
     "calendar.read": "Lire",
@@ -141,6 +141,8 @@
     "calendar.event.all.recurrences": "Toutes les occurrences de cette récurrence",
     "calendar.edit.recurrent.event": "Modifier un évènement récurrent",
     "calendar.utils.edit": "Modifier",
-    "calendar.event.recurrence.edition": "Vous souhaitez modifier"
-
+    "calendar.event.recurrence.edition": "Vous souhaitez modifier",
+    "calendar.event.date": "Date : ",
+    "calendar.event.time.from": "De ",
+    "calendar.event.time.tolc": "à "
 }

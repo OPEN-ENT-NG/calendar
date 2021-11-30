@@ -1,2 +1,21 @@
-<div class="tooltip-container calendar-detail-tooltip">
-</div>
+<article ng-if="calendarEvent" class="calendarTooltip">
+    <!--event title-->
+    <div class="calendarTooltip-title cell twelve ellipsis [[item.color]]">
+        [[item.title]]
+    </div>
+
+    <!--event date + time (from x to x)-->
+    <div>
+        <i18n>calendar.event.date</i18n> [[item.startMomentDate]]
+    </div>
+    <div>
+        <i18n>calendar.event.time.from</i18n>[[item.startMomentTime]]
+        <i18n>calendar.event.time.tolc</i18n>[[item.endMomentTime]]
+    </div>
+
+    <!--event owner-->
+    <label>
+        <i18n>calendar.event.owner</i18n>
+    </label>
+    <span> [[item.owner.displayName]]</span>
+</article>

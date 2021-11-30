@@ -146,3 +146,9 @@ ul.colored a.selected {
 	margin-top: 20px;
 	margin-bottom: 10px;
 }
+
+.ellipsis {
+	text-overflow: ellipsis;
+	overflow: hidden;
+	white-space: nowrap;
+}
