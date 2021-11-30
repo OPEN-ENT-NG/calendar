@@ -23,7 +23,7 @@
     "calendar.event.end.date": "End date",
     "calendar.event.start.time": "Start time",
     "calendar.event.end.time": "End time",
-    "calendar.event.owner" : "Event creator",
+    "calendar.event.owner" : "Event creator:",
     "calendar.events.not.imported": "events not imported",
     "calendar.events.properly.imported": "events imported properly",
     "calendar.export": "Export",
@@ -97,5 +97,8 @@
     "calendar.utils.edit": "Edit",
     "calendar.event.recurrence.edition": "These changes will impact",
     "calendar.error.date.saving": "Saving issue : data is not valid",
-    "calendar.error.time": "End time must be after start time."
+    "calendar.error.time": "End time must be after start time.",
+    "calendar.event.date": "Date: ",
+    "calendar.event.time.from": "From ",
+    "calendar.event.time.tolc": "to "
 }

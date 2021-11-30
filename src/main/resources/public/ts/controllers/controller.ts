@@ -13,12 +13,14 @@ import {
     recurrence,
     LANG_CALENDAR,
     rights,
-    ACTIONS, ActionButtonType
+    ACTIONS,
+    ActionButtonType
 } from "../model/constantes";
 import {
     isSameAfter,
     makerFormatTimeInput,
     utcTime,
+    safeApply
 } from "../model/Utils";
 import {calendar} from "entcore/types/src/ts/calendar";
 import {AxiosResponse} from "axios";
@@ -130,6 +132,14 @@ export const calendarController =  ng.controller('CalendarController',
         }
         if ($scope.display.list) $scope.calendarEvents.applyFilters();
         $scope.calendarEvents.filtered = $scope.removeDuplicateCalendarEvent($scope.calendarEvents.filtered);
+
+        /* trigger tooltip to show up */
+        let $scheduleItems: JQuery = $('.schedule-items');
+        $scheduleItems.mousemove(() => {
+            $timeout(() => safeApply($scope), 500)
+        });
+
+        safeApply($scope);
     };
 
     /**

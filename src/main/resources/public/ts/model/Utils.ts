@@ -27,3 +27,20 @@ export const utcTime = (getMomentScopeUtc:Date):number => {
 export const  isSameAfter = (dateCheck, dateNotPast) => {
     return (moment(dateCheck).isAfter(dateNotPast) || moment(dateCheck).isSame(dateNotPast))
 };
+
+/**
+ * Refresh the view
+ * @param $scope
+ * @returns {any}
+ */
+export function safeApply($scope: any, fn?): any {
+    const phase = $scope.$root.$$phase;
+    if (phase == '$apply' || phase == '$digest') {
+        if (fn && (typeof (fn) === 'function')) {
+            fn();
+        }
+    } else {
+        $scope.$apply(fn);
+    }
+
+}
