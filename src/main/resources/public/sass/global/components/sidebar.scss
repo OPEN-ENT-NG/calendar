@@ -25,6 +25,28 @@
       }
     }
   }
+
+  &-calendar-list {
+    overflow: visible !important;
+
+    &:hover .tooltip-top {
+      @include tooltipVisible();
+    }
+
+    .tooltip-top {
+      @include tooltipTemplate(190px);
+      bottom: 33px;
+      margin-left: -47px;
+
+      &:after {
+        @include tooltipBottomArrow();
+        top: 100%;
+        left: 15%;
+      }
+    }
+
+  }
+
 }
 
 

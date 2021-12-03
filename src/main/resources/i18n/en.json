@@ -4,6 +4,7 @@
     "calendar.view.event": "View event",
     "calendar.edit": "Edit calendar",
     "calendar.color": "Calendar color",
+    "calendar.owner": "Calendar creator:",
     "calendar.confirm.delete.event": "Confirm event deletion",
     "calendar.confirm.delete.calendar": "Confirm calendar deletion",
     "calendar.new.event": "New event",
