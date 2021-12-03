@@ -4,6 +4,7 @@
     "calendar.new": "Créer un agenda",
     "calendar.edit": "Éditer un agenda",
     "calendar.color": "Couleur de l'agenda",
+    "calendar.owner": "Créateur de l'agenda :",
     "calendar.confirm.delete.event": "Confirmer la suppression de l'événement",
     "calendar.confirm.delete.calendar": "Confirmer la suppression de l'agenda",
     "calendar.new.event": "Créer un événement",

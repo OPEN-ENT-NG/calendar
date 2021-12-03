@@ -58,12 +58,15 @@
                             <a class="selected"><i18n>calendar.shared.calendars</i18n></a>
                             <ul ng-if="vm.hasSharedCalendars()" class="colored">
                                 <li ng-repeat="cl in vm.calendars.all | filter:vm.isCalendarSharedWithMe | orderBy: '+title'">
-                                    <a class="[[cl.color]]" ng-class="{'selected': cl.selected, 'notselected': !cl.selected}"
+                                    <a class="[[cl.color]] sidebar-calendar-list" ng-class="{'selected': cl.selected, 'notselected': !cl.selected}"
                                        ng-click="vm.onOpenOrCloseCalendar(cl, true)">
                                         <span>[[cl.title]]</span>
                                         <input ng-if="cl.myRights.manage" type="checkbox" class="calendar-checkbox"
                                                ng-click="$event.stopPropagationCallback();" ng-model="cl.showButtons"
                                                ng-change="vm.hideOtherCalendarCheckboxes(cl)"/>
+                                        <span class="tooltip-top">
+                                                <i18n>calendar.owner</i18n> <span>[[cl.owner.displayName]]</span>
+                                        </span>
                                     </a>
                                 </li>
                             </ul>
