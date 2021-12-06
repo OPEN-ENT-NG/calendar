@@ -31,15 +31,15 @@ export const sideBar = ng.directive('sideBar', () =>{
             onShowCalendar: '&',
             onShowList: '&',
             onOpenOrCloseCalendar: '&',
+            calendar: '=',
+            list: "="
         },
 
         restrict: 'E',
         controllerAs: 'vm',
         bindToController: {
-            list: "=",
             calendars: '=',
-            showButtonsCalendar: '=',
-            calendar: '='
+            showButtonsCalendar: '='
         },
 
         controller: function (){
