@@ -1334,25 +1334,25 @@ export const calendarController =  ng.controller('CalendarController',
         }
 
         $scope.eventForm = angular.element(document.getElementById("event-form")).scope();
+        /** Ensures that the fields of the form are correctly filled*/
         let areFieldsInCommonValid = (!$scope.eventForm.form.$invalid && $scope.isCalendarSelectedInEvent()
             && $scope.isTimeValid());
 
         switch(actionButton) {
             case ACTIONS.save:
                 /** Recurrent event cannot be saved if the "Delete other events from recurrence" checkbox is checked*/
-                return (areFieldsInCommonValid && !(calendarEvent.isRecurrent && calendarEvent.noMoreRecurrent
-                    && calendarEvent.noMoreRecurrence));
+                return (areFieldsInCommonValid);
             case ACTIONS.share:
                 /** Recurrent event can only be shared if the "Remove this event from recurrence" checkbox is checked*/
                 return (areFieldsInCommonValid && !(calendarEvent.isRecurrent && !calendarEvent.noMoreRecurrent)
                     && !calendarEvent.editAllRecurrence);
             case ACTIONS.delete:
                 /** Recurrent event can only be deleted in one of these cases:
-                 * Edit "This event only" and then check "Remove this event from recurrence"
-                 * Edit "This event only" and then check "Delete other events from recurrence"
+                 * "Edit this event only" and then check "Remove this event from recurrence"
                  * "Edit all occurrences of this recurrence"
                  */
-                return (!calendarEvent.isRecurrent || calendarEvent.noMoreRecurrent || calendarEvent.editAllRecurrence);
+                return (!calendarEvent.isRecurrent || calendarEvent.editAllRecurrence || (calendarEvent.noMoreRecurrent
+                    && !calendarEvent.noMoreRecurrence));
             default:
                 return false;
         }
