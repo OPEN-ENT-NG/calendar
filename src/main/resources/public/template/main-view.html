@@ -6,6 +6,7 @@
               on-show-calendar="showCalendar()"
               on-show-list="showList()"
               on-open-or-close-calendar="openOrCloseCalendar"
+              on-event-update-checkbox="eventSidebar$"
               class="cell three">
     </side-bar>
 </div>
@@ -74,7 +75,7 @@
 <!-- Lightbox : Share calendar -->
 <div ng-if="display.showPanelCalendar">
     <lightbox show="display.showPanelCalendar" on-close="display.showPanelCalendar = false;">
-        <share-panel app-prefix="'calendar'" resources="calendar" auto-close="true"></share-panel>
+        <share-panel app-prefix="'calendar'" resources="calendar" auto-close="true" on-submit="updateCalendars()"></share-panel>
     </lightbox>
 </div>
 
