@@ -1,14 +1,17 @@
 import { $, ng} from "entcore";
 import {Calendar, Calendars} from "../../model";
 import {ROOTS} from "../../core/const/roots";
-
+import {Subject} from "rxjs";
 
 interface IViewModel {
+    $onInit(): any;
 
+    // props
     calendars: Calendars;
     list: boolean;
-    calendar: Calendar;
     showButtonsCalendar: Calendar;
+    onEventUpdateCheckbox: Subject<void>;
+
 
     ownCalendars(): boolean;
     hasSharedCalendars(): boolean;
@@ -16,6 +19,9 @@ interface IViewModel {
     hideOtherCalendarCheckboxes(calendar): void;
     isMyCalendar(calendar: Calendar): void;
     isEmpty(): void;
+
+    //scope
+    calendar: Calendar;
 
     onShowCalendar(): void;
     onShowList(): void;
@@ -39,11 +45,21 @@ export const sideBar = ng.directive('sideBar', () =>{
         bindToController: {
             calendars: '=',
             showButtonsCalendar: '=',
-            list: "="
+            list: "=",
+            onEventUpdateCheckbox: '<'
         },
 
         controller: function (){
             const vm: IViewModel = <IViewModel>this;
+
+            vm.$onInit = () => {
+                if (vm.onEventUpdateCheckbox) {
+                    vm.onEventUpdateCheckbox.asObservable().subscribe(() => {
+                        vm.hideOtherCalendarCheckboxes(vm.calendar);
+                    });
+                }
+            };
+
         },
 
         link: function ($scope) {
@@ -51,7 +67,6 @@ export const sideBar = ng.directive('sideBar', () =>{
 
             vm.onShowCalendar = () : void => {
                 $scope.$eval($scope.onShowCalendar);
-
             };
 
             vm.onShowList = () : void => {
