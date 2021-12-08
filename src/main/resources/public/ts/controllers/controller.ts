@@ -1,5 +1,4 @@
 import {$, _, moment, ng, template, idiom as lang, notify, toasts, angular} from "entcore";
-
 import {
     Calendar,
     Calendars,
@@ -25,6 +24,7 @@ import {
 import {calendar} from "entcore/types/src/ts/calendar";
 import {AxiosResponse} from "axios";
 import {DateUtils} from "../utils/date.utils";
+import {Subject} from "rxjs";
 
 export const calendarController =  ng.controller('CalendarController',
     ["$location",
@@ -66,9 +66,14 @@ export const calendarController =  ng.controller('CalendarController',
         $scope.selectedCalendarInEvent = new Array<String>();
         $scope.rights = rights;
         $scope.buttonAction = ACTIONS;
+        $scope.eventSidebar$ = new Subject<void>();
 
         template.open('main', 'main-view');
         template.open('top-menu', 'top-menu');
+
+        this.$onDestroy = () => {
+            $scope.eventSidebar$.unsubscribe();
+        };
 
         route({
             goToCalendar : async function(params) {
@@ -377,6 +382,28 @@ export const calendarController =  ng.controller('CalendarController',
         return _.find($scope.calendarEvents.all, function(calendarEvent) {
             return $scope.isMyEvent(calendarEvent);
         });
+    };
+
+    $scope.updateCalendars = async () => {
+        let updatedCalendar = $scope.calendar;
+        let selectedCalendars = $scope.calendars.preference;
+        await Promise.all([
+            $scope.calendars.sync(),
+            $scope.calendars.preference.sync()
+        ]);
+        $scope.calendars.preference = selectedCalendars;
+        $scope.loadSelectedCalendars();
+        $scope.showCalendar();
+        $scope.calendar = $scope.calendars.all.find((cl :Calendar) => cl._id == updatedCalendar._id);
+        if($scope.calendar) {
+            $scope.calendar.selected = true;
+            $scope.calendar.showButtons = true;
+            $scope.display.showToggleButtons = true;
+            $scope.eventSidebar$.next();
+        } else {
+            $scope.display.showToggleButtons = false;
+        }
+        safeApply($scope);
     };
 
     $scope.loadSelectedCalendars = () => {
@@ -699,6 +726,7 @@ export const calendarController =  ng.controller('CalendarController',
     $scope.saveCalendarEdit = async () => {
         if ($scope.calendar._id) {
             await $scope.calendar.save();
+            $scope.updateCalendars();
             await $scope.calendar.calendarEvents.sync($scope.calendar, $scope.calendars);
             $scope.calendarEvents.applyFilters();
         } else {
@@ -708,6 +736,7 @@ export const calendarController =  ng.controller('CalendarController',
             $scope.loadSelectedCalendars();
             $scope.loadCalendarEvents();
         }
+        safeApply($scope);
         $scope.showCalendar();
         $scope.calendarCreationScreen = false;
     };

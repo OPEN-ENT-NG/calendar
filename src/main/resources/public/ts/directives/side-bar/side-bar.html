@@ -48,7 +48,7 @@
                                        ng-click="vm.onOpenOrCloseCalendar(cl, true)">
                                         <span>[[cl.title]]</span>
                                         <input type="checkbox" class="calendar-checkbox" ng-click="$event.stopPropagation();"
-                                               ng-model="cl.showButtons" ng-change="vm.hideOtherCalendarCheckboxes(cl)"/>
+                                               ng-model="cl.showButtons" ng-checked="cl.showButtons" ng-change="vm.hideOtherCalendarCheckboxes(cl)"/>
                                     </a>
                                 </li>
                             </ul>
@@ -62,7 +62,7 @@
                                        ng-click="vm.onOpenOrCloseCalendar(cl, true)">
                                         <span>[[cl.title]]</span>
                                         <input ng-if="cl.myRights.manage" type="checkbox" class="calendar-checkbox"
-                                               ng-click="$event.stopPropagationCallback();" ng-model="cl.showButtons"
+                                               ng-click="$event.stopPropagation();" ng-model="cl.showButtons" ng-checked="cl.showButtons"
                                                ng-change="vm.hideOtherCalendarCheckboxes(cl)"/>
                                         <span class="tooltip-top">
                                                 <i18n>calendar.owner</i18n> <span>[[cl.owner.displayName]]</span>
