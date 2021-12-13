@@ -1063,6 +1063,8 @@ export const calendarController =  ng.controller('CalendarController',
     $scope.saveCalendarEventEdit = async (calendarEvent = $scope.calendarEvent, event ?, shareOption ? : boolean) => {
 
         const recurrenceItemsMinimumLength:number = 3;
+        /** indicates if the event is being created, in which case its id does not exist yet*/
+        const isEventCreated: boolean = !calendarEvent._id;
 
         async function doItemCalendarEvent(items, count) {
             /**
@@ -1089,7 +1091,7 @@ export const calendarController =  ng.controller('CalendarController',
                 }
             }
 
-            if (!$scope.calendarEvent.isRecurrent || items.length >= recurrenceItemsMinimumLength)  {
+            if (!$scope.calendarEvent.isRecurrent || calendarEvent._id || items.length >= recurrenceItemsMinimumLength)  {
                 if (items.length === count) {
                     endRecurrenceSave();
                 } else {
@@ -1113,7 +1115,7 @@ export const calendarController =  ng.controller('CalendarController',
                         if (!itemCalendarEvent.created && $scope.sendNotif === false){
                             itemCalendarEvent.sendNotif = $scope.sendNotif;
                         }
-                        if(items.length === recurrenceItemsMinimumLength){
+                        if(isEventCreated && items.length === recurrenceItemsMinimumLength){
                             itemCalendarEvent.isRecurrent = false;
                             itemCalendarEvent.recurrence = false;
                             itemCalendarEvent.parentId = false;
