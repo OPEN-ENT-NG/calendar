@@ -76,13 +76,23 @@
                         <div class="content">
 
                             <div class="row">
-                                <div class="six cell">
+                                <!--event start date-->
+                                <div class="three cell">
                                     <label class="twelve cell form-label">
                                         <i18n>calendar.event.start.date</i18n>
                                     </label>
                                     <date-picker ng-model="calendarEvent.startMoment"
-                                                 ng-change="changeStartMoment()"></date-picker>
+                                                 ng-change="changeStartMoment()" class="nine cell"></date-picker>
                                 </div>
+                                <!--event end date-->
+                                <div class="three cell">
+                                    <label class="twelve cell form-label">
+                                        <i18n>calendar.event.end.date</i18n>
+                                    </label>
+                                    <date-picker ng-model="calendarEvent.endMoment"
+                                                 ng-change="changeEndMoment()" class="nine cell"></date-picker>
+                                </div>
+                                <!--event start hour-->
                                 <div class="three cell" ng-if="!calendarEvent.allday">
                                     <label class="twelve cell form-label">
                                         <i18n>calendar.event.start.time</i18n>
@@ -94,6 +104,7 @@
                                            step="60" start-moment="calendarEvent.startMoment"
                                            end-moment="calendarEvent.endMoment" required/>
                                 </div>
+                                <!--event end hour-->
                                 <div class="three cell" ng-if="!calendarEvent.allday">
                                     <label class="twelve cell form-label">
                                         <i18n>calendar.event.end.time</i18n>
@@ -118,6 +129,9 @@
 
                             <div class="top-spacing-twice warning form-element" ng-if="!isTimeValid()">
                                 <i18n>calendar.error.time</i18n>
+                            </div>
+                            <div class="top-spacing-twice warning form-element" ng-if="!isDateValid()">
+                                <i18n>calendar.error.date</i18n>
                             </div>
                         </div>
                     </div>
@@ -146,7 +160,9 @@
                                         </label>
                                         <select ng-model="calendarEvent.recurrence.type"
                                                 ng-change="changedRecurrenceType()">
-                                            <option value="every_day">[[lang.translate("calendar.recurrence.every.day")]]
+                                            <!--events that last more than one day cannot have a daily recurrence-->
+                                            <option value="every_day" ng-if="isOneDayEvent()">
+                                                [[lang.translate("calendar.recurrence.every.day")]]
                                             </option>
                                             <option value="every_week">
                                                 [[lang.translate("calendar.recurrence.every.week")]]
@@ -154,7 +170,7 @@
                                         </select>
                                     </div>
 
-                                    <div class="row" ng-if="calendarEvent.recurrence.type === 'every_day'">
+                                    <div class="row" ng-if="calendarEvent.recurrence.type === 'every_day' && isOneDayEvent()">
                                         <i18n>calendar.recurrence.every</i18n>
                                         <select ng-model="calendarEvent.recurrence.every"
                                                 ng-options="n for n in _.range(1, periods.every_day_max)"
@@ -173,10 +189,10 @@
                                             </select>
                                             <i18n>calendar.recurrence.weeks</i18n>
                                         </div>
-                                        <div class="row">
+                                        <div class="row" ng-if="isOneDayEvent()">
                                             <i18n>calendar.recurrence.repeat.on</i18n>
                                         </div>
-                                        <div class="row">
+                                        <div class="row" ng-if="isOneDayEvent()">
                                             <label class="cell right-spacing"
                                                    ng-repeat="(key, value) in calendarEvent.recurrence.week_days">
                                                 <input type="checkbox" value="[[key]]"
@@ -291,6 +307,9 @@
                                            ng-checked="!calendarEvent.noMoreRecurrent"/>
                                     <i18n>calendar.event.remove.others.from.recurrence</i18n>
                                 </div>
+                            </div>
+                            <div class="top-spacing-twice warning form-element" ng-if="!areRecurrenceAndEventLengthsCompatible()">
+                                <i18n>calendar.event.length.error</i18n>
                             </div>
                         </div>
                     </div>
