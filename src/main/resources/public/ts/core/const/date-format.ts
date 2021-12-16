@@ -1,5 +1,6 @@
 export const FORMAT = {
     formattedDate: 'YYYY-MM-DD',
+    formattedISODate: 'YYYY-MM-DDTHH:mm:ss.SSSSZ',
     formattedTime: 'HH:mm:ss',
     formattedDateTime: 'YYYY-MM-DD HH:mm:ss',
     displayDate: 'YYYY/MM/DD',
