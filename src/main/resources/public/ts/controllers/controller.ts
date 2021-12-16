@@ -25,6 +25,7 @@ import {calendar} from "entcore/types/src/ts/calendar";
 import {AxiosResponse} from "axios";
 import {DateUtils} from "../utils/date.utils";
 import {Subject} from "rxjs";
+import {Moment} from "moment";
 
 export const calendarController =  ng.controller('CalendarController',
     ["$location",
@@ -130,12 +131,19 @@ export const calendarController =  ng.controller('CalendarController',
 
     $scope.loadCalendarEvents = () =>{
         if($scope.calendars.all.length > 0){
-            $scope.calendarEvents.all = $scope.calendarEvents.filtered = $scope.calendars.arr.reduce((accumulator, element)=>{
-                    return element.selected? [...accumulator, ...element.calendarEvents.arr] : [...accumulator];
-                    },[]
-            );
+            $scope.calendarEvents.filtered = $scope.calendars.arr.map((element : Calendar) =>  element.selected ?
+                element.calendarEvents.all : []).flat();
+            $scope.calendarEvents.all = $scope.calendarEvents.filtered;
+
+            //add multi days events to multiDaysEvents array
+            $scope.calendarEvents.multiDaysEvents = $scope.calendars.arr.map((element : Calendar) =>
+                (element.calendarEvents && element.calendarEvents.multiDaysEvents) ?
+                    element.calendarEvents.multiDaysEvents : []).flat();
         }
-        if ($scope.display.list) $scope.calendarEvents.applyFilters();
+        if ($scope.display.list) {
+            $scope.restoreMultiDaysEvents();
+            $scope.calendarEvents.applyFilters();
+        }
         $scope.calendarEvents.filtered = $scope.removeDuplicateCalendarEvent($scope.calendarEvents.filtered);
 
         /* trigger tooltip to show up */
@@ -147,39 +155,79 @@ export const calendarController =  ng.controller('CalendarController',
         safeApply($scope);
     };
 
+    $scope.restoreMultiDaysEvents = () : void => {
+        $scope.calendarEvents.filtered = $scope.calendarEvents.filtered.filter((evt : CalendarEvent) => !evt.isMultiDayPart);
+        $scope.calendarEvents.filtered = [...$scope.calendarEvents.filtered, ...$scope.calendarEvents.multiDaysEvents];
+        $scope.calendarEvents.all = $scope.calendarEvents.filtered;
+    };
+
     /**
      * Remove events which are duplicated
      */
     $scope.removeDuplicateCalendarEvent = (events: Array<CalendarEvent>): Array<CalendarEvent> => {
-        events = events.filter((item, index) =>
-            index === events.findIndex((t) => t._id === item._id));
+        if($scope.display.list) { //list view
+            events = events.reduce((filteredEvents : CalendarEvent[], item : CalendarEvent) => {
+                //case where all elements must have a unique _id
+                if(!(filteredEvents.find((t : CalendarEvent) => (t._id == item._id)))){
+                    filteredEvents.push(item);
+                }
+                return filteredEvents;
+            }, []);
+        } else { //calendar view
+            events = events.reduce((filteredEvents : CalendarEvent[], item : CalendarEvent) => {
+                //ensures that all events are unique:
+                //a normal event has a unique id
+                //a multi days event part is the only one with this id/startMoment/endMoment combo
+                if(!(filteredEvents.find((t : CalendarEvent) => (!(t.isMultiDayPart && !isSameMultiDayEventPart(t, item)) && (t._id == item._id))))){
+                    filteredEvents.push(item);
+                }
+                return filteredEvents;
+            }, []);
+        }
         return events;
     };
+
+    /** Returns true if the two events represent the same part of a multi-day event (same id, start and end moments)
+     *
+     * @param event1 first event to be compared
+     * @param event2 2nd event of the comparison
+     */
+    const isSameMultiDayEventPart =  (event1 : CalendarEvent, event2 : CalendarEvent) : boolean => {
+        return((event1._id == event2._id) && moment(event1.startMoment).isSame(moment(event2.startMoment)) && moment(event1.endMoment).isSame(moment(event2.endMoment)))
+    }
+
 
     $scope.someSelectedValue = function(selection) {
         return Object.keys(selection).map(function(val) { return selection[val]; }).some(function(val) { return val === true;});
     };
 
     $scope.changeStartMoment = () => {
-        $scope.calendarEvent.endMoment = moment($scope.calendarEvent.startMoment);
-    };
-
-/*
-    $scope.changeEndMoment = () => {
-        if (isSameAfter($scope.calendarEvent.startMoment, $scope.calendarEvent.endMoment)) {
-            $scope.calendarEvent.startMoment = moment($scope.calendarEvent.endMoment);
-                $scope.calendarEvent.startTime = makerFormatTimeInput(moment($scope.calendarEvent.endTime).subtract(1, 'hours'), 0);
+        if(!$scope.isDateValid()){
+            $scope.calendarEvent.endMoment = moment($scope.calendarEvent.startMoment);
+        } else {
+          $scope.calendarEvent.endMoment = moment($scope.calendarEvent.endMoment).toDate();
         }
     };
-*/
+
+    $scope.changeEndMoment = () => {
+        if(!$scope.isDateValid()){
+            $scope.calendarEvent.startMoment = moment($scope.calendarEvent.endMoment);
+        } else {
+           $scope.calendarEvent.startMoment = moment($scope.calendarEvent.startMoment).toDate();
+        }
+    };
 
     $scope.toggleIsRecurrent = function(calendarEvent) {
         if (calendarEvent.isRecurrent) {
             if (!$scope.calendarEvent.recurrence.end_on) {
                 $scope.calendarEvent.recurrence.end_on = moment($scope.calendarEvent.endMoment).add(1, 'days').hours(0).minutes(0).seconds(0).milliseconds(0);
             }
+            if(!$scope.isOneDayEvent()){
+                $scope.calendarEvent.recurrence.start_on =  moment($scope.calendarEvent.startMoment).add(1, 'days').hours(0).minutes(0).seconds(0).milliseconds(0);
+            }
+            //if the event lasts more than one day, it cannot be recurrent daily => the weekly recurrence becomes default
             if (!$scope.calendarEvent.recurrence.type) {
-                $scope.calendarEvent.recurrence.type = 'every_day';
+                $scope.isOneDayEvent() ? ($scope.calendarEvent.recurrence.type = 'every_day') : ($scope.calendarEvent.recurrence.type = 'every_week');
             }
             if (!$scope.calendarEvent.recurrence.every) {
                 $scope.calendarEvent.recurrence.every = 1;
@@ -187,7 +235,7 @@ export const calendarController =  ng.controller('CalendarController',
             if ($scope.calendarEvent.recurrence.type === 'every_week') {
                 $scope.changedRecurrenceType();
             }
-            $scope.changeStartMoment();
+            if(!$scope.isOneDayEvent()) $scope.changeStartMoment();
         }
     };
 
@@ -208,7 +256,7 @@ export const calendarController =  ng.controller('CalendarController',
         $scope.calendarEvent.recurrence.week_days = {1: false,2: false,3: false,4: false,5: false,6: false,7: false};
         if ($scope.calendarEvent.recurrence.type === 'every_week') {
             if (!$scope.someSelectedValue($scope.calendarEvent.recurrence.week_days)) {
-                var dayOfWeek = $scope.calendarEvent.startMoment.day();
+                let dayOfWeek : number = moment($scope.calendarEvent.startMoment).day();
                 if (dayOfWeek === 0) {
                     dayOfWeek = 7;
                 }
@@ -269,18 +317,24 @@ export const calendarController =  ng.controller('CalendarController',
             calendarEvent.recurrence.week_days[val]
         );
         let dayJump = 7 * calendarEvent.recurrence.every;
-        let startOn = moment(calendarEvent.recurrence.start_on);
+        let startOn : Moment = moment(calendarEvent.recurrence.start_on);
         let startDay = calendarEvent.recurrence.start_on.isoWeekday();
-        let startHour = moment(calendarEvent.startTime).hours();
+        let startHour : Moment = moment(calendarEvent.startTime).hours();
         let startMinute = moment(calendarEvent.startTime).minutes();
-        let duration = moment(calendarEvent.endTime).seconds(0).milliseconds(0).diff(moment(calendarEvent.startTime).seconds(0).milliseconds(0), 'minutes');
+        let duration : Moment = $scope.isOneDayEvent()
+            ? moment(calendarEvent.endTime).seconds(0).milliseconds(0).diff(moment(calendarEvent.startTime)
+                .seconds(0).milliseconds(0), 'minutes')
+            : moment(calendarEvent.endMoment).hours(calendarEvent.endTime.getHours()).minutes(calendarEvent.endTime.getMinutes())
+                .seconds(0).milliseconds(0)
+                .diff( moment(calendarEvent.startMoment).hours(calendarEvent.startTime.getHours()).minutes(calendarEvent.startTime.getMinutes())
+                    .seconds(0).milliseconds(0), 'minutes');
         let recurrenceDays = weekDays.filter(val => val >= startDay);
         if (recurrenceDays.length === 0) {
             startOn.isoWeekday(1).add(dayJump, 'days');
         } else {
             startOn.isoWeekday(parseInt(recurrenceDays[0], 10));
         }
-        let endOn = moment(startOn);
+        let endOn : Moment = moment(startOn.toISOString());
         let list = [];
         if (calendarEvent.recurrence.end_type == 'after') {
             while (recurrenceDays.length < calendarEvent.recurrence.end_after) {
@@ -306,14 +360,14 @@ export const calendarController =  ng.controller('CalendarController',
         } else if (calendarEvent.recurrence.end_type == 'on') {
             while (calendarEvent.recurrence.end_on.diff(endOn, 'days') >= 0) {
                 recurrenceDays = recurrenceDays.concat(weekDays);
-                endOn.isoWeekday(1).add(dayJump, 'days');
+                endOn = endOn.isoWeekday(1).add(dayJump, 'days');
             }
-            endOn = moment(startOn);
+            endOn = moment(startOn.toISOString());
             if (recurrenceDays.length) {
                 let previousDay = recurrenceDays[0];
                 recurrenceDays.every((day, idx) => {
                     if (day <= previousDay && idx > 0) {
-                        endOn.isoWeekday(1).add(dayJump, 'days');
+                        endOn = endOn.isoWeekday(1).add(dayJump, 'days');
                     }
                     endOn.isoWeekday(parseInt(day, 10));
                     if (calendarEvent.recurrence.end_on.diff(endOn, 'days') >= 0) {
@@ -343,7 +397,6 @@ export const calendarController =  ng.controller('CalendarController',
                 calendarRecurrentEvent.endMoment = moment(calendarEvent.endMoment).add(i + 1, 'days');
                 $scope.saveCalendarEventEdit(calendarRecurrentEvent);
             }
-        } else if (calendarEvent.recurrence.end_type == 'on' && calendarEvent.recurrence.end_on) {
         }
     };
 
@@ -367,6 +420,7 @@ export const calendarController =  ng.controller('CalendarController',
         child.endMoment = calendarEvent.endMoment;
         child.startTime = calendarEvent.startTime;
         child.endTime = calendarEvent.endTime;
+        child.isMultiDayPart = calendarEvent.isMultiDayPart;
         return child;
     };
 
@@ -507,7 +561,7 @@ export const calendarController =  ng.controller('CalendarController',
             }
             if (savePreferences) {
                 $scope.calendars.preference.selectedCalendars = $scope.calendars.selectedElements.map(element => element._id);
-                if($scope.calendar.selected){
+                if($scope.calendar && $scope.calendar.selected){
                     $scope.calendars.preference.selectedCalendars = [...$scope.calendars.preference.selectedCalendars, calendar._id] ;
                 } else {
                     $scope.calendars.preference.selectedCalendars = $scope.calendars.preference.selectedCalendars.filter(element => element !== calendar._id)
@@ -526,6 +580,16 @@ export const calendarController =  ng.controller('CalendarController',
         template.open('calendar', 'edit-calendar');
     };
 
+    $scope.resetMultipleDayEventInfo = (originalEvent : CalendarEvent) : void => {
+        $scope.calendarEvent.startMoment = originalEvent.startMoment;
+        $scope.calendarEvent.endMoment = originalEvent.endMoment;
+
+        let startDate : Moment = moment(originalEvent.startMoment).second(0).millisecond(0);
+        let endDate : Moment = moment(originalEvent.endMoment).second(0).millisecond(0);
+        $scope.calendarEvent.startTime = makerFormatTimeInput(moment(startDate), moment(startDate));;
+        $scope.calendarEvent.endTime = makerFormatTimeInput(moment(endDate), moment(endDate));
+    };
+
     /**
      *Allows to view an event creation form
      *
@@ -534,6 +598,10 @@ export const calendarController =  ng.controller('CalendarController',
      */
     $scope.viewCalendarEvent = (calendarEvent, isCalendar ? : boolean) => {
         $scope.calendarEvent = new CalendarEvent(calendarEvent);
+        if(calendarEvent.isMultiDayPart){
+            let originalEvent : CalendarEvent = $scope.calendarEvents.multiDaysEvents.find((item : CalendarEvent) => item._id == calendarEvent._id);
+            originalEvent == undefined ? toasts.warning(lang.translate('calendar.event.get.error')) : $scope.resetMultipleDayEventInfo(originalEvent);
+        }
         $scope.calendar = calendarEvent.calendar[0];
         $scope.createContentToWatch();
         $scope.calendarEvent.showDetails = true;
@@ -620,11 +688,13 @@ export const calendarController =  ng.controller('CalendarController',
     };
 
     /**
-
      * Select all recurrent events associated to the current event
      * @param calendarEvent calendar Event
      */
     const selectOtherRecurrentEvents = (calendarEvent: CalendarEvent): void => {
+        if(calendarEvent.isMultiDayPart){
+            $scope.restoreMultiDaysEvents();
+        }
         let reccurentEvents = $scope.removeDuplicateCalendarEvent($scope.calendarEvents.getRecurrenceEvents(calendarEvent));
         reccurentEvents.forEach(calEvent => {
             calEvent.selected = true;
@@ -1120,7 +1190,8 @@ export const calendarController =  ng.controller('CalendarController',
                 }
             }
 
-            if (!$scope.calendarEvent.isRecurrent || calendarEvent._id || items.length >= recurrenceItemsMinimumLength)  {
+            if (!$scope.calendarEvent.isRecurrent || calendarEvent._id || items.length >= recurrenceItemsMinimumLength
+            || !$scope.isDateValid() || !$scope.areRecurrenceAndEventLengthsCompatible())  {
                 if (items.length === count) {
                     endRecurrenceSave();
                 } else {
@@ -1144,7 +1215,8 @@ export const calendarController =  ng.controller('CalendarController',
                         if (!itemCalendarEvent.created && $scope.sendNotif === false){
                             itemCalendarEvent.sendNotif = $scope.sendNotif;
                         }
-                        if(isEventCreated && items.length === recurrenceItemsMinimumLength){
+                        if(isEventCreated && items.length === recurrenceItemsMinimumLength
+                            && ($scope.isOneDayEvent() || itemCalendarEvent.isRecurrent)){
                             itemCalendarEvent.isRecurrent = false;
                             itemCalendarEvent.recurrence = false;
                             itemCalendarEvent.parentId = false;
@@ -1181,6 +1253,7 @@ export const calendarController =  ng.controller('CalendarController',
         calendarEvent.endMoment = moment(calendarEvent.endMoment).seconds(0).milliseconds(0);
         $scope.display.calendar = false;
         let hasExistingRecurrence : boolean = false;
+        if(calendarEvent.isMultiDayPart && calendarEvent.editAllRecurrence) $scope.restoreMultiDaysEvents();
         let recurrentCalendarEvents = $scope.calendarEvents.getRecurrenceEvents(calendarEvent);
 
         if (recurrentCalendarEvents.length > 1) {
@@ -1207,7 +1280,7 @@ export const calendarController =  ng.controller('CalendarController',
 
         let parentAction : string = ACTIONS.create;
         if (calendarEvent._id) {
-            parentAction = 'update';
+            parentAction = ACTIONS.update;
         }
         let item = {'calEvent': calendarEvent, 'action': ACTIONS.save};
         items.push(item);
@@ -1367,7 +1440,7 @@ export const calendarController =  ng.controller('CalendarController',
         $scope.eventForm = angular.element(document.getElementById("event-form")).scope();
         /** Ensures that the fields of the form are correctly filled*/
         let areFieldsInCommonValid = (!$scope.eventForm.form.$invalid && $scope.isCalendarSelectedInEvent()
-            && $scope.isTimeValid());
+            && $scope.isTimeValid() && $scope.isDateValid() &&  $scope.areRecurrenceAndEventLengthsCompatible());
 
         switch(actionButton) {
             case ACTIONS.save:
@@ -1394,7 +1467,28 @@ export const calendarController =  ng.controller('CalendarController',
      */
     $scope.isTimeValid = () : boolean => (($scope.calendarEvent.startTime && $scope.calendarEvent.endTime
                 && moment($scope.calendarEvent.startTime).isBefore(moment($scope.calendarEvent.endTime)))
-                || $scope.calendarEvent.allday);
+                || $scope.calendarEvent.allday || !$scope.isOneDayEvent());
+
+    /**
+     * Returns true if the event start date is before or equal to the event end date
+     */
+    $scope.isDateValid = () : boolean => ($scope.calendarEvent.startMoment && $scope.calendarEvent.endMoment
+            && moment($scope.calendarEvent.startMoment).isSameOrBefore(moment($scope.calendarEvent.endMoment), 'day'));
+
+    /**
+     * Returns true if the event length is shorter than the recurrence length
+     */
+    $scope.areRecurrenceAndEventLengthsCompatible = () : boolean => ($scope.isOneDayEvent() || !$scope.calendarEvent.isRecurrent
+        || ($scope.calendarEvent.recurrence.type == 'every_week'
+        && (moment($scope.calendarEvent.endMoment)
+                .diff(moment($scope.calendarEvent.startMoment), 'days')+1 <= $scope.calendarEvent.recurrence.every*7)));
+
+    /**
+     * Returns true is the start and end date of the event are the same day
+     */
+    $scope.isOneDayEvent = () : boolean => {
+        return (moment($scope.calendarEvent.startMoment).isSame(moment($scope.calendarEvent.endMoment), 'day'));
+    };
 
     var updateCalendarList = function(start, end){
         model.calendarEvents.filters.startMoment.date(start.date());

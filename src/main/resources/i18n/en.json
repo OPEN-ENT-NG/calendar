@@ -87,6 +87,7 @@
     "calendar.event.share": "Share",
     "calendar.share.recurrence.only.first": "Only the first recurrence of this event will be shared.",
     "calendar.event.save.error": "Error when saving the event.",
+    "calendar.event.length.error": "Your event cannot be longer than your recurrence.",
     "calendar.display.mode": "Display mode",
     "calendar.calendar.view": "Calendar",
     "calendar.list.view": "List",
@@ -99,7 +100,9 @@
     "calendar.event.recurrence.edition": "These changes will impact",
     "calendar.error.date.saving": "Saving issue : data is not valid",
     "calendar.error.time": "End time must be after start time.",
+    "calendar.error.date": "End date must be after or equal to start date.",
     "calendar.event.date": "Date: ",
     "calendar.event.time.from": "From ",
-    "calendar.event.time.tolc": "to "
+    "calendar.event.time.tolc": "to ",
+    "calendar.event.get.error": "Event cannot be retrieved"
 }

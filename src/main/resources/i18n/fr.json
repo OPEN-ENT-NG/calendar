@@ -118,6 +118,7 @@
     "calendar.recurrence.daymap.sun":"Di",
     "calendar.error.date.saving": "Problème d'enregistrement : une donnée n'est pas valide",
     "calendar.error.time": "L'heure de fin doit être supérieure à l'heure de début.",
+    "calendar.error.date": "La date de fin doit être supérieure ou égale à la date de début.",
     "calendar.delete.error": "Une erreur est survenue lors de la supression du calendrier",
     "calendar.navigation.guard": "Les modifications que vous avez apportées ne seront peut-être pas enregistrées. Souhaitez vous quitter cette page?",
     "calendar.event.not.all.calendar.rights": "Vous n'avez pas les droits de modification sur cet évènement.",
@@ -133,6 +134,7 @@
     "calendar.event.share": "Partager",
     "calendar.share.recurrence.only.first": "Seule la première récurrence de cet évènement sera partagée.",
     "calendar.event.save.error": "Problème d'enregistrement de l'évènement.",
+    "calendar.event.length.error": "Votre évènement ne peut pas durer plus longtemps que votre récurrence",
     "calendar.display.mode": "Mode d'affichage",
     "calendar.calendar.view": "Calendaire",
     "calendar.list.view": "Liste",
@@ -145,5 +147,6 @@
     "calendar.event.recurrence.edition": "Vous souhaitez modifier",
     "calendar.event.date": "Date : ",
     "calendar.event.time.from": "De ",
-    "calendar.event.time.tolc": "à "
+    "calendar.event.time.tolc": "à ",
+    "calendar.event.get.error": "Erreur de récupération de l'évènement"
 }
