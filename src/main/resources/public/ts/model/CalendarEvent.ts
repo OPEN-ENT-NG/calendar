@@ -4,6 +4,8 @@ import { timeConfig } from "./constantes";
 import {Calendar, Calendars} from "./";
 import { Mix, Selectable, Selection } from "entcore-toolkit";
 import {getTime, makerFormatTimeInput, utcTime} from './Utils'
+import {multiDaysEventsUtils} from "../utils/multiDaysEventsUtils";
+import {FORMAT} from "../core/const/date-format";
 
 export class CalendarEvent implements Selectable, Shareable{
     _id: String;
@@ -45,6 +47,7 @@ export class CalendarEvent implements Selectable, Shareable{
     deleteAllRecurrence: boolean;
     sendNotif: boolean;
     editAllRecurrence: boolean;
+    isMultiDayPart: boolean;
 
     constructor (calendarEvent? : Object) {
         this.myRights = new Rights(this);
@@ -153,6 +156,7 @@ export class CalendarEvents extends Selection<CalendarEvent> {
     calendar: Calendar;
     all: Array<CalendarEvent>;
     isRecurrent: boolean;
+    multiDaysEvents: Array<CalendarEvent>;
 
     constructor(calendar:Calendar=new Calendar) {
         super([]);
@@ -164,9 +168,11 @@ export class CalendarEvents extends Selection<CalendarEvent> {
     async sync (calendar, calendars){
         let { data } = await http.get('/calendar/' + calendar._id+ '/events');
         this.all = [];
+        this.multiDaysEvents = [];
         data.forEach(event => this.all.push(new CalendarEvent(event)));
         let thisCalendarEvents = this;
-        this.all.map(calendarEvent => {
+        let dividedMultiDaysEvents : Array<any> = [];
+        this.all.forEach(calendarEvent => {
             // Let's reconstruct the "calendar" array from found _id(s).
             let newArray = new Array<Calendar>();
             let idCalendars: any = calendarEvent.calendar;
@@ -182,25 +188,57 @@ export class CalendarEvents extends Selection<CalendarEvent> {
             }
             calendarEvent.calendar = newArray.filter(e => e!= null);
 
-            // Compute dates
-            let startDate = moment(calendarEvent.startMoment).second(0).millisecond(0);
-            calendarEvent.startMoment = startDate;
-            calendarEvent.startMomentDate = startDate.format('DD/MM/YYYY');
-            calendarEvent.startMomentTime = startDate.format('HH:mm');
-            calendarEvent.start_date = moment.utc(calendarEvent.startMoment)._d;
-            calendarEvent.startTime = makerFormatTimeInput(moment(startDate),moment(startDate));
-            let endDate = moment(calendarEvent.endMoment).second(0).millisecond(0);
-            calendarEvent.endMoment = endDate;
-            calendarEvent.endMomentDate = endDate.format('DD/MM/YYYY');
-            calendarEvent.endMomentTime = endDate.format('HH:mm');
-            calendarEvent.end_date =  moment.utc(calendarEvent.endMoment)._d;
-            calendarEvent.endTime = makerFormatTimeInput(moment(endDate), moment(endDate));
-            calendarEvent.is_periodic = false;
-            calendarEvent.color = calendar.color;
-
-            return calendarEvent;
+            if(multiDaysEventsUtils.isEventMultiDays(moment(calendarEvent.startMoment), moment(calendarEvent.endMoment))){
+                this.formatEventDates(calendarEvent, calendar);
+            } else { //multiple-days event
+                this.divideMultiDaysEvent(calendarEvent, calendar, dividedMultiDaysEvents);
+            }
         });
+        this.addMultiDaysEventsPartsToCalendarEvents(dividedMultiDaysEvents);
     };
+
+    private addMultiDaysEventsPartsToCalendarEvents(dividedMultiDaysEvents: Array<any>) {
+        //add sub events to event list and remove original event
+        dividedMultiDaysEvents.forEach((item : string|CalendarEvent) => {
+            if ((item instanceof CalendarEvent) && (item.hasOwnProperty("_id"))) {
+                this.all.push(item);
+            } else {
+                let multiDayEvent: CalendarEvent = this.all.find((event : CalendarEvent) => (event._id === item
+                    && !multiDaysEventsUtils.isEventMultiDays(moment(event.startMoment), moment(event.endMoment))));
+                this.all.splice(this.all.indexOf(multiDayEvent), 1);
+            }
+        });
+    }
+
+    private divideMultiDaysEvent(calendarEvent: CalendarEvent, calendar : Calendar, dividedMultiDaysEvents: Array<any>) {
+        this.multiDaysEvents.push(this.formatEventDates(calendarEvent, calendar));
+        //separate multi days event into sub events
+        let subEvents: CalendarEvent[] = multiDaysEventsUtils.createMultiDayEventParts(calendarEvent);
+        dividedMultiDaysEvents.push(subEvents[0]._id);
+        subEvents.forEach((subEvent : CalendarEvent) => {
+            dividedMultiDaysEvents.push(this.formatEventDates(subEvent, calendar));
+        });
+    }
+
+    private formatEventDates(calendarEvent: CalendarEvent, calendar : Calendar) : CalendarEvent {
+        // Compute dates
+        let startDate = moment(calendarEvent.startMoment).second(0).millisecond(0);
+        calendarEvent.startMoment = startDate;
+        calendarEvent.startMomentDate = startDate.format(FORMAT.displayFRDate);
+        calendarEvent.startMomentTime = startDate.format(FORMAT.displayTime);
+        calendarEvent.start_date = moment.utc(calendarEvent.startMoment)._d;
+        calendarEvent.startTime = makerFormatTimeInput(moment(startDate), moment(startDate));
+        let endDate = moment(calendarEvent.endMoment).second(0).millisecond(0);
+        calendarEvent.endMoment = endDate;
+        calendarEvent.endMomentDate = endDate.format(FORMAT.displayFRDate);
+        calendarEvent.endMomentTime = endDate.format(FORMAT.displayTime);
+        calendarEvent.end_date = moment.utc(calendarEvent.endMoment)._d;
+        calendarEvent.endTime = makerFormatTimeInput(moment(endDate), moment(endDate));
+        calendarEvent.is_periodic = false;
+        calendarEvent.color = calendar.color;
+
+        return calendarEvent;
+    }
 
     getRecurrenceEvents (calendarEvent : CalendarEvent) {
         let calendarEvents = [];

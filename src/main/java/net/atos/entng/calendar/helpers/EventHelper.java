@@ -28,7 +28,11 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -46,6 +50,7 @@ import net.atos.entng.calendar.services.EventServiceMongo;
 
 import net.atos.entng.calendar.services.ServiceFactory;
 import net.atos.entng.calendar.services.UserService;
+import net.atos.entng.calendar.utils.DateUtils;
 import org.entcore.common.events.EventStore;
 import org.entcore.common.events.EventStoreFactory;
 import org.entcore.common.mongodb.MongoDbControllerHelper;
@@ -115,7 +120,7 @@ public class EventHelper extends MongoDbControllerHelper {
                     RequestUtils.bodyToJson(request, new Handler<JsonObject>() {
                         @Override
                         public void handle(JsonObject object) {
-                            if (object.getString("notifStartMoment").substring(0,10).equals(object.getString("notifEndMoment").substring(0,10))) {
+                            if (isEventValid(object, request)) {
                                 eventService.create(calendarId, object, user, new Handler<Either<String, JsonObject>>() {
                                     public void handle(Either<String, JsonObject> event) {
                                         if (event.isRight()) {
@@ -135,7 +140,8 @@ public class EventHelper extends MongoDbControllerHelper {
                                     }
                                 });
                             }else{
-                                log.error("The beginning and end date of the event are not the same");
+                                log.error(String.format("[Calendar@EventHelper::create] " + "Submitted event is not valid"),
+                                        I18n.getInstance().translate("calendar.error.date.saving", getHost(request), I18n.acceptLanguage(request)));
                                 Renders.unauthorized(request);
                             }
                         }
@@ -410,6 +416,33 @@ public class EventHelper extends MongoDbControllerHelper {
                 }
             } // end  if (event.isRight())
         });
+    }
+
+    /**
+     * Check if an event is valid before saving it.
+     * The event start date should be before the event end date
+     * If the event lasts more than one day and is recurrent, it should last less than the recurrence length
+     * and the recurrence must be at least weekly
+     * @param object JsonObject, the event to save
+     * @param request HttpServerRequest, the saving request
+     * @return true if the event meets the requirements mentionned before
+     */
+    private boolean isEventValid (JsonObject object, HttpServerRequest request) {
+        Date startDate = DateUtils.parseDate(object.getString("startMoment"), DateUtils.DATE_FORMAT_UTC);
+        Date endDate = DateUtils.parseDate(object.getString("endMoment"), DateUtils.DATE_FORMAT_UTC);
+
+        boolean areDatesValid = DateUtils.isStrictlyBefore(startDate, endDate);
+        boolean isOneDayEvent = DateUtils.isSameDay(startDate, endDate);
+        boolean isNotRecurrentEvent = Boolean.FALSE.equals(object.getBoolean("isRecurrent"));
+
+        long dayInMilliseconds = 1000 * 60 * 60 * 24;
+        int eventDayLength = (int) ((endDate.getTime() - startDate.getTime())/dayInMilliseconds);
+
+        boolean isWeeklyRecurrenceValid = object.getValue("recurrence") instanceof JsonObject
+                && "every_week".equals(object.getJsonObject("recurrence").getValue("type"))
+                && (eventDayLength < (7 * object.getJsonObject("recurrence").getInteger("every")));
+
+        return (areDatesValid && (isOneDayEvent || isNotRecurrentEvent || isWeeklyRecurrenceValid));
     }
 
     /**
