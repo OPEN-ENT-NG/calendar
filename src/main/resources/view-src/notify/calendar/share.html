@@ -1,10 +1,14 @@
 <a href="{{#host}}{{profilUri}}{{/host}}">{{username}}</a>
 <br />
-<span ng-if="notification.params.calendarUri">
+{{#calendarUri}}
+<span>
     {{#i18n}}timeline.calendar.shared{{/i18n}}
     <a href="{{#host}}{{calendarUri}}{{/host}}">{{resourceName}}</a>
 </span>
-<span ng-if="notification.params.eventUri">
+{{/calendarUri}}
+{{#eventUri}}
+<span>
     {{#i18n}}timeline.event.shared{{/i18n}}
     <a href="{{#host}}{{eventUri}}{{/host}}">{{resourceName}}</a>
 </span>
+{{/eventUri}}
