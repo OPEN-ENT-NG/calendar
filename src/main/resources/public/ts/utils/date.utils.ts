@@ -19,4 +19,8 @@ export class DateUtils {
         return momentDate.format(FORMAT.displayFRDate);
     };
 
+    static isDateAfter = (date1 : Moment, date2 : Moment) : boolean => {
+        return date1.isAfter(date2, 'day');
+    };
+
 }

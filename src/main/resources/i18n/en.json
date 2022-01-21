@@ -104,5 +104,16 @@
     "calendar.event.date": "Date: ",
     "calendar.event.time.from": "From ",
     "calendar.event.time.tolc": "to ",
-    "calendar.event.get.error": "Event cannot be retrieved"
+    "calendar.event.get.error": "Event cannot be retrieved",
+    "calendar.day.monday.lc":"monday",
+    "calendar.day.tuesday.lc":"tuesday",
+    "calendar.day.wednesday.lc":"wednesday",
+    "calendar.day.thursday.lc":"thursday",
+    "calendar.day.friday.lc":"friday",
+    "calendar.day.saturday.lc":"saturday",
+    "calendar.day.sunday.lc":"sunday",
+    "calendar.recurrence.until": "until",
+    "calendar.recurrence.every.day": "Every day",
+    "calendar.recurrence.every.week":"every week"
+
 }

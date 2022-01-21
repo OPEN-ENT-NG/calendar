@@ -53,6 +53,15 @@ export const recurrence = {
         5: "calendar.recurrence.daymap.fri",
         6: "calendar.recurrence.daymap.sat",
         7: "calendar.recurrence.daymap.sun"
+    },
+    fullDayMap: {
+        1: "calendar.day.monday.lc",
+        2: "calendar.day.tuesday.lc",
+        3: "calendar.day.wednesday.lc",
+        4: "calendar.day.thursday.lc",
+        5: "calendar.day.friday.lc",
+        6: "calendar.day.saturday.lc",
+        0: "calendar.day.sunday.lc"
     }
 };
 

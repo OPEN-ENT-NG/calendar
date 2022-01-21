@@ -1,21 +1,50 @@
 <article ng-if="calendarEvent" class="calendarTooltip">
     <!--event title-->
-    <div class="calendarTooltip-title cell twelve ellipsis [[item.color]]">
+    <div class="calendarTooltip-title cell twelve ellipsis bottom-spacing-twice [[item.color]]">
         [[item.title]]
     </div>
 
-    <!--event date + time (from x to x)-->
-    <div>
-        <i18n>calendar.event.date</i18n> [[item.startMomentDate]]
+    <!--event date + time-->
+    <div class="bottom-spacing-twice calendarTooltip-blueText">
+        <!--multi day event-->
+        <div ng-if="item.isMultiDayPart">
+            [[item.notifStartMoment]] - [[item.notifEndMoment]]
+        </div>
+        <!-normal event-->
+        <div ng-if="!item.isMultiDayPart">
+            [[item.startMomentDate]] : [[item.startMomentTime]] - [[item.endMomentTime]]
+        </div>
     </div>
-    <div>
-        <i18n>calendar.event.time.from</i18n>[[item.startMomentTime]]
-        <i18n>calendar.event.time.tolc</i18n>[[item.endMomentTime]]
+
+    <!--recurrence information-->
+    <div ng-if="item.isRecurrent" class="bottom-spacing-twice">
+        <!--daily recurrence-->
+        <div ng-if="item.recurrence.type == 'every_day'">
+            <i18n>calendar.recurrence.every.day</i18n>, <i18n>calendar.recurrence.until</i18n> [[getEndOfRecurrence(item)]]
+        </div>
+        <!--weekly recurrence-->
+        <div ng-if="item.recurrence.type == 'every_week'">
+            <!--multi day event-->
+            <div ng-if="item.isMultiDayPart">
+                <i18n>calendar.filters.date.from</i18n> [[getDayOfWeek(item, true, "start")]]
+                <i18n>calendar.filters.date.to</i18n> [[getDayOfWeek(item, true, "end")]],
+                <i18n>calendar.recurrence.every.week</i18n>, <i18n>calendar.recurrence.until</i18n> [[getEndOfRecurrence(item)]]
+            </div>
+            <!--normal event-->
+            <div ng-if="!item.isMultiDayPart">
+                <i18n>calendar.recurrence.end.on</i18n> [[getRecurrenceDays(item)]]<i18n>calendar.recurrence.every.week</i18n>,
+                <i18n>calendar.recurrence.until</i18n> [[getEndOfRecurrence(item)]]
+            </div>
+
+        </div>
     </div>
 
     <!--event owner-->
-    <label>
-        <i18n>calendar.event.owner</i18n>
-    </label>
-    <span> [[item.owner.displayName]]</span>
+    <div class="calendarTooltip-blueText">
+        <label>
+            <i18n>calendar.event.owner</i18n>
+        </label>
+        <span> [[item.owner.displayName]]</span>
+    </div>
+
 </article>
