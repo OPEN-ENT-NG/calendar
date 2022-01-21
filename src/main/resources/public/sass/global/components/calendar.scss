@@ -173,11 +173,16 @@ h1 a {
     padding: 11px;
     text-align: center;
     background-color: $calendar-white !important;
+    max-width: 300px;
 
     &-title{
         color: $calendar-white !important;
         border-radius: 9px;
         padding: 1px 6px;
+    }
+
+    &-blueText{
+        color : $calendar-blue;
     }
 }
 

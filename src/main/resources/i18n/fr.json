@@ -148,5 +148,15 @@
     "calendar.event.date": "Date : ",
     "calendar.event.time.from": "De ",
     "calendar.event.time.tolc": "à ",
-    "calendar.event.get.error": "Erreur de récupération de l'évènement"
+    "calendar.event.get.error": "Erreur de récupération de l'évènement",
+    "calendar.day.monday.lc":"lundi",
+    "calendar.day.tuesday.lc":"mardi",
+    "calendar.day.wednesday.lc":"mercredi",
+    "calendar.day.thursday.lc":"jeudi",
+    "calendar.day.friday.lc":"vendredi",
+    "calendar.day.saturday.lc":"samedi",
+    "calendar.day.sunday.lc":"dimanche",
+    "calendar.recurrence.until": "jusqu'au",
+    "calendar.tooltip.recurrence.every.day": "Chaque jour",
+    "calendar.tooltip.recurrence.every.week":"chaque semaine"
 }

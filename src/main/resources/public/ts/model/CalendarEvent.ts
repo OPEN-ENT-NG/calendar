@@ -18,7 +18,7 @@ export class CalendarEvent implements Selectable, Shareable{
     notifStartMoment: Date;
     notifEndMoment: Date;
     allday: boolean;
-    recurrence: object;
+    recurrence: boolean|CalendarEventRecurrence;
     parentId : string;
     isRecurrent: boolean;
     index: number;
@@ -278,6 +278,16 @@ export class CalendarEvents extends Selection<CalendarEvent> {
         }
     }
 }
+
+export type CalendarEventRecurrence = {
+    week_days: Array<boolean>;
+    start_on: string;
+    end_on: string;
+    type: string;
+    every: number;
+    end_type: string;
+    end_after: number;
+};
 
 export class filterCalendarEvent {
     calendar: Array<object>;

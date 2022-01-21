@@ -3,7 +3,7 @@ import {
     Calendar,
     Calendars,
     CalendarEvent,
-    CalendarEvents,
+    CalendarEvents, CalendarEventRecurrence,
 } from "../model/index";
 import {
     defaultColor,
@@ -26,6 +26,8 @@ import {AxiosResponse} from "axios";
 import {DateUtils} from "../utils/date.utils";
 import {Subject} from "rxjs";
 import {Moment} from "moment";
+import {FORMAT} from "../core/const/date-format";
+import {DAY_OF_WEEK} from "../core/enum/dayOfWeek.enum";
 
 export const calendarController =  ng.controller('CalendarController',
     ["$location",
@@ -149,7 +151,7 @@ export const calendarController =  ng.controller('CalendarController',
         /* trigger tooltip to show up */
         let $scheduleItems: JQuery = $('.schedule-items');
         $scheduleItems.mousemove(() => {
-            $timeout(() => safeApply($scope), 500)
+            $timeout(() => safeApply($scope), 600)
         });
 
         safeApply($scope);
@@ -1488,6 +1490,71 @@ export const calendarController =  ng.controller('CalendarController',
      */
     $scope.isOneDayEvent = () : boolean => {
         return (moment($scope.calendarEvent.startMoment).isSame(moment($scope.calendarEvent.endMoment), 'day'));
+    };
+
+    /**
+     * Returns the date of the last day of the recurrence
+     * @param item an event of the recurrent
+     */
+    $scope.getEndOfRecurrence = (item : CalendarEvent) : String => {
+        let recurrenceEndDate : Moment = moment(item.endMoment);
+        $scope.calendarEvents.filtered.filter((event : CalendarEvent) => (event.parentId == item.parentId))
+            .forEach((recurrenceEvent : CalendarEvent) => {
+                if (DateUtils.isDateAfter(moment(recurrenceEvent.endMoment), recurrenceEndDate)){
+                    recurrenceEndDate = moment(recurrenceEvent.endMoment);
+                }
+            });
+        return recurrenceEndDate.format(FORMAT.displayFRDate);
+    }
+
+    /**
+     * Returns the day of the week corresponding to the given number
+     * @param dayNumber number, the number of the day of the week (0 = sunday, 1 = monday ...)
+     */
+    $scope.getDayName = (dayNumber : DAY_OF_WEEK) : String => {
+        return lang.translate(recurrence.fullDayMap[dayNumber]);
+    };
+
+
+    /**
+     * Returns a string of the days in which the weekly recurrence takes place
+     * @param item CalendarEvent, an event of the recurrence
+     */
+    $scope.getRecurrenceDays = (item : CalendarEvent) : String => {
+        let recurrenceDaysList : String = "";
+        //add selected days to day list
+        Object.keys((<CalendarEventRecurrence> item.recurrence).week_days).forEach((key: string) => {
+            if(((<CalendarEventRecurrence> item.recurrence).week_days[key])) {
+                recurrenceDaysList = recurrenceDaysList.concat($scope.getDayName(Number(key)), ", ");
+            }
+        });
+
+        return recurrenceDaysList;
+    };
+
+    /**
+     * Returns the name of the day of the week for the start or end date of an event.
+     * By default it returns the day of the start of the event.
+     * @param event CalendarEvent, the event we want the day of
+     * @param isMultiDayEvent boolean, if the event is multiple day or not
+     * @param isStartOrEnd whether we want the start or end date of the event
+     */
+    $scope.getDayOfWeek = (event : CalendarEvent, isMultiDayEvent : boolean, isStartOrEnd : "start"|"end") : String => {
+        let targetDay : Moment;
+        switch(isStartOrEnd) {
+            case "start":
+                targetDay = isMultiDayEvent ?
+                    $scope.calendarEvents.multiDaysEvents.find((e : CalendarEvent) => e._id == event._id).startMoment
+                    : event.startMoment;
+                return $scope.getDayName(moment(targetDay).day());
+            case "end":
+                targetDay = isMultiDayEvent ?
+                    $scope.calendarEvents.multiDaysEvents.find((e : CalendarEvent) => e._id == event._id).endMoment
+                    : event.endMoment;
+                return $scope.getDayName(moment(targetDay).day());
+            default:
+                return $scope.getDayName(moment(event.startMoment).day());
+        }
     };
 
     var updateCalendarList = function(start, end){
