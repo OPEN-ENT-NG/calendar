@@ -158,5 +158,8 @@
     "calendar.day.sunday.lc":"dimanche",
     "calendar.recurrence.until": "jusqu'au",
     "calendar.tooltip.recurrence.every.day": "Chaque jour",
-    "calendar.tooltip.recurrence.every.week":"chaque semaine"
+    "calendar.tooltip.recurrence.every.week":"chaque semaine",
+    "calendar.event.add": "Ajouter",
+    "calendar.event.attachments" : "Pièces jointes",
+    "calendar.event.attachment.download.error" : "Erreur lors du téléchargement de la pièce jointe"
 }

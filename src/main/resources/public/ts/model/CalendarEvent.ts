@@ -1,5 +1,5 @@
 import http from "axios";
-import {_, Behaviours, moment, Rights, Shareable} from "entcore";
+import {_, Behaviours, moment, Rights, Shareable, Document, angular} from "entcore";
 import { timeConfig } from "./constantes";
 import {Calendar, Calendars} from "./";
 import { Mix, Selectable, Selection } from "entcore-toolkit";
@@ -48,6 +48,7 @@ export class CalendarEvent implements Selectable, Shareable{
     sendNotif: boolean;
     editAllRecurrence: boolean;
     isMultiDayPart: boolean;
+    attachments: Array<Document>;
 
     constructor (calendarEvent? : Object) {
         this.myRights = new Rights(this);
@@ -135,6 +136,7 @@ export class CalendarEvent implements Selectable, Shareable{
             // Warning : if format() is changed below, it must be changed in net.atos.entng.calendar.helpers.EventHelper.create() too.
             notifStartMoment: this.notifStartMoment.format("DD/MM/YYYY HH:mm"),
             notifEndMoment: this.notifEndMoment.format("DD/MM/YYYY HH:mm"),
+            attachments : this.attachments
         }
         if (!this._id) {
             body.calendar = this.getCalendarId();
