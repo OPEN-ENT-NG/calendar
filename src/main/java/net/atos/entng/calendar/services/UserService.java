@@ -33,9 +33,10 @@ public interface UserService {
      *
      * @param ids             list of ids being user or group identifier {@link List<String>}
      * @param user            user info (in this case, we using only its id) {@link UserInfos}
+     * @param keepUserFromSession   if the code should include the user logged in or not {@link boolean}
      *
      * @return {@link Future} of {@link List<User>} containing list of user fetched
      */
-    Future<List<User>> fetchUser(List<String> ids, UserInfos user);
+    Future<List<User>> fetchUser(List<String> ids, UserInfos user, boolean keepUserFromSession);
 }
 

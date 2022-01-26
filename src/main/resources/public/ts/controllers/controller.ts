@@ -1,4 +1,4 @@
-import {$, _, moment, ng, template, idiom as lang, notify, toasts, angular} from "entcore";
+import {$, _, moment, ng, template, idiom as lang, notify, toasts, angular, Document} from "entcore";
 import {
     Calendar,
     Calendars,
@@ -28,6 +28,7 @@ import {Subject} from "rxjs";
 import {Moment} from "moment";
 import {FORMAT} from "../core/const/date-format";
 import {DAY_OF_WEEK} from "../core/enum/dayOfWeek.enum";
+import {attachmentService} from "../services/attachment.service";
 
 export const calendarController =  ng.controller('CalendarController',
     ["$location",
@@ -423,6 +424,7 @@ export const calendarController =  ng.controller('CalendarController',
         child.startTime = calendarEvent.startTime;
         child.endTime = calendarEvent.endTime;
         child.isMultiDayPart = calendarEvent.isMultiDayPart;
+        child.attachments = calendarEvent.attachments;
         return child;
     };
 
@@ -648,6 +650,7 @@ export const calendarController =  ng.controller('CalendarController',
         }
         template.close('lightbox');
         $scope.showCalendarEventTimePicker = false;
+        $scope.refreshCalendarEvents();
         $scope.display.showEventPanel = false;
         $scope.contentToWatch = "";
     };
@@ -1147,7 +1150,7 @@ export const calendarController =  ng.controller('CalendarController',
     $scope.canICloseLightBox = function() {
         if($scope.calendarEvent.title == undefined && $scope.calendarEvent.description == undefined && $scope.calendarEvent.location == undefined){
             return false;
-        }else {
+        } else {
             let toCompare = "";
             if($scope.calendarEvent.title != undefined){
                 toCompare += $scope.calendarEvent.title;
@@ -1183,7 +1186,6 @@ export const calendarController =  ng.controller('CalendarController',
                 calendarEvent.startDateToRecurrence = calendarEvent.startDateToRecurrence && false;
                 calendarEvent.endDateToRecurrence = calendarEvent.endDateToRecurrence && false;
                 $scope.closeCalendarEvent();
-                $scope.refreshCalendarEvents();
                 $scope.calendarEvents.applyFilters();
                 $scope.display.calendar = true;
                 if (shareOption) {
@@ -1563,6 +1565,32 @@ export const calendarController =  ng.controller('CalendarController',
             default:
                 return $scope.getDayName(moment(event.startMoment).day());
         }
+    };
+
+    $scope.openAttachmentLightbox = () : void => {
+        $scope.display.attachmentLightbox = true;
+    };
+
+    /**
+     * Adds attachments to document and closes media-library lightbox
+     */
+    $scope.updateDocument = () : void => {
+        $scope.eventDocuments = angular.element(document.getElementsByTagName("media-library")).scope();
+        $scope.calendarEvent.attachments = $scope.calendarEvent.attachments? $scope.calendarEvent.attachments : [];
+        if($scope.eventDocuments.documents){
+            $scope.calendarEvent.attachments = [...$scope.calendarEvent.attachments, ...$scope.eventDocuments.documents];
+        }
+        $scope.display.attachmentLightbox = false;
+    };
+
+    $scope.removeDocumentFromAttachments = (documentId : String) : void => {
+        let removedDocument : Document = $scope.calendarEvent.attachments.find((doc : Document) => doc._id == documentId);
+        $scope.calendarEvent.attachments.splice($scope.calendarEvent.attachments.indexOf(removedDocument), 1);
+    };
+
+    $scope.downloadAttachment = async (calendarEvent: CalendarEvent, attachment: Document): Promise<void> => {
+        let isUserAttachmentOwner : boolean = attachment.owner.userId != model.me.userId;
+        attachmentService.downloadAttachment(calendarEvent._id, attachment._id, isUserAttachmentOwner);
     };
 
     var updateCalendarList = function(start, end){

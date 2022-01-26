@@ -23,6 +23,8 @@ import static net.atos.entng.calendar.Calendar.*;
 import static org.entcore.common.http.response.DefaultResponseHandler.arrayResponseHandler;
 import static org.entcore.common.http.response.DefaultResponseHandler.defaultResponseHandler;
 import static org.entcore.common.http.response.DefaultResponseHandler.notEmptyResponseHandler;
+import static org.entcore.common.mongodb.MongoDbResult.validResultHandler;
+import static org.entcore.common.mongodb.MongoDbResult.*;
 
 import java.io.File;
 import java.io.IOException;
@@ -32,6 +34,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import com.mongodb.QueryBuilder;
+import fr.wseduc.mongodb.MongoDb;
+import fr.wseduc.mongodb.MongoQueryBuilder;
 import fr.wseduc.webutils.Either;
 import fr.wseduc.webutils.I18n;
 import fr.wseduc.webutils.collections.Joiner;
@@ -91,6 +95,7 @@ public class EventHelper extends MongoDbControllerHelper {
         notification = timelineHelper;
         final EventStore eventStore = EventStoreFactory.getFactory().getEventStore(Calendar.class.getSimpleName());
         this.eventHelper = new org.entcore.common.events.EventHelper(eventStore);
+        this.mongo = MongoDb.getInstance();
     }
 
     @Override
@@ -458,7 +463,7 @@ public class EventHelper extends MongoDbControllerHelper {
         List<String> calendarEventShared = getSharedIds(calendarEvent.getJsonArray("shared", new JsonArray()));
 
         //get all userIds from groups for event
-        userService.fetchUser(calendarEventShared, user)
+        userService.fetchUser(calendarEventShared, user, false)
             .onSuccess(e -> {
                 List<String> calendarEventShareIds = e.stream().map(User::id).collect(Collectors.toList());
 
@@ -591,7 +596,7 @@ public class EventHelper extends MongoDbControllerHelper {
         List<String> sharedIds = new ArrayList<>(shared.getJsonObject("users").fieldNames());
         sharedIds.addAll(shared.getJsonObject("groups").fieldNames());
 
-        Future<List<User>> userIdsFuture = userService.fetchUser(sharedIds, user);             // from payload API sent us
+        Future<List<User>> userIdsFuture = userService.fetchUser(sharedIds, user, false);             // from payload API sent us
         Future<JsonObject> calendarsEventFuture = fetchCalendarsAndEventById(eventId);         // calendar Event and all calendars
 
         CompositeFuture.all(userIdsFuture, calendarsEventFuture)
@@ -616,20 +621,49 @@ public class EventHelper extends MongoDbControllerHelper {
      *
      * @return {@link Future} of {@link List<User>} containing list of User fetched
      */
-    @SuppressWarnings("unchecked")
     private Future<List<User>> retrieveAllUsersFromCalendarsEvent(UserInfos user, Future<JsonObject> calendarsEventFuture) {
         JsonObject calendarsEvent = calendarsEventFuture.result();
+        return retrieveAllUsersFromCalendarsEvent(user, calendarsEvent, false, false);
+    }
 
-        List<String> shareIdsFromAllCalendar = ((List<JsonObject>) calendarsEvent.getJsonArray("calendars", new JsonArray()).getList()).stream()
-                .flatMap(calendar -> ((List<JsonObject>) calendar.getJsonArray("shared", new JsonArray()).getList())
+    /**
+     * With calendarsEvent {@link JsonObject} containing
+     * {'calendarEvent': {@link JsonObject}, 'calendars': {@link JsonArray}}
+     * will fetch all userIds and groupId to fetch all User
+     *
+     * @param user                      user info {@link UserInfos}
+     * @param calendarsEvent      calendars and event data as {@link JsonObject}
+     * @param keepUserFromSession       if the user from the session should be fetched {@link boolean}
+     * @param keepCalendarsOwners       if the calendarOwners should be fetched {@link boolean}
+     *
+     * @return {@link Future} of {@link List<User>} containing list of User fetched
+     */
+    @SuppressWarnings("unchecked")
+    private Future<List<User>> retrieveAllUsersFromCalendarsEvent(UserInfos user, JsonObject calendarsEvent,
+      boolean keepUserFromSession, boolean keepCalendarsOwners) {
+        List<String> shareIdsFromAllCalendar = ((List<JsonObject>) calendarsEvent.getJsonArray(Field.calendars, new JsonArray()).getList()).stream()
+                .flatMap(calendar -> ((List<JsonObject>) calendar.getJsonArray(Field.shared, new JsonArray()).getList())
                         .stream()
-                        .map(s -> s.getString("userId", s.getString("groupId", null)))
+                        .map(s -> s.getString(Field.userId, s.getString(Field.groupId, null)))
                 )
                 .filter(Objects::nonNull)
                 .distinct()
                 .collect(Collectors.toList());
 
-        return userService.fetchUser(shareIdsFromAllCalendar, user);
+        if (keepCalendarsOwners) {
+            //add calendar owners to list
+            List<String> calendarsOwners = ((List<JsonObject>) calendarsEvent.getJsonArray(Field.calendars, new JsonArray()).getList()).stream()
+                    .map(c -> c.getJsonObject(Field.owner, null).getString(Field.userId, null))
+                    .filter(Objects::nonNull)
+                    .distinct()
+                    .collect(Collectors.toList());
+
+            shareIdsFromAllCalendar.addAll(calendarsOwners);
+            //remove duplicates
+            shareIdsFromAllCalendar.stream().distinct().collect(Collectors.toList());
+        }
+
+        return userService.fetchUser(shareIdsFromAllCalendar, user, keepUserFromSession);
     }
 
     /**
@@ -792,5 +826,85 @@ public class EventHelper extends MongoDbControllerHelper {
         });
         return promise.future();
     }
+
+
+    /**
+     * Check if the user has access to the event
+     * @param eventId the id of the event {@link String}
+     * @param user the user currently logged in {@link UserInfos}
+     *
+     * @return {@link Boolean} being true if the user has access to the event, false instead
+     */
+    public Future<Boolean> hasAccessToEvent(String eventId, UserInfos user) {
+        Promise<Boolean> promise = Promise.promise();
+        // get calendar Event and its calendars
+        fetchCalendarsAndEventById(eventId)
+                .onFailure(err -> {
+                    String message = String.format("[Calendar@%s::hasAccessToEvent]: an error has occurred while finding calendars containing event: %s",
+                            this.getClass().getSimpleName(), err.getMessage());
+                    log.error(message);
+                    promise.fail(err.getMessage());
+                })
+                .onSuccess(eventInfos -> {
+                    //check if user is event owner
+                    String calendarEventOwner = eventInfos.getJsonObject(Field.calendarEvent).getJsonObject(Field.owner).getString(Field.userId);
+                    if(calendarEventOwner.equals(user.getUserId())) {
+                        promise.complete(true); //user is event owner
+                    } else {
+                        //get all users with access to the calendars of this event
+                        retrieveAllUsersFromCalendarsEvent(user, eventInfos, true, true)
+                                .onFailure(fail -> {
+                                    String message = String.format("[Calendar@%s::hasAccessToEvent]: an error has occurred while finding users with access to event: %s",
+                                            this.getClass().getSimpleName(), fail.getMessage());
+                                    log.error(message);
+                                    promise.fail(fail.getMessage());
+                                })
+                                .onSuccess(usersWithAccessToEvent -> {
+                                        //find if user is among the users that can access the event
+                                        List<User> matchingUsers = usersWithAccessToEvent
+                                                .stream()
+                                                .filter(currentUser -> currentUser.id().equals(user.getUserId()))
+                                                .collect(Collectors.toList()); //check if users match user session
+
+                                        promise.complete(!matchingUsers.isEmpty());
+                                });
+                    }
+                });
+
+        return promise.future();
+    }
+
+    /**
+     * Get file from documents collection
+     * @param hasAccess whether the user has access to the event or not
+     * @param attachmentId the id of the file {@link String}
+     *
+     * @return {@link Future} of {@link JsonObject} being true if the user is owner of the file, false instead
+     */
+    public Future<JsonObject> getAttachment(Boolean hasAccess, String attachmentId) {
+        Promise<JsonObject> promise = Promise.promise();
+
+        if(Boolean.FALSE.equals(hasAccess)){
+            promise.fail(String.format("[Calendar@EventHelper::getAttachment] User does not have access to file"));
+        }
+
+        // Query
+        QueryBuilder query = QueryBuilder.start(Field.id).is(attachmentId);
+
+        mongo.findOne(Calendar.DOCUMENTS_COLLECTION, MongoQueryBuilder.build(query), validResultHandler(result -> {
+            if(result.isLeft() || result.right().getValue().size() == 0 || !(result.right().getValue() instanceof JsonObject) ) {
+                String message = String.format("[Calendar@%s::getAttachment]:  an error has occurred while finding file: %s",
+                        this.getClass().getSimpleName(), result.left().getValue());
+                log.error(message);
+                promise.fail(result.left().getValue());
+                return;
+            }
+
+            promise.complete(result.right().getValue());
+        }));
+
+        return promise.future();
+    }
+
 
 }
