@@ -29,14 +29,15 @@ public class DefaultUserServiceImpl implements UserService {
      *
      * @param ids             list of ids being user or group identifier {@link List<String>}
      * @param user            user info (in this case, we using only its id) {@link UserInfos}
+     * @param keepUserFromSession   if the code should include the user logged in or not {@link boolean}
      *
      * @return {@link Future} of {@link List<User>} containing list of user fetched
      */
     @Override
-    public Future<List<User>> fetchUser(List<String> ids, UserInfos user) {
+    public Future<List<User>> fetchUser(List<String> ids, UserInfos user, boolean keepUserFromSession) {
         Promise<List<User>> promise = Promise.promise();
         JsonObject param = new JsonObject().put("userId", user.getUserId());
-        neo4j.execute(getShareIdUserGroupInfoQuery(ids), param, Neo4jResult.validResultHandler(res -> {
+        neo4j.execute(getShareIdUserGroupInfoQuery(ids, keepUserFromSession), param, Neo4jResult.validResultHandler(res -> {
             if (res.isLeft()) {
                 String message = String.format("[Calendar@%s::fetchUser] An error has occured" +
                         " during fetch users from its id/groups: %s", this.getClass().getSimpleName(), res.left().getValue());
@@ -53,42 +54,43 @@ public class DefaultUserServiceImpl implements UserService {
      * Neo4j Query to fetch all user and belonged groups
      *
      * @param ids             list of ids being user or group identifier {@link List<String>}
+     * @param keepUserFromSession   if the request should include the user logged in or not {@link boolean}
      *
      * @return {@link String} of neo4j Query
      */
-    private String getShareIdUserGroupInfoQuery(List<String> ids) {
+    private String getShareIdUserGroupInfoQuery(List<String> ids, boolean keepUserFromSession) {
         return "MATCH (u:User) " +
-                        "WHERE u.id IN ['" +
-                        Joiner.on("','").join(ids) + "'] AND u.id <> {userId} " +
-                        "RETURN distinct u.id as id, u.displayName as displayName"
+                "WHERE u.id IN ['" +
+                Joiner.on("','").join(ids) + "'] " + (keepUserFromSession ? "" : "AND u.id <> {userId} ") +
+                "RETURN distinct u.id as id, u.displayName as displayName"
 
-                        + " UNION " +
+                + " UNION " +
 
-                        "MATCH (n:ProfileGroup )<-[:IN]-(u:User) " +
-                        "WHERE n.id IN ['" +
-                        Joiner.on("','").join(ids) + "'] AND u.id <> {userId} " +
-                        "RETURN distinct u.id as id, u.displayName as displayName"
+                "MATCH (n:ProfileGroup )<-[:IN]-(u:User) " +
+                "WHERE n.id IN ['" +
+                Joiner.on("','").join(ids) + "'] " + (keepUserFromSession ? "" : "AND u.id <> {userId} ") +
+                "RETURN distinct u.id as id, u.displayName as displayName"
 
-                        + " UNION " +
+                + " UNION " +
 
-                        "MATCH (n:ManualGroup )<-[:IN]-(u:User) " +
-                        "WHERE n.id IN ['" +
-                        Joiner.on("','").join(ids) + "'] AND u.id <> {userId} " +
-                        "RETURN distinct u.id as id, u.displayName as displayName"
+                "MATCH (n:ManualGroup )<-[:IN]-(u:User) " +
+                "WHERE n.id IN ['" +
+                Joiner.on("','").join(ids) + "'] " + (keepUserFromSession ? "" : "AND u.id <> {userId} ") +
+                "RETURN distinct u.id as id, u.displayName as displayName"
 
-                        + " UNION " +
+                + " UNION " +
 
-                        "MATCH (n:CommunityGroup )<-[:IN]-(u:User) " +
-                        "WHERE n.id IN ['" +
-                        Joiner.on("','").join(ids) + "'] AND u.id <> {userId} " +
-                        "RETURN distinct u.id as id, u.displayName as displayName"
+                "MATCH (n:CommunityGroup )<-[:IN]-(u:User) " +
+                "WHERE n.id IN ['" +
+                Joiner.on("','").join(ids) + "'] " + (keepUserFromSession ? "" : "AND u.id <> {userId} ") +
+                "RETURN distinct u.id as id, u.displayName as displayName"
 
-                        + " UNION " +
+                + " UNION " +
 
-                        "MATCH (n:Group )<-[:IN]-(u:User) " +
-                        "WHERE n.id IN ['" +
-                        Joiner.on("','").join(ids) + "'] AND u.id <> {userId} " +
-                        "RETURN distinct u.id as id, u.displayName as displayName";
+                "MATCH (n:Group )<-[:IN]-(u:User) " +
+                "WHERE n.id IN ['" +
+                Joiner.on("','").join(ids) + "'] " + (keepUserFromSession ? "" : "AND u.id <> {userId} ") +
+                "RETURN distinct u.id as id, u.displayName as displayName";
     }
 
 }

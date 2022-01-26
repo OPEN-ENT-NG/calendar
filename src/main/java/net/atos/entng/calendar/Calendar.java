@@ -39,6 +39,8 @@ import org.entcore.common.notification.TimelineHelper;
 import org.entcore.common.service.CrudService;
 import io.vertx.core.eventbus.EventBus;
 import org.entcore.common.sql.Sql;
+import org.entcore.common.storage.Storage;
+import org.entcore.common.storage.StorageFactory;
 
 
 public class Calendar extends BaseServer {
@@ -46,6 +48,7 @@ public class Calendar extends BaseServer {
 
     public static final String CALENDAR_COLLECTION = "calendar";
     public static final String CALENDAR_EVENT_COLLECTION = "calendarevent";
+    public static final String DOCUMENTS_COLLECTION = "documents";
 
     public static final String MANAGE_RIGHT_ACTION = "net-atos-entng-calendar-controllers-CalendarController|updateCalendar";
 
@@ -57,6 +60,7 @@ public class Calendar extends BaseServer {
         CrudService eventService = new EventServiceMongoImpl(CALENDAR_EVENT_COLLECTION, vertx.eventBus(), serviceFactory);
 
         final MongoDbConf conf = MongoDbConf.getInstance();
+        final Storage storage = new StorageFactory(vertx, config).getStorage();
         conf.setCollection(CALENDAR_COLLECTION);
         conf.setResourceIdLabel("id");
         
@@ -72,7 +76,7 @@ public class Calendar extends BaseServer {
         EventBus eb = Server.getEventBus(vertx);
         final TimelineHelper timelineHelper = new TimelineHelper(vertx, eb, config);
         addController(new CalendarController(CALENDAR_COLLECTION, serviceFactory));
-        addController(new EventController(CALENDAR_EVENT_COLLECTION, eventService, serviceFactory, timelineHelper));
+        addController(new EventController(CALENDAR_EVENT_COLLECTION, eventService, serviceFactory, timelineHelper, storage));
     }
     
 }

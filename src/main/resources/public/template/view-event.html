@@ -10,23 +10,45 @@
     <div class="toggle">
         <div class="content">
 
+            <!--Calendars-->
             <div class="row">
                 <label><i18n>calendar.event.calendar</i18n> :</label>
                 <span ng-repeat="calendar in calendarEvent.calendar"> [[calendar.title]][[$last ? '' : ', ']]</span>
             </div>
 
+            <!--Event owner-->
             <div class="row" ng-if="calendarEvent._id">
                 <div class="twelve cell form-element">
-                    <label><i18n>calendar.event.owner</i18n> :</label><span> [[calendarEvent.owner.displayName]]</span>
+                    <label><i18n>calendar.event.owner</i18n></label><span> [[calendarEvent.owner.displayName]]</span>
                 </div>
             </div>
+            <!--Event title-->
             <div class="row">
                 <label><i18n>calendar.event.title</i18n> :</label>
                 <span> [[calendarEvent.title]]</span>
             </div>
 
+            <!--Description-->
             <label class="twelve cell"><i18n>calendar.event.description</i18n></label>
             <textarea class="twelve cell" ng-model="calendarEvent.description" disabled></textarea>
+
+            <!--List of attachment files-->
+            <label class="twelve cell"><i18n>calendar.event.attachments</i18n></label>
+            <div class="twelve cell editEvent-attachments content-line">
+                <div class="editEvent-attachments-fileSection row">
+                    <div ng-repeat="attachment in calendarEvent.attachments"
+                         class="right-spacing three cell bottom-spacing editEvent-attachments-fileSection-list">
+                        <div class="editEvent-attachments-fileSection-list-item ">
+                            <i class="attachment"></i>
+                            <div ng-click="downloadAttachment(calendarEvent, attachment)"
+                                 class="editEvent-attachments-fileSection-list-item-title">
+                                [[attachment.metadata.filename]]
+                            </div>
+                            <span class="tooltip-title left-spacing-small">[[attachment.metadata.filename]]</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
             <div class="row">
                 <label><i18n>calendar.event.location</i18n> :</label>

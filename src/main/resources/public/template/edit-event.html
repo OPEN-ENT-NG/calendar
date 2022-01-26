@@ -17,6 +17,7 @@
                     <div class="toggle">
                         <div class="content">
 
+                            <!--Event owner-->
                             <div class="row" ng-if="calendarEvent._id">
                                 <div class="twelve cell form-element">
                                     <label>
@@ -25,22 +26,53 @@
                                 </div>
                             </div>
 
+                            <!--Event title-->
                             <label class="twelve cell">
                                 <i18n>calendar.event.title</i18n>
                             </label>
                             <input name="titleInput" class="twelve cell" required ng-model="calendarEvent.title"
                                    type="text"/>
 
+                            <!--Description-->
                             <label class="twelve cell">
                                 <i18n>calendar.event.description</i18n>
                             </label>
                             <textarea class="twelve cell" ng-model="calendarEvent.description"></textarea>
 
+                            <!--Attachments-->
+                            <div class="twelve cell editEvent-attachments content-line">
+                                <!--Attachment button-->
+                                <div class="twelve cell editEvent-attachments-buttonSection">
+                                    <button class="editEvent-attachments-buttonSection-button left-magnet" ng-click="openAttachmentLightbox()">
+                                        <i class="attachment"></i>
+                                        <i18n>calendar.event.add</i18n> <i18n>calendar.event.attachments</i18n>
+                                    </button>
+                                </div>
+                                <!--List of attachment files-->
+                                <div class="editEvent-attachments-fileSection row">
+                                    <div ng-repeat="attachment in calendarEvent.attachments track by $index"
+                                          class="right-spacing three cell bottom-spacing editEvent-attachments-fileSection-list">
+                                        <div class="editEvent-attachments-fileSection-list-item ">
+                                            <div ng-click="downloadAttachment(calendarEvent, attachment)"
+                                               class="editEvent-attachments-fileSection-list-item-title">
+                                                [[attachment.metadata.filename]]
+                                            </div>
+                                            <i class="cross top-spacing horizontal-margin-small
+                                            editEvent-attachments-fileSection-list-item-cross"
+                                            ng-click="removeDocumentFromAttachments(attachment._id)"></i>
+                                            <span class="tooltip-title left-spacing-small">[[attachment.metadata.filename]]</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!--Location-->
                             <label class="twelve cell">
                                 <i18n>calendar.event.location</i18n>
                             </label>
                             <input class="twelve cell" ng-model="calendarEvent.location" type="text"/>
 
+                            <!--Calendars-->
                             <div class="row">
                                 <label>
                                     <i18n>calendar.event.calendar</i18n>

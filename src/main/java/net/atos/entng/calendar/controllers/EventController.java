@@ -21,12 +21,15 @@ package net.atos.entng.calendar.controllers;
 
 import fr.wseduc.rs.*;
 import fr.wseduc.webutils.I18n;
+import fr.wseduc.webutils.http.Renders;
+import net.atos.entng.calendar.core.constants.Field;
 import net.atos.entng.calendar.helpers.EventHelper;
 
 import net.atos.entng.calendar.security.CustomWidgetFilter;
 import net.atos.entng.calendar.security.ShareEventConf;
 import net.atos.entng.calendar.services.ServiceFactory;
 import org.entcore.common.http.filter.ResourceFilter;
+import org.entcore.common.storage.Storage;
 import org.entcore.common.mongodb.MongoDbControllerHelper;
 import org.entcore.common.notification.TimelineHelper;
 import org.entcore.common.service.CrudService;
@@ -44,10 +47,12 @@ import java.util.List;
 public class EventController extends MongoDbControllerHelper {
 
     private final EventHelper eventHelper;
+    private final Storage storage;
 
-    public EventController(String collection, CrudService eventService, ServiceFactory serviceFactory, TimelineHelper timelineHelper) {
+    public EventController(String collection, CrudService eventService, ServiceFactory serviceFactory, TimelineHelper timelineHelper, Storage storage) {
         super(collection);
         eventHelper = new EventHelper(collection, eventService, serviceFactory, timelineHelper);
+        this.storage = storage;
     }
 
     @Get("/:id/events")
@@ -142,7 +147,29 @@ public class EventController extends MongoDbControllerHelper {
     @SecuredAction(value = "calendar.manager", type = ActionType.RESOURCE)
     public void importIcal(HttpServerRequest request) {
         eventHelper.importIcal(request);
+    }
 
+    @Get("calendarevent/:eventid/attachment/:attachmentid")
+    @SecuredAction(value = "calendar.read", type = ActionType.AUTHENTICATED)
+    public void getEventAttachment(HttpServerRequest request) {
+        UserUtils.getUserInfos(eb, request, user -> {
+            if (user != null) {
+                String eventId = request.params().get("eventid");
+                String attachmentid = request.params().get("attachmentid");
+                eventHelper.hasAccessToEvent(eventId, user)
+                        .compose(hasAccess -> eventHelper.getAttachment(hasAccess, attachmentid))
+                        .onSuccess(file -> {
+                            String fileId = file.getString(Field.file);
+                            JsonObject fileMetadata = file.getJsonObject(Field.metadata);
+                            String fileName = file.getString(Field.name);
+                            storage.sendFile(fileId, fileName, request, false, fileMetadata);
+                        })
+                        .onFailure(err -> renderError(request));
+            } else {
+                log.error("User not found in session.");
+                Renders.unauthorized(request);
+            }
+        });
     }
 
     /**
