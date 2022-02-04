@@ -1466,6 +1466,7 @@ export const calendarController =  ng.controller('CalendarController',
 
     /**
      * Returns true if the event start time is before the event end time or if the event lasts all day
+     * or if the event lasts multiple days
      */
     $scope.isTimeValid = () : boolean => (($scope.calendarEvent.startTime && $scope.calendarEvent.endTime
                 && moment($scope.calendarEvent.startTime).isBefore(moment($scope.calendarEvent.endTime)))
@@ -1475,7 +1476,8 @@ export const calendarController =  ng.controller('CalendarController',
      * Returns true if the event start date is before or equal to the event end date
      */
     $scope.isDateValid = () : boolean => ($scope.calendarEvent.startMoment && $scope.calendarEvent.endMoment
-            && moment($scope.calendarEvent.startMoment).isSameOrBefore(moment($scope.calendarEvent.endMoment), 'day'));
+        && moment($scope.calendarEvent.startMoment).isValid() && moment($scope.calendarEvent.endMoment).isValid()
+        && moment($scope.calendarEvent.startMoment).isSameOrBefore(moment($scope.calendarEvent.endMoment), 'day'));
 
     /**
      * Returns true if the event length is shorter than the recurrence length
@@ -1486,11 +1488,12 @@ export const calendarController =  ng.controller('CalendarController',
                 .diff(moment($scope.calendarEvent.startMoment), 'days')+1 <= $scope.calendarEvent.recurrence.every*7)));
 
     /**
-     * Returns true is the start and end date of the event are the same day
+     * Returns true is the start and end date of the event are the same day or if one of them is not valid
+     * Events with invalid dates are treated like one day events
      */
-    $scope.isOneDayEvent = () : boolean => {
-        return (moment($scope.calendarEvent.startMoment).isSame(moment($scope.calendarEvent.endMoment), 'day'));
-    };
+    $scope.isOneDayEvent = () : boolean => ( !(moment($scope.calendarEvent.startMoment).isValid())
+        || !(moment($scope.calendarEvent.endMoment).isValid())
+        || (moment($scope.calendarEvent.startMoment).isSame(moment($scope.calendarEvent.endMoment), 'day')));
 
     /**
      * Returns the date of the last day of the recurrence
