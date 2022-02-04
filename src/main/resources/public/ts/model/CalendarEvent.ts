@@ -188,7 +188,7 @@ export class CalendarEvents extends Selection<CalendarEvent> {
             }
             calendarEvent.calendar = newArray.filter(e => e!= null);
 
-            if(multiDaysEventsUtils.isEventMultiDays(moment(calendarEvent.startMoment), moment(calendarEvent.endMoment))){
+            if(multiDaysEventsUtils.isEventOneDay(moment(calendarEvent.startMoment), moment(calendarEvent.endMoment))){
                 this.formatEventDates(calendarEvent, calendar);
             } else { //multiple-days event
                 this.divideMultiDaysEvent(calendarEvent, calendar, dividedMultiDaysEvents);
@@ -204,7 +204,7 @@ export class CalendarEvents extends Selection<CalendarEvent> {
                 this.all.push(item);
             } else {
                 let multiDayEvent: CalendarEvent = this.all.find((event : CalendarEvent) => (event._id === item
-                    && !multiDaysEventsUtils.isEventMultiDays(moment(event.startMoment), moment(event.endMoment))));
+                    && !multiDaysEventsUtils.isEventOneDay(moment(event.startMoment), moment(event.endMoment))));
                 this.all.splice(this.all.indexOf(multiDayEvent), 1);
             }
         });
