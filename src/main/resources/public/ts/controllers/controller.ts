@@ -65,8 +65,8 @@ export const calendarController =  ng.controller('CalendarController',
         $scope.calendarEvents.filters.endMoment = moment().add(2, 'months').startOf('day');
         $scope.contentToWatch = "";
         $scope.calendarCreationScreen = false;
-        $scope.calendarAsContribRight = new Array<String>();
-        $scope.selectedCalendarInEvent = new Array<String>();
+        $scope.calendarAsContribRight = new Array<Calendar>();
+        $scope.selectedCalendarInEvent = new Array<Calendar>();
         $scope.rights = rights;
         $scope.buttonAction = ACTIONS;
         $scope.eventSidebar$ = new Subject<void>();
@@ -966,8 +966,8 @@ export const calendarController =  ng.controller('CalendarController',
      * @param isCalendar allows to use the lightbox from the calendar directive
      */
     $scope.createCalendarEvent = (newItem?, isCalendar? :boolean) => {
-        $scope.calendarAsContribRight = new Array<String>();
-        $scope.selectedCalendarInEvent = new Array<String>();
+        $scope.calendarAsContribRight = new Array<Calendar>();
+        $scope.selectedCalendarInEvent = new Array<Calendar>();
         $scope.calendarEvent = new CalendarEvent();
         $scope.calendarEvent.recurrence = {};
         $scope.calendarEvent.calendar = new Array<Calendar>();
@@ -975,6 +975,11 @@ export const calendarController =  ng.controller('CalendarController',
             : $scope.viewCalendarEvent($scope.calendarEvent);
         setListCalendarWithContribFilter();
         if(newItem){
+            $scope.calendarAsContribRight.forEach((calendar : Calendar) => {
+                calendar.toString = () => { return calendar.title };
+            });
+            safeApply($scope);
+
             $scope.calendarEvent.startMoment = newItem.beginning;
             $scope.calendarEvent.startMoment = $scope.calendarEvent.startMoment.minute(0).second(0).millisecond(0);
             $scope.calendarEvent.endMoment = newItem.end;
@@ -1005,7 +1010,7 @@ export const calendarController =  ng.controller('CalendarController',
         $scope.calendars.arr.forEach(
             function(calendar){
                 if($scope.hasContribRight(calendar) != null){
-                    $scope.calendarAsContribRight.push(calendar.title);
+                    $scope.calendarAsContribRight.push(calendar);
                 }
             });
         $scope.calendarAsContribRight = unique($scope.calendarAsContribRight);
@@ -1040,10 +1045,10 @@ export const calendarController =  ng.controller('CalendarController',
         $scope.calendarEvent.calendar = new Array<Calendar>();
 
         $scope.selectedCalendarInEvent.forEach(
-            function(title){
+            function(selectedCalendars){
                 $scope.calendars.arr.forEach(
                     function(calendar){
-                        if(title === calendar.title){
+                        if(selectedCalendars._id === calendar._id){
                             $scope.calendarEvent.calendar.push(calendar);
                         }
                 });
