@@ -974,12 +974,12 @@ export const calendarController =  ng.controller('CalendarController',
         isCalendar ? $scope.viewCalendarEvent($scope.calendarEvent, isCalendar)
             : $scope.viewCalendarEvent($scope.calendarEvent);
         setListCalendarWithContribFilter();
-        if(newItem){
-            $scope.calendarAsContribRight.forEach((calendar : Calendar) => {
-                calendar.toString = () => { return calendar.title };
-            });
-            safeApply($scope);
+        $scope.calendarAsContribRight.forEach((calendar : Calendar) => {
+            calendar.toString = () => { return calendar.title };
+        });
+        safeApply($scope);
 
+        if(newItem){
             $scope.calendarEvent.startMoment = newItem.beginning;
             $scope.calendarEvent.startMoment = $scope.calendarEvent.startMoment.minute(0).second(0).millisecond(0);
             $scope.calendarEvent.endMoment = newItem.end;
