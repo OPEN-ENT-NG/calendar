@@ -102,6 +102,12 @@ export const calendarController =  ng.controller('CalendarController',
                     $scope.calendars.preference.sync()
                 ]);
                 $scope.loadSelectedCalendars();
+
+                //ensure that default calendar is selected
+                let defaultCalendar : Calendar = $scope.calendars.all.find(cal => cal.is_default == true);
+                defaultCalendar.selected = false;
+                $scope.openOrCloseCalendar(defaultCalendar, true);
+
                 $scope.firstOwnedEvent();
                 $scope.initEventDates(moment().utc().second(0).millisecond(0), moment().utc().second(0).millisecond(0).add(1, 'hours'));
                 setCalendarLang();
