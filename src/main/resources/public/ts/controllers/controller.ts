@@ -1023,7 +1023,8 @@ export const calendarController =  ng.controller('CalendarController',
                 }
             });
         $scope.calendarAsContribRight = unique($scope.calendarAsContribRight);
-        $scope.selectedCalendarInEvent.push($scope.calendarAsContribRight[0]);
+        let defaultCalendar : Calendar = $scope.calendarAsContribRight.find(cal => cal.is_default == true);
+        $scope.selectedCalendarInEvent.push(defaultCalendar ? defaultCalendar : $scope.calendarAsContribRight[0]);
         $scope.selectedCalendarInEvent = unique($scope.selectedCalendarInEvent);
     }
 
