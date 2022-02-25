@@ -9,23 +9,23 @@
             <section class="cell twelve bottom-spacing top-spacing bg-white">
                 <label class="cell twelve sidebar-calendar-choice-view flex-row">
                     <!-- switch calendar mode -->
-                    <div class="six flex-row right-spacing-small left-spacing-four top-spacing bottom-spacing file-selector
+                    <div class="six flex-row file-selector
                     sidebar-calendar-choice-view-item" ng-click="vm.onShowCalendar()"
                          ng-class="{selected: !vm.list}">
                         <div ng-include="'/calendar/public/img/calendaire.svg'"
                              class="show-calendar">
                         </div>
-                        <i18n class="left-spacing-small top-spacing-small bottom-spacing">calendar.calendar.view</i18n>
+                        <i18n class="left-spacing-small">calendar.calendar.view</i18n>
                     </div>
 
                     <!-- switch list mode -->
-                    <div class="six flex-row right-spacing-small left-spacing-four top-spacing bottom-spacing file-selector
+                    <div class="six flex-row file-selector
                     sidebar-calendar-choice-view-item"
                          ng-click="vm.onShowList()" ng-class="{selected: vm.list}">
                         <div ng-include="'/calendar/public/img/liste.svg'"
                              class="show-list">
                         </div>
-                        <i18n class="left-spacing-small top-spacing-small bottom-spacing">calendar.list.view</i18n>
+                        <i18n class="left-spacing-small">calendar.list.view</i18n>
                     </div>
                 </label>
             </section>
@@ -41,7 +41,7 @@
                     <ul>
                         <!-- My calendars -->
                         <li>
-                            <a class="selected"><i18n>calendar.my.calendars</i18n></a>
+                            <h3 class="selected"><i18n>calendar.my.calendars</i18n></h3>
                             <ul class="colored">
                                 <li ng-repeat="cl in vm.calendars.all | filter:vm.isMyCalendar | orderBy: '+title'">
                                     <a class="[[cl.color]]" ng-class="{'selected': cl.selected, 'notselected': !cl.selected}"
@@ -55,7 +55,7 @@
                         </li>
                         <!-- Shared calendars -->
                         <li>
-                            <a class="selected"><i18n>calendar.shared.calendars</i18n></a>
+                            <h3 class="selected"><i18n>calendar.shared.calendars</i18n></h3>
                             <ul ng-if="vm.hasSharedCalendars()" class="colored">
                                 <li ng-repeat="cl in vm.calendars.all | filter:vm.isCalendarSharedWithMe | orderBy: '+title'">
                                     <a class="[[cl.color]] sidebar-calendar-list" ng-class="{'selected': cl.selected, 'notselected': !cl.selected}"

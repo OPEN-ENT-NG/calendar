@@ -71,6 +71,22 @@
     opacity:1;
 }
 
+nav.vertical ul {
+    padding-left: 20px;
+}
+
+nav.vertical ul > li:not(:first-child) {
+    margin-top: 1rem;
+}
+
+nav.vertical ul li ul {
+    padding-left: 0;
+}
+
+nav.vertical ul li ul > li {
+    padding-left: 0;
+}
+
 nav.vertical ul li a input.calendar-checkbox {
   float:right;
 }
@@ -127,7 +143,16 @@ calendar {
     }
 
     i.calendar {
-        padding-top: 15px;
+        padding: 18px 40px;
+        background-image: none;
+
+        &::before {
+            content: '\e834';
+            font-family: 'generic-icons';
+            font-size: 3rem;
+            display: block;
+            color: #eac403;
+        }
     }
 
     legend, .legend>.month-day, button.cyan {
@@ -186,3 +211,13 @@ h1 a {
     }
 }
 
+.sidebar-calendar-choice-view-item {
+    margin: .4rem 0;
+    justify-content: center;
+    align-items: center;
+}
+
+.show-calendar,
+.show-list {
+    height: 24px;
+}
