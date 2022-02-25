@@ -131,10 +131,6 @@ calendar {
         margin-top: 0;
     }
 
-    i.calendar {
-        padding-top: 15px;
-    }
-
     legend, .legend>.month-day, button.cyan {
         background: $calendar-blue !important;
     }
@@ -175,6 +171,13 @@ section.main {
     padding-top: 10px!important;
 }
 
+nav.vertical ul {
+    padding-left: 0;
+}
+
+nav.vertical ul li ul {
+    padding-left: 0;
+}
 
 nav.vertical ul li span {
     display: inline-block;
@@ -190,3 +193,8 @@ nav.vertical ul li span {
     padding-left: 29px;
 }
 
+h3 {
+    &.selected {
+        margin-bottom: 1rem;
+    }
+}
