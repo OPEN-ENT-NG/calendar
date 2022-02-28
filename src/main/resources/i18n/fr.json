@@ -126,7 +126,7 @@
     "calendar.event.remove.others.from.recurrence": "Supprimer les autres évènements de la récurrence",
     "calendar.event.remove.all.from.recurrence": "Supprimer tous les événements de la récurrence",
     "calendar.event.edit.select.one": "Sélectionner un agenda",
-    "calendar.event.edit.reccurrence.is": "La récurrence est:",
+    "calendar.event.edit.reccurrence.is": "La récurrence est :",
     "cannot.delete.default.calendar": "Votre calendrier par défaut ne peut pas être supprimé",
     "calendar.event.save.and.restrict": "Enregistrer et restreindre",
     "calendar.event.save.and.share": "Enregistrer et partager",
