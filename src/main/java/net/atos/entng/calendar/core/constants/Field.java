@@ -20,17 +20,28 @@ public class Field {
     public static final String STARTMOMENT = "startMoment";
     // event end moment
     public static final String ENDMOMENT = "endMoment";
-    //calendars
+    // calendars
     public static final String CALENDARS = "calendars";
-    //Owner
+    // Owner
     public static final String OWNER = "owner";
     //Calendar id
     public static final String _ID = "_id";
+    // Event id
+    public static final String EVENTID = "eventId";
 
+    // Start and end dates
+    public static final String START_DATE = "start_date";
+    public static final String END_DATE = "end_date";
     // start date from range
     public static final String STARTDATE = "startDate";
     // end date from range
     public static final String ENDDATE = "endDate";
+
+    // Notification
+    public static final String SENDNOTIF = "sendNotif";
+
+    // Attachments
+    public static final String ATTACHMENTS = "attachments";
 
     //Recurrence
     // event is recurrent or not
@@ -60,5 +71,26 @@ public class Field {
     public static final String metadata = "metadata";
     // document name with extension
     public static final String name = "name";
+
+    //Booking infos
+    public static final String BOOKINGS = "bookings";
+    public static final String HASBOOKING = "hasBooking";
+    public static final String SAVE_BOOKINGS = "save-bookings";
+
+    //Event Bus
+    public static final String OK = "ok";
+    public static final String STATUS = "status";
+    public static final String RESULT = "result";
+    public static final String MESSAGE = "message";
+
+    //Config
+    public static final String ENABLERBS = "enableRbs";
+    public static final String ENABLE_RBS = "enable-rbs";
+
+    //Miscellaneous
+    public static final String ALL = "all";
+
+    //Actions
+    public static final String ACTION = "action";
 
 }

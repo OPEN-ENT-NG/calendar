@@ -1,6 +1,6 @@
 import { routes, ng } from "entcore";
 import * as controllers from './controllers';
-import {colorSelector, formatInputTime, sideBar} from './directives';
+import {colorSelector, formatInputTime, sideBar, rbsBookingDeleteInfo} from './directives';
 
 for (let controller in controllers) {
     ng.controllers.push(controllers[controller]);
@@ -9,6 +9,7 @@ for (let controller in controllers) {
 ng.directives.push(colorSelector);
 ng.directives.push(formatInputTime);
 ng.directives.push(sideBar);
+ng.directives.push(rbsBookingDeleteInfo);
 
 routes.define(function($routeProvider) {
     $routeProvider

@@ -85,6 +85,16 @@
                 </div>
             </div>
         </div>
+
+        <!--RBS booking-->
+        <div ng-if="ENABLE_RBS">
+            <sniplet
+                    template="calendar-rbs-booking"
+                    application="rbs"
+                    class="row">
+            </sniplet>
+        </div>
+
         <div class="warningEventView">
             <label class="warning" ng-if="hasACalendarWithRightsOfModifyEvent(calendarEvent)">
                 <i18n>calendar.event.not.all.calendar.rights</i18n></label>

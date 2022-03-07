@@ -1,0 +1,12 @@
+<div ng-if="vm.enableRbs && vm.rbsEmitter.calendarEventHasBookings()">
+    <div ng-if="vm.rbsEmitter.hasAccessToSavedBookings()">
+        <i18n>rbs.calendar.sniplet.booking.warning</i18n>
+        <div ng-repeat="bookingDates in vm.rbsEmitter.calendarEventBookingsSlots()">[[bookingDates]]</div>
+        <i18n>rbs.calendar.sniplet.booking.deletion.advice</i18n>
+    </div>
+    <div ng-if="!vm.rbsEmitter.hasAccessToSavedBookings()">
+        <i18n>rbs.calendar.sniplet.booking.owner.is</i18n> [[vm.calendarEvent.owner.displayName]]
+        <i18n>rbs.calendar.sniplet.for.this.event</i18n>
+        <i18n>rbs.calendar.sniplet.booking.deletion.advice.no.access</i18n>
+    </div>
+</div>

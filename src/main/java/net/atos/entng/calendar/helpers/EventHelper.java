@@ -20,10 +20,13 @@
 package net.atos.entng.calendar.helpers;
 
 import static net.atos.entng.calendar.Calendar.*;
+import static net.atos.entng.calendar.helpers.FutureHelper.*;
+import static net.atos.entng.calendar.helpers.RbsHelper.*;
 import static org.entcore.common.http.response.DefaultResponseHandler.arrayResponseHandler;
 import static org.entcore.common.http.response.DefaultResponseHandler.defaultResponseHandler;
 import static org.entcore.common.http.response.DefaultResponseHandler.notEmptyResponseHandler;
 import static org.entcore.common.mongodb.MongoDbResult.validResultHandler;
+import static org.entcore.common.mongodb.MongoDbResult.*;
 
 import java.io.File;
 import java.io.IOException;
@@ -37,10 +40,9 @@ import fr.wseduc.mongodb.MongoDb;
 import fr.wseduc.mongodb.MongoQueryBuilder;
 import fr.wseduc.webutils.Either;
 import fr.wseduc.webutils.I18n;
+import fr.wseduc.webutils.Server;
 import fr.wseduc.webutils.collections.Joiner;
-import io.vertx.core.CompositeFuture;
-import io.vertx.core.Future;
-import io.vertx.core.Promise;
+import io.vertx.core.*;
 import net.atos.entng.calendar.Calendar;
 import net.atos.entng.calendar.core.constants.Field;
 import net.atos.entng.calendar.models.User;
@@ -58,7 +60,7 @@ import org.entcore.common.notification.TimelineHelper;
 import org.entcore.common.service.CrudService;
 import org.entcore.common.user.UserInfos;
 import org.entcore.common.user.UserUtils;
-import io.vertx.core.Handler;
+import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.eventbus.Message;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.json.JsonArray;
@@ -85,7 +87,10 @@ public class EventHelper extends MongoDbControllerHelper {
     private final TimelineHelper notification;
     private final org.entcore.common.events.EventHelper eventHelper;
 
-    public EventHelper(String collection, CrudService eventService, ServiceFactory serviceFactory, TimelineHelper timelineHelper) {
+    private EventBus eb;
+
+    public EventHelper(String collection, CrudService eventService, ServiceFactory serviceFactory,
+                       TimelineHelper timelineHelper, EventBus eb, JsonObject config) {
         super(collection, null);
         this.eventService = (EventServiceMongo) eventService;
         this.crudService = eventService;
@@ -95,6 +100,8 @@ public class EventHelper extends MongoDbControllerHelper {
         final EventStore eventStore = EventStoreFactory.getFactory().getEventStore(Calendar.class.getSimpleName());
         this.eventHelper = new org.entcore.common.events.EventHelper(eventStore);
         this.mongo = MongoDb.getInstance();
+        this.eb = eb;
+        this.config = config;
     }
 
     @Override
@@ -117,33 +124,32 @@ public class EventHelper extends MongoDbControllerHelper {
             public void handle(final UserInfos user) {
                 final String calendarId = request.params().get(CALENDAR_ID_PARAMETER);
                 if (user != null) {
-                    RequestUtils.bodyToJson(request, new Handler<JsonObject>() {
-                        @Override
-                        public void handle(JsonObject object) {
-                            if (isEventValid(object, request)) {
-                                eventService.create(calendarId, object, user, new Handler<Either<String, JsonObject>>() {
-                                    public void handle(Either<String, JsonObject> event) {
-                                        if (event.isRight()) {
-                                            JsonObject eventId = event.right().getValue();
-                                            final JsonObject message = new JsonObject();
-                                            message.put("id", calendarId);
-                                            message.put("eventId", eventId.getString("_id"));
-                                            message.put("start_date", (String) null);
-                                            message.put("end_date", (String) null);
-                                            message.put("sendNotif", object.containsKey("sendNotif") ? object.getBoolean("sendNotif") : null);
-                                            notifyEventCreatedOrUpdated(request, user, message, true);
-                                            renderJson(request, event.right().getValue(), 200);
-                                            eventHelper.onCreateResource(request, RESOURCE_NAME);
-                                        } else if (event.isLeft()) {
-                                            log.error("Error when getting notification informations.");
-                                        }
+                    RequestUtils.bodyToJson(request, (Handler<JsonObject>) object -> {
+
+                        if (isEventValid(object, request)) {
+                            RbsHelper.saveBookingsInRbs(request, object, user, config, eb).onComplete(e ->
+                                eventService.create(calendarId, object, user, event -> {
+                                    if (event.isRight()) {
+                                        JsonObject eventId = event.right().getValue();
+                                        final JsonObject message = new JsonObject();
+                                        message.put(Field.id, calendarId);
+                                        message.put(Field.EVENTID, eventId.getString("_id"));
+                                        message.put(Field.START_DATE, (String) null);
+                                        message.put(Field.END_DATE, (String) null);
+                                        message.put(Field.SENDNOTIF, object.getBoolean(Field.SENDNOTIF, null));
+                                        notifyEventCreatedOrUpdated(request, user, message, true);
+                                        renderJson(request, event.right().getValue(), 200);
+                                        eventHelper.onCreateResource(request, RESOURCE_NAME);
+                                    } else if (event.isLeft()) {
+                                        log.error("[Calendar@EventHelper::create] Error when getting notification informations.");
                                     }
-                                });
-                            } else {
-                                log.error(String.format("[Calendar@EventHelper::create] " + "Submitted event is not valid"),
-                                        I18n.getInstance().translate("calendar.error.date.saving", getHost(request), I18n.acceptLanguage(request)));
-                                Renders.unauthorized(request);
-                            }
+                                })
+                            );
+
+                        } else {
+                            log.error(String.format("[Calendar@EventHelper::create] " + "Submitted event is not valid"),
+                                    I18n.getInstance().translate("calendar.error.date.saving", getHost(request), I18n.acceptLanguage(request)));
+                            Renders.unauthorized(request);
                         }
                     });
                 } else {

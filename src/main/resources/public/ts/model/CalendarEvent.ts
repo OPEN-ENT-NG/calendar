@@ -1,12 +1,13 @@
 import http from "axios";
 import {_, Behaviours, moment, Rights, Shareable, Document, angular} from "entcore";
 import { timeConfig } from "./constantes";
-import {Calendar, Calendars} from "./";
+import {Bookings, Calendar, Calendars} from "./";
 import { Mix, Selectable, Selection } from "entcore-toolkit";
 import {getTime, makerFormatTimeInput, utcTime} from './Utils'
 import {multiDaysEventsUtils} from "../utils/multiDaysEventsUtils";
 import {FORMAT} from "../core/const/date-format";
 import {calendarEventService, CalendarEventService} from "../services/calendar-event.service";
+import {SavedBooking} from "./rbs/booking.model";
 
 export class CalendarEvent implements Selectable, Shareable{
     _id: String;
@@ -50,6 +51,8 @@ export class CalendarEvent implements Selectable, Shareable{
     editAllRecurrence: boolean;
     isMultiDayPart: boolean;
     attachments: Array<Document>;
+    hasBooking: boolean;
+    bookings: Bookings;
 
     constructor (calendarEvent? : Object) {
         this.myRights = new Rights(this);
@@ -137,7 +140,9 @@ export class CalendarEvent implements Selectable, Shareable{
             // Warning : if format() is changed below, it must be changed in net.atos.entng.calendar.helpers.EventHelper.create() too.
             notifStartMoment: this.notifStartMoment.format("DD/MM/YYYY HH:mm"),
             notifEndMoment: this.notifEndMoment.format("DD/MM/YYYY HH:mm"),
-            attachments : this.attachments
+            attachments : this.attachments ? this.attachments.map((attachment: Document) => new Document(attachment).toJSON()) : [],
+            bookings: this.bookings,
+            hasBooking: this.hasBooking
         }
         if (!this._id) {
             body.calendar = this.getCalendarId();

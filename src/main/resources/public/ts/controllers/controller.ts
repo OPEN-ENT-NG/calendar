@@ -1,9 +1,9 @@
-import {$, _, moment, ng, template, idiom as lang, notify, toasts, angular, Document} from "entcore";
+import {$, _, moment, ng, template, idiom as lang, notify, toasts, angular, Document, Behaviours} from "entcore";
 import {
     Calendar,
     Calendars,
     CalendarEvent,
-    CalendarEvents, CalendarEventRecurrence,
+    CalendarEvents, CalendarEventRecurrence, SavedBooking,
 } from "../model/index";
 import {
     defaultColor,
@@ -30,6 +30,11 @@ import {FORMAT} from "../core/const/date-format";
 import {DAY_OF_WEEK} from "../core/enum/dayOfWeek.enum";
 import {attachmentService} from "../services/attachment.service";
 import {PERIODE_TYPE} from "../core/enum/period-type.enum";
+import {IAngularEvent} from "angular";
+import {RbsEmitter} from "../model/rbs/rbs-emitter.model";
+
+declare var ENABLE_RBS: boolean;
+declare let window: any;
 
 export const calendarController = ng.controller('CalendarController',
     ["$location",
@@ -39,7 +44,7 @@ export const calendarController = ng.controller('CalendarController',
         "$sanitize",
         "model",
         "route",
-        ($location, $scope, $timeout, $compile, $sanitize, model, route) => {
+        function ($location, $scope, $timeout, $compile, $sanitize, model, route) {
             $scope._ = _;
             $scope.lang = lang;
             $scope.template = template;
@@ -52,14 +57,14 @@ export const calendarController = ng.controller('CalendarController',
             $scope.calendarEvent = new CalendarEvent();
             $scope.calendars = new Calendars();
             $scope.display.importFileButtonDisabled = true;
-            $scope.calendarEvents = new CalendarEvents();
+            $scope.calendarEvents= new CalendarEvents() ;
             $scope.periods = periods;
             $scope.newFile = {};
             $scope.propertyName = 'startMoment';
             $scope.reverse = true;
             $scope.calendar = new Calendar();
             $scope.display.selectAllCalendarEvents = false;
-            $scope.timeConfig = timeConfig;
+            $scope.timeConfig =  timeConfig;
             $scope.recurrence = recurrence;
             $scope.reader = new FileReader();
             $scope.jsonData = {ics: {}};
@@ -72,9 +77,19 @@ export const calendarController = ng.controller('CalendarController',
             $scope.rights = rights;
             $scope.buttonAction = ACTIONS;
             $scope.eventSidebar$ = new Subject<void>();
+            $scope.ENABLE_RBS = ENABLE_RBS;
+            $scope.rbsEmitter = new RbsEmitter($scope);
 
-            template.open('main', 'main-view');
-            template.open('top-menu', 'top-menu');
+                template.open('main', 'main-view');
+                template.open('top-menu', 'top-menu');
+
+            this.$onInit = () => {
+                // Control opening of event lightbox
+                model.calendar.eventer.on("calendar.create-item", function (timeSlot) {
+                    window.bookingState = ACTIONS.create;
+                    $scope.createCalendarEvent($scope.calendarEvent, true);
+                });
+            };
 
             this.$onDestroy = () => {
                 $scope.eventSidebar$.unsubscribe();
@@ -258,43 +273,46 @@ export const calendarController = ng.controller('CalendarController',
                 });
             };
 
-            $scope.changeStartMoment = () => {
-                if (!$scope.isDateValid()) {
-                    $scope.calendarEvent.endMoment = moment($scope.calendarEvent.startMoment);
-                } else {
-                    $scope.calendarEvent.endMoment = moment($scope.calendarEvent.endMoment).toDate();
-                }
-            };
+        $scope.changeStartMoment = () => {
+            if (!$scope.isDateValid()) {
+                $scope.calendarEvent.endMoment = moment($scope.calendarEvent.startMoment);
+            } else {
+              $scope.calendarEvent.endMoment = moment($scope.calendarEvent.endMoment).toDate();
+            }
+            $scope.rbsEmitter.updateRbsSniplet();
+        };
 
-            $scope.changeEndMoment = () => {
-                if (!$scope.isDateValid()) {
-                    $scope.calendarEvent.startMoment = moment($scope.calendarEvent.endMoment);
-                } else {
-                    $scope.calendarEvent.startMoment = moment($scope.calendarEvent.startMoment).toDate();
-                }
-            };
+        $scope.changeEndMoment = () => {
+            if (!$scope.isDateValid()) {
+                $scope.calendarEvent.startMoment = moment($scope.calendarEvent.endMoment);
+            } else {
+               $scope.calendarEvent.startMoment = moment($scope.calendarEvent.startMoment).toDate();
+            }
+            $scope.rbsEmitter.updateRbsSniplet();
+        };
 
-            $scope.toggleIsRecurrent = function (calendarEvent) {
-                if (calendarEvent.isRecurrent) {
-                    if (!$scope.calendarEvent.recurrence.end_on) {
-                        $scope.calendarEvent.recurrence.end_on = moment($scope.calendarEvent.endMoment).add(1, 'days').hours(0).minutes(0).seconds(0).milliseconds(0);
-                    }
-                    if (!$scope.isOneDayEvent()) {
-                        $scope.calendarEvent.recurrence.start_on = moment($scope.calendarEvent.startMoment).add(1, 'days').hours(0).minutes(0).seconds(0).milliseconds(0);
-                    }
-                    //if the event lasts more than one day, it cannot be recurrent daily => the weekly recurrence becomes default
-                    if (!$scope.calendarEvent.recurrence.type) {
-                        $scope.isOneDayEvent() ? ($scope.calendarEvent.recurrence.type = 'every_day') : ($scope.calendarEvent.recurrence.type = 'every_week');
-                    }
-                    if (!$scope.calendarEvent.recurrence.every) {
-                        $scope.calendarEvent.recurrence.every = 1;
-                    }
-                    if ($scope.calendarEvent.recurrence.type === 'every_week') {
-                        $scope.changedRecurrenceType();
-                    }
-                    if (!$scope.isOneDayEvent()) $scope.changeStartMoment();
+        $scope.toggleIsRecurrent = function (calendarEvent) {
+            $scope.rbsEmitter.updateRbsSniplet();
+            if (calendarEvent.isRecurrent) {
+                if (!$scope.calendarEvent.recurrence.end_on) {
+                    $scope.calendarEvent.recurrence.end_on = moment($scope.calendarEvent.endMoment).add(1, 'days').hours(0).minutes(0).seconds(0).milliseconds(0);
                 }
-            };
+                if(!$scope.isOneDayEvent()){
+                    $scope.calendarEvent.recurrence.start_on =  moment($scope.calendarEvent.startMoment).add(1, 'days').hours(0).minutes(0).seconds(0).milliseconds(0);
+                }
+                //if the event lasts more than one day, it cannot be recurrent daily => the weekly recurrence becomes default
+                if (!$scope.calendarEvent.recurrence.type) {
+                    $scope.isOneDayEvent() ? ($scope.calendarEvent.recurrence.type = 'every_day') : ($scope.calendarEvent.recurrence.type = 'every_week');
+                }
+                if (!$scope.calendarEvent.recurrence.every) {
+                    $scope.calendarEvent.recurrence.every = 1;
+                }
+                if ($scope.calendarEvent.recurrence.type === 'every_week') {
+                    $scope.changedRecurrenceType();
+                }
+                if(!$scope.isOneDayEvent()) $scope.changeStartMoment();
+            }
+        };
 
             $scope.toggleDateToRecurrence = function (name) {
                 if (name === 'start') {
@@ -674,66 +692,70 @@ export const calendarController = ng.controller('CalendarController',
                 $scope.calendarEvent.endTime = makerFormatTimeInput(moment(endDate), moment(endDate));
             };
 
-            /**
-             *Allows to view an event creation form
-             *
-             * @param calendarEvent the created event
-             * @param isCalendar allows to use the lightbox from the calendar directive
-             */
-            $scope.viewCalendarEvent = (calendarEvent, isCalendar ?: boolean) => {
-                $scope.calendarEvent = new CalendarEvent(calendarEvent);
-                if (calendarEvent.isMultiDayPart) {
-                    let originalEvent: CalendarEvent = $scope.calendarEvents.multiDaysEvents.find((item: CalendarEvent) => item._id == calendarEvent._id);
-                    originalEvent == undefined ? toasts.warning(lang.translate('calendar.event.get.error')) : $scope.resetMultipleDayEventInfo(originalEvent);
-                }
-                $scope.calendar = calendarEvent.calendar[0];
-                $scope.createContentToWatch();
-                $scope.calendarEvent.showDetails = true;
-                if (!$scope.calendarEvent.parentId) {
-                    if (!$scope.calendarEvent.recurrence) {
-                        $scope.calendarEvent.recurrence = {};
-                        $scope.calendarEvent.recurrence.week_days = recurrence.week_days;
-                    }
-                }
-                if (!isCalendar) {
-                    if (($scope.hasManageRightOrIsEventOwner(calendarEvent) && $scope.hasRightOnSharedEvent(calendarEvent, rights.resources.updateEvent.right))
-                        && calendarEvent.editAllRecurrence == undefined
-                        && calendarEvent.isRecurrent && calendarEvent._id) {
-                        template.open('recurrenceLightbox', 'recurrent-event-edition-popup');
-                        $scope.display.showRecurrencePanel = true;
-                    } else if (!calendarEvent._id || ($scope.hasManageRightOrIsEventOwner(calendarEvent) && $scope.hasRightOnSharedEvent(calendarEvent, rights.resources.updateEvent.right))) {
-                        if (calendarEvent.editAllRecurrence) {
-                            //event content
-                            $scope.calendarEvent.detailToRecurrence = true;
-                            //event date/length
-                            $scope.calendarEvent.startDateToRecurrence = true;
-                            $scope.calendarEvent.endDateToRecurrence = true;
-                        }
-                        $scope.display.showRecurrencePanel = false;
-                        template.close('recurrenceLightbox');
-                        template.open('lightbox', 'edit-event');
-                        $scope.display.showEventPanel = true;
-                    } else {
-                        template.open('lightbox', 'view-event');
-                        $scope.display.showEventPanel = true;
-                    }
+        /**
+         *Allows to view an event creation form
+         *
+         * @param calendarEvent the created event
+         * @param isCalendar allows to use the lightbox from the calendar directive
+         */
+        $scope.viewCalendarEvent = (calendarEvent, isCalendar ? : boolean) => {
+            $scope.calendarEvent = new CalendarEvent(calendarEvent);
+            if(calendarEvent.isMultiDayPart){
+                let originalEvent : CalendarEvent = $scope.calendarEvents.multiDaysEvents.find((item : CalendarEvent) => item._id == calendarEvent._id);
+                originalEvent == undefined ? toasts.warning(lang.translate('calendar.event.get.error')) : $scope.resetMultipleDayEventInfo(originalEvent);
+            }
+            $scope.calendar = calendarEvent.calendar[0];
+            $scope.createContentToWatch();
+            $scope.calendarEvent.showDetails = true;
+             if (!$scope.calendarEvent.parentId) {
+                 if (!$scope.calendarEvent.recurrence) {
+                     $scope.calendarEvent.recurrence = {};
+                     $scope.calendarEvent.recurrence.week_days = recurrence.week_days;
+                 }
+            }
 
-                }
-            };
+            $scope.rbsEmitter.emitBookingInfo(Behaviours.applicationsBehaviours.rbs.eventerRbs.INIT_BOOKING_INFOS, $scope.calendarEvent);
 
-            $scope.closeCalendarEvent = () => {
-                if (!$scope.calendarEvent.title) {
-                    $scope.eventForm = angular.element(document.getElementById("event-form")).scope();
-                    $scope.eventForm.form.$setPristine();
-                    $scope.eventForm.form.$setUntouched();
-                    $scope.$apply();
+            if (($scope.hasManageRightOrIsEventOwner(calendarEvent) && $scope.hasRightOnSharedEvent(calendarEvent, rights.resources.updateEvent.right))
+                && calendarEvent.editAllRecurrence == undefined
+                && calendarEvent.isRecurrent && calendarEvent._id){
+                template.open('recurrenceLightbox', 'recurrent-event-edition-popup');
+                $scope.display.showRecurrencePanel = true;
+            } else if(!calendarEvent._id || ($scope.hasManageRightOrIsEventOwner(calendarEvent)
+                && $scope.hasRightOnSharedEvent(calendarEvent, rights.resources.updateEvent.right))) {
+                if (calendarEvent.editAllRecurrence){
+                    //event content
+                    $scope.calendarEvent.detailToRecurrence = true;
+                    //event date/length
+                    $scope.calendarEvent.startDateToRecurrence = true;
+                    $scope.calendarEvent.endDateToRecurrence = true;
                 }
-                template.close('lightbox');
-                $scope.showCalendarEventTimePicker = false;
-                $scope.refreshCalendarEvents();
-                $scope.display.showEventPanel = false;
-                $scope.contentToWatch = "";
-            };
+                $scope.display.showRecurrencePanel = false;
+                template.close('recurrenceLightbox');
+                $scope.display.showEditEventPanel = true;
+                $scope.rbsEmitter.emitBookingInfo(Behaviours.applicationsBehaviours.rbs.eventerRbs.CAN_EDIT_EVENT, true);
+            } else {
+                $scope.display.showViewEventPanel = true;
+                $scope.rbsEmitter.emitBookingInfo(Behaviours.applicationsBehaviours.rbs.eventerRbs.CAN_EDIT_EVENT, false);
+            }
+        };
+
+        $scope.closeCalendarEvent = () => {
+            if(!$scope.calendarEvent.title){
+                $scope.eventForm = angular.element(document.getElementById("event-form")).scope();
+                $scope.eventForm.editEvent.$setPristine();
+                $scope.eventForm.editEvent.$setUntouched();
+                $scope.$apply();
+            }
+            template.close('lightbox');
+            $scope.showCalendarEventTimePicker = false;
+            $scope.refreshCalendarEvents();
+            $scope.display.showEditEventPanel = false;
+            $scope.display.showViewEventPanel = false;
+            $scope.contentToWatch = "";
+
+            $scope.rbsEmitter.emitBookingInfo(Behaviours.applicationsBehaviours.rbs.eventerRbs.CLOSE_BOOKING_INFOS);
+        };
 
             $scope.unselectRecurrenceRemovalCheckbox = (uncheckDeleteAllRecurrence: boolean): void => {
                 if (uncheckDeleteAllRecurrence) {
@@ -1044,27 +1066,41 @@ export const calendarController = ng.controller('CalendarController',
                 }
             }
 
-            /**
-             * Prepare $scope.calendarEvent to create the event and call the method that will display the calendar creation form
-             * @param newItem the event information so far
-             * @param isCalendar allows to use the lightbox from the calendar directive
-             */
-            $scope.createCalendarEvent = (newItem?, isCalendar?: boolean) => {
-                $scope.calendarAsContribRight = new Array<Calendar>();
-                $scope.selectedCalendarInEvent = new Array<Calendar>();
-                $scope.calendarEvent = new CalendarEvent();
-                $scope.calendarEvent.recurrence = {};
-                $scope.calendarEvent.calendar = new Array<Calendar>();
-                isCalendar ? $scope.viewCalendarEvent($scope.calendarEvent, isCalendar)
-                    : $scope.viewCalendarEvent($scope.calendarEvent);
-                setListCalendarWithContribFilter();
-                $scope.calendarAsContribRight.forEach((calendar: Calendar) => {
-                    calendar.toString = () => {
-                        return calendar.title
-                    };
-                });
-                safeApply($scope);
+        /**
+         * Prepare $scope.calendarEvent to create the event and call the method that will display the calendar creation form
+         * @param newItem the event information so far
+         * @param isCalendar allows to use the lightbox from the calendar directive
+         */
+        $scope.createCalendarEvent = (newItem?, isCalendar?: boolean) => {
+            $scope.calendarAsContribRight = new Array<Calendar>();
+            $scope.selectedCalendarInEvent = new Array<Calendar>();
+            $scope.calendarEvent = new CalendarEvent();
+            $scope.calendarEvent.recurrence = {};
+            $scope.calendarEvent.calendar = new Array<Calendar>();
+            $scope.viewCalendarEvent($scope.calendarEvent);
+            setListCalendarWithContribFilter();
+            $scope.calendarAsContribRight.forEach((calendar : Calendar) => {
+                calendar.toString = () => { return calendar.title };
+            });
+            safeApply($scope);
 
+            if (isCalendar) {
+                // dates
+                if (model.calendar.newItem !== undefined) {
+                    $scope.calendarEvent.startMoment = model.calendar.newItem.beginning;
+                    $scope.calendarEvent.startMoment.minutes(0);
+                    $scope.calendarEvent.endMoment = model.calendar.newItem.end;
+                    $scope.calendarEvent.endMoment.minutes(0);
+                } else {
+                    $scope.calendarEvent.startMoment = moment();
+                    $scope.calendarEvent.endMoment = moment();
+                    $scope.calendarEvent.endMoment.hour(
+                        $scope.calendarEvent.startMoment.hour() + 1
+                    );
+                }
+                $scope.calendarEvent.startMoment.seconds(0);
+                $scope.calendarEvent.endMoment.seconds(0);
+            } else {
                 if (newItem) {
                     $scope.calendarEvent.startMoment = newItem.beginning;
                     $scope.calendarEvent.startMoment = $scope.calendarEvent.startMoment.minute(0).second(0).millisecond(0);
@@ -1074,36 +1110,39 @@ export const calendarController = ng.controller('CalendarController',
                     $scope.calendarEvent.startMoment = moment.utc().second(0).millisecond(0).add(utcTime($scope.calendarEvent.startMoment), 'hours');
                     $scope.calendarEvent.endMoment = moment.utc().second(0).millisecond(0).add(5 - utcTime($scope.calendarEvent.endMoment), 'hours');
                 }
-                $scope.calendarEvent.startTime = makerFormatTimeInput($scope.calendarEvent.startMoment, $scope.calendarEvent.startMoment);
-                $scope.calendarEvent.endTime = makerFormatTimeInput($scope.calendarEvent.endMoment, $scope.calendarEvent.startMoment);
-                $scope.calendarEvent.recurrence.week_days = recurrence.week_days;
-                $scope.calendarEvent.calendar = $scope.calendars.selected[$scope.calendars.selected.length - 1];
-                $scope.changeCalendarEventCalendar();
-                $scope.calendarEvent.showDetails = true;
-                $scope.initEventDates($scope.calendarEvent.startMoment, $scope.calendarEvent.endMoment);
-                $scope.showCalendarEventTimePicker = true;
-            };
-            //unique
-            const unique = function <T>(array: T[]) {
-                return array.filter(function (value, index, self) {
-                    return self.indexOf(value) === index;
+            }
+
+            $scope.calendarEvent.startTime = makerFormatTimeInput($scope.calendarEvent.startMoment, $scope.calendarEvent.startMoment);
+            $scope.calendarEvent.endTime = makerFormatTimeInput($scope.calendarEvent.endMoment, $scope.calendarEvent.startMoment);
+            $scope.calendarEvent.recurrence.week_days = recurrence.week_days;
+            $scope.calendarEvent.calendar = $scope.calendars.selected[$scope.calendars.selected.length - 1];
+            $scope.changeCalendarEventCalendar();
+            $scope.calendarEvent.showDetails = true;
+            $scope.initEventDates($scope.calendarEvent.startMoment, $scope.calendarEvent.endMoment);
+            $scope.showCalendarEventTimePicker = true;
+        };
+
+        //unique
+        const unique = function <T>(array: T[]) {
+            return array.filter(function (value, index, self) {
+                return self.indexOf(value) === index;
+            });
+        }
+        /**
+        *   Put the calendars that the user has the right to modify in calendarAsContribRight and tick the first in the list
+        */
+        const setListCalendarWithContribFilter = (): void => {
+            $scope.calendars.arr.forEach(
+                function (calendar) {
+                    if ($scope.hasContribRight(calendar) != null) {
+                        $scope.calendarAsContribRight.push(calendar);
+                    }
                 });
-            }
-            /**
-             *   Put the calendars that the user has the right to modify in calendarAsContribRight and tick the first in the list
-             */
-            const setListCalendarWithContribFilter = (): void => {
-                $scope.calendars.arr.forEach(
-                    function (calendar) {
-                        if ($scope.hasContribRight(calendar) != null) {
-                            $scope.calendarAsContribRight.push(calendar);
-                        }
-                    });
-                $scope.calendarAsContribRight = unique($scope.calendarAsContribRight);
-                let defaultCalendar: Calendar = $scope.calendarAsContribRight.find(cal => cal.is_default == true);
-                $scope.selectedCalendarInEvent.push(defaultCalendar ? defaultCalendar : $scope.calendarAsContribRight[0]);
-                $scope.selectedCalendarInEvent = unique($scope.selectedCalendarInEvent);
-            }
+            $scope.calendarAsContribRight = unique($scope.calendarAsContribRight);
+            let defaultCalendar: Calendar = $scope.calendarAsContribRight.find(cal => cal.is_default == true);
+            $scope.selectedCalendarInEvent.push(defaultCalendar ? defaultCalendar : $scope.calendarAsContribRight[0]);
+            $scope.selectedCalendarInEvent = unique($scope.selectedCalendarInEvent);
+        }
 
             /**
              *  Verify if there is a element tick in the multi-combo of calendars
@@ -1162,13 +1201,14 @@ export const calendarController = ng.controller('CalendarController',
                 return right;
             }
 
-            /**
-             * Verify if one of the calendar of the event as the right of manage or if the event is created by the user and he
-             * as one of his calendar with the right of contrib
-             * @param event calendar event to check
-             */
-            $scope.hasACalendarWithRightsOfModifyEvent = (event: CalendarEvent): boolean => {
-                let right = false
+        /**
+         * Verify if one of the calendar of the event as the right of manage or if the event is created by the user and he
+         * as one of his calendar with the right of contrib
+         * @param event calendar event to check
+         */
+        $scope.hasACalendarWithRightsOfModifyEvent = (event : CalendarEvent): boolean => {
+            let right: boolean = false;
+            if (event && event.calendar && event.calendar.length > 0) {
                 event.calendar.forEach(
                     function (calendar) {
                         if ($scope.hasContribRight(calendar)) {
@@ -1178,8 +1218,9 @@ export const calendarController = ng.controller('CalendarController',
                         }
                     }
                 );
-                return right;
             }
+            return right;
+        }
 
             $scope.displayImportIcsPanel = function () {
                 $scope.display.showImportPanel = true;
@@ -1251,6 +1292,7 @@ export const calendarController = ng.controller('CalendarController',
                 }
             };
 
+
             $scope.saveCalendarEventEdit = async (calendarEvent = $scope.calendarEvent, event ?, shareOption ?: boolean) => {
 
                 const recurrenceItemsMinimumLength: number = 3;
@@ -1261,7 +1303,7 @@ export const calendarController = ng.controller('CalendarController',
                     /**
                      * Resets elements before closing event saving
                      */
-                    function endRecurrenceSave(): void {
+                    function endRecurrenceSave() : void {
                         calendarEvent.noMoreRecurrent = calendarEvent.noMoreRecurrent && false;
                         calendarEvent.noMoreRecurrence = calendarEvent.noMoreRecurrence && false;
                         calendarEvent.detailToRecurrence = calendarEvent.detailToRecurrence && false;
@@ -1272,7 +1314,7 @@ export const calendarController = ng.controller('CalendarController',
                         $scope.display.calendar = true;
                         if (shareOption) {
                             if (calendarEvent.isRecurrent && !calendarEvent.created) {
-                                if (!$scope.display.showEventPanel) {
+                                if (!$scope.display.showEditEventPanel) {
                                     $scope.shareEvent($scope.recurrentCalendarEventToShare ? $scope.recurrentCalendarEventToShare : {}, event);
                                 }
                             } else {
@@ -1337,15 +1379,18 @@ export const calendarController = ng.controller('CalendarController',
                     }
 
                 }
-
                 $scope.recurrentCalendarEventToShare = null;
+                if ($scope.ENABLE_RBS && calendarEvent.hasBooking) {
+                    $scope.rbsEmitter.prepareBookingToSave(calendarEvent);
+                }
+
                 $scope.createContentToWatch();
                 let items = [];
                 calendarEvent.startMoment = moment(calendarEvent.startMoment).seconds(0).milliseconds(0);
                 calendarEvent.endMoment = moment(calendarEvent.endMoment).seconds(0).milliseconds(0);
                 $scope.display.calendar = false;
-                let hasExistingRecurrence: boolean = false;
-                if (calendarEvent.isMultiDayPart && calendarEvent.editAllRecurrence) $scope.restoreMultiDaysEvents();
+                let hasExistingRecurrence : boolean = false;
+                if(calendarEvent.isMultiDayPart && calendarEvent.editAllRecurrence) $scope.restoreMultiDaysEvents();
                 let recurrentCalendarEvents = $scope.calendarEvents.getRecurrenceEvents(calendarEvent);
 
                 if (recurrentCalendarEvents.length > 1) {
@@ -1451,8 +1496,8 @@ export const calendarController = ng.controller('CalendarController',
                 await doItemCalendarEvent(items, 0);
             };
 
-            $scope.cancelEventEdit = function () {
-                $scope.display.showEventPanel = undefined;
+            $scope.cancelEventEdit = function(): void {
+                $scope.display.showEditEventPanel = undefined;
             };
 
             $scope.cancelRecurrentEventEdit = (): void => {
@@ -1530,8 +1575,8 @@ export const calendarController = ng.controller('CalendarController',
 
                 $scope.eventForm = angular.element(document.getElementById("event-form")).scope();
                 /** Ensures that the fields of the form are correctly filled*/
-                let areFieldsInCommonValid = (!$scope.eventForm.form.$invalid && $scope.isCalendarSelectedInEvent()
-                    && $scope.isTimeValid() && $scope.isDateValid() && $scope.areRecurrenceAndEventLengthsCompatible());
+                let areFieldsInCommonValid: boolean = ($scope.rbsEmitter.checkBookingValidAndSendInfoToSniplet() && !$scope.eventForm.editEvent.$invalid && $scope.isCalendarSelectedInEvent()
+                    && $scope.isTimeValid() && $scope.isDateValid() &&  $scope.areRecurrenceAndEventLengthsCompatible());
 
                 switch (actionButton) {
                     case ACTIONS.save:
@@ -1674,6 +1719,7 @@ export const calendarController = ng.controller('CalendarController',
                 let isUserAttachmentOwner: boolean = attachment.owner.userId != model.me.userId;
                 attachmentService.downloadAttachment(calendarEvent._id, attachment._id, isUserAttachmentOwner);
             };
+
 
             var updateCalendarList = function (start, end) {
                 model.calendarEvents.filters.startMoment.date(start.date());

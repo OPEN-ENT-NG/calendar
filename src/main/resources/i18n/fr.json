@@ -118,6 +118,7 @@
     "calendar.recurrence.daymap.sat":"Sa",
     "calendar.recurrence.daymap.sun":"Di",
     "calendar.error.date.saving": "Problème d'enregistrement : une donnée n'est pas valide",
+    "calendar.error.booking.saving": "Problème d'enregistrement de la ou des réservations",
     "calendar.error.time": "L'heure de fin doit être supérieure à l'heure de début.",
     "calendar.error.date": "La date de fin doit être supérieure ou égale à la date de début.",
     "calendar.delete.error": "Une erreur est survenue lors de la supression du calendrier",

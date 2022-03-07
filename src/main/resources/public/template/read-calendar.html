@@ -3,10 +3,7 @@
 
 <div class="row" ng-if="display.editEventRight && display.calendar">
 	<calendar
-		display-template="display-calendar-item" 
-		create-template="edit-event"
-		on-create-open="createCalendarEvent(newItem, true)"
-		on-create-close="closeCalendarEvent()" 
+		display-template="display-calendar-item"
 		items="calendarEvents.filtered"
 		add-filter="calendarEvents.filters.calendar"
 		enable-display-modes="true"

@@ -38,9 +38,15 @@ Déclarer l'application dans la liste :
         "integration-mode" : "HTTP",
         "app-registry.port" : 8012,
         "mode" : "${mode}",
-        "entcore.port" : 8009
+        "entcore.port" : 8009,
+        "enable-rbs": ${enableRbs}
      }
 }
+</pre>
+
+Dans le conf.properties du springboard, déclarer la variable suivante :
+<pre>
+    "enable-rbs": ${enableRbs}, // => remplacer par true si accès à RBS
 </pre>
 
 Associer une route d'entée à la configuration du module proxy intégré (`"name": "net.atos~calendar~0.2.0"`) :
