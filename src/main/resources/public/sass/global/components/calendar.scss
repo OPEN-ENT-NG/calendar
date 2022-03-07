@@ -72,10 +72,11 @@
 }
 
 nav.vertical ul {
-    padding-left: 20px;
+    padding-left: 15px;
+    border-left: none;
 }
 
-nav.vertical ul > li:not(:first-child) {
+nav.vertical > ul > li:not(:first-child) {
     margin-top: 1rem;
 }
 
