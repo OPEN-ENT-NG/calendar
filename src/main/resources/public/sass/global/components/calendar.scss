@@ -222,3 +222,15 @@ h1 a {
 .show-list {
     height: 24px;
 }
+
+.schedule{
+    .hidden-schedule-items{
+        &.after{
+            bottom:-16px;
+        }
+    }
+    .days{
+        height:538px;
+    }
+}
+
