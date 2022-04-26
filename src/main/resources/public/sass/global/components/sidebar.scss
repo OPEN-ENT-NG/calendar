@@ -27,6 +27,14 @@
     }
   }
 
+  .show-list,
+  .show-calendar{
+    opacity: 0.6;
+    &.selected {
+      opacity: 1;
+    }
+  }
+
   &-calendar-list {
     overflow: visible !important;
 
