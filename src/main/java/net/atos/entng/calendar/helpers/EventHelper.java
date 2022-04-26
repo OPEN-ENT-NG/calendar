@@ -24,7 +24,6 @@ import static org.entcore.common.http.response.DefaultResponseHandler.arrayRespo
 import static org.entcore.common.http.response.DefaultResponseHandler.defaultResponseHandler;
 import static org.entcore.common.http.response.DefaultResponseHandler.notEmptyResponseHandler;
 import static org.entcore.common.mongodb.MongoDbResult.validResultHandler;
-import static org.entcore.common.mongodb.MongoDbResult.*;
 
 import java.io.File;
 import java.io.IOException;
@@ -104,10 +103,11 @@ public class EventHelper extends MongoDbControllerHelper {
             @Override
             public void handle(final UserInfos user) {
                 String calendarId = request.params().get(CALENDAR_ID_PARAMETER);
-                eventService.list(calendarId, user, arrayResponseHandler(request));
+                String startDate = request.params().get(Field.startDate);
+                String endDate = request.params().get(Field.endDate);
+                eventService.list(calendarId, user, startDate, endDate, arrayResponseHandler(request));
             }
         });
-
     }
 
     @Override
@@ -130,7 +130,7 @@ public class EventHelper extends MongoDbControllerHelper {
                                             message.put("eventId", eventId.getString("_id"));
                                             message.put("start_date", (String) null);
                                             message.put("end_date", (String) null);
-                                            message.put("sendNotif", object.containsKey("sendNotif")? object.getBoolean("sendNotif"):null);
+                                            message.put("sendNotif", object.containsKey("sendNotif") ? object.getBoolean("sendNotif") : null);
                                             notifyEventCreatedOrUpdated(request, user, message, true);
                                             renderJson(request, event.right().getValue(), 200);
                                             eventHelper.onCreateResource(request, RESOURCE_NAME);
@@ -139,7 +139,7 @@ public class EventHelper extends MongoDbControllerHelper {
                                         }
                                     }
                                 });
-                            }else{
+                            } else {
                                 log.error(String.format("[Calendar@EventHelper::create] " + "Submitted event is not valid"),
                                         I18n.getInstance().translate("calendar.error.date.saving", getHost(request), I18n.acceptLanguage(request)));
                                 Renders.unauthorized(request);
@@ -173,7 +173,7 @@ public class EventHelper extends MongoDbControllerHelper {
                                         message.put("eventId", eventId);
                                         message.put("start_date", (String) null);
                                         message.put("end_date", (String) null);
-                                        message.put("sendNotif", object.containsKey("sendNotif")? object.getBoolean("sendNotif"):null);
+                                        message.put("sendNotif", object.containsKey("sendNotif") ? object.getBoolean("sendNotif") : null);
                                         notifyEventCreatedOrUpdated(request, user, message, false);
                                         renderJson(request, event.right().getValue(), 200);
                                     } else if (event.isLeft()) {
@@ -294,9 +294,9 @@ public class EventHelper extends MongoDbControllerHelper {
 
                     Boolean restrictedEvent = (calendarEvent.containsKey("shared") || Boolean.TRUE.equals(calendarEvent.getBoolean("is_default")))
                             && Boolean.FALSE.equals(calendarEvent.getJsonArray("shared").isEmpty());
-                    if(!calendar.isEmpty()){
-                        for(Object id : calendar){
-                            if(message.getBoolean("sendNotif") == null || Boolean.FALSE.equals(isCreated)) {
+                    if (!calendar.isEmpty()) {
+                        for (Object id : calendar) {
+                            if (message.getBoolean("sendNotif") == null || Boolean.FALSE.equals(isCreated)) {
                                 notifyUsersSharing(request, user, id.toString(), calendarEvent, isCreated, restrictedEvent);
                             }
                         }
@@ -310,11 +310,10 @@ public class EventHelper extends MongoDbControllerHelper {
 
 
     /**
-     *
-     * @param request HttpServerRequest request from the server
-     * @param user User Object user that created/edited the event
-     * @param calendarId JsonObject calendar in which the event appears
-     * @param calendarEvent JsonObject event that is created/edited
+     * @param request         HttpServerRequest request from the server
+     * @param user            User Object user that created/edited the event
+     * @param calendarId      JsonObject calendar in which the event appears
+     * @param calendarEvent   JsonObject event that is created/edited
      * @param restrictedEvent Boolean that tells if event is restricted or not
      */
     public void notifyUsersSharing(final HttpServerRequest request, final UserInfos user, final String calendarId,
@@ -395,7 +394,7 @@ public class EventHelper extends MongoDbControllerHelper {
                             if ("ok".equals(res.body().getString("status"))) {
                                 JsonArray listOfUsers = res.body().getJsonArray("result");
                                 // param => rajouter la logique
-                                if (restrictedEvent){
+                                if (restrictedEvent) {
                                     restrictListOfUsers(listOfUsers, user, calendar, calendarEvent, handler);
                                 } else {
                                     proceedOnUserList(listOfUsers, calendar, handler);
@@ -409,7 +408,7 @@ public class EventHelper extends MongoDbControllerHelper {
                         handler.handle(null);
                     }
                 } // end if shared != null
-                if(shared == null && Boolean.TRUE.equals(calendar.getBoolean("is_default")) && restrictedEvent){
+                if (shared == null && Boolean.TRUE.equals(calendar.getBoolean("is_default")) && restrictedEvent) {
                     JsonArray defaultCalendarOwner = new JsonArray().add(new JsonObject().put("id", calendar.getJsonObject("owner", new JsonObject())
                             .getString("userId", null)));
                     proceedOnUserList(defaultCalendarOwner, calendar, handler);
@@ -423,11 +422,12 @@ public class EventHelper extends MongoDbControllerHelper {
      * The event start date should be before the event end date
      * If the event lasts more than one day and is recurrent, it should last less than the recurrence length
      * and the recurrence must be at least weekly
-     * @param object JsonObject, the event to save
+     *
+     * @param object  JsonObject, the event to save
      * @param request HttpServerRequest, the saving request
      * @return true if the event meets the requirements mentionned before
      */
-    private boolean isEventValid (JsonObject object, HttpServerRequest request) {
+    private boolean isEventValid(JsonObject object, HttpServerRequest request) {
         Date startDate = DateUtils.parseDate(object.getString(Field.startMoment), DateUtils.DATE_FORMAT_UTC);
         Date endDate = DateUtils.parseDate(object.getString(Field.endMoment), DateUtils.DATE_FORMAT_UTC);
 
@@ -436,7 +436,7 @@ public class EventHelper extends MongoDbControllerHelper {
         boolean isNotRecurrentEvent = Boolean.FALSE.equals(object.getBoolean(Field.isRecurrent));
 
         long dayInMilliseconds = 1000 * 60 * 60 * 24;
-        int eventDayLength = (int) ((endDate.getTime() - startDate.getTime())/dayInMilliseconds);
+        int eventDayLength = (int) ((endDate.getTime() - startDate.getTime()) / dayInMilliseconds);
 
         boolean isWeeklyRecurrenceValid = object.getValue(Field.recurrence) instanceof JsonObject
                 && "every_week".equals(object.getJsonObject(Field.recurrence).getValue(Field.type))
@@ -449,11 +449,11 @@ public class EventHelper extends MongoDbControllerHelper {
      * Prepare notification user list so that it contains only the people the event is shared with and that have access to the calendar,
      * and the calendar owner and the event owner if they are different from the person editing
      *
-     * @param listOfUsers JsonArray of the ids of the users with access to the calendar
-     * @param user User Object, the user that edited the event
-     * @param calendar JsonObject, the targeted calendar
+     * @param listOfUsers   JsonArray of the ids of the users with access to the calendar
+     * @param user          User Object, the user that edited the event
+     * @param calendar      JsonObject, the targeted calendar
      * @param calendarEvent JsonObject the edited event
-     * @param handler Handler used by notifyUsersSharing()
+     * @param handler       Handler used by notifyUsersSharing()
      */
     @SuppressWarnings("unchecked")
     private void restrictListOfUsers(JsonArray listOfUsers, final UserInfos user, JsonObject calendar, JsonObject calendarEvent,
@@ -464,43 +464,43 @@ public class EventHelper extends MongoDbControllerHelper {
 
         //get all userIds from groups for event
         userService.fetchUser(calendarEventShared, user, false)
-            .onSuccess(e -> {
-                List<String> calendarEventShareIds = e.stream().map(User::id).collect(Collectors.toList());
+                .onSuccess(e -> {
+                    List<String> calendarEventShareIds = e.stream().map(User::id).collect(Collectors.toList());
 
-                //keep ids from shareIds that appear in calendarEventShareIds
-                List<String> userIds = ((List<JsonObject>) listOfUsers.getList())
-                        .stream()
-                        .map((currentUser) -> currentUser.getString("id"))
-                        .collect(Collectors.toList());
-                userIds.retainAll(calendarEventShareIds);
+                    //keep ids from shareIds that appear in calendarEventShareIds
+                    List<String> userIds = ((List<JsonObject>) listOfUsers.getList())
+                            .stream()
+                            .map((currentUser) -> currentUser.getString("id"))
+                            .collect(Collectors.toList());
+                    userIds.retainAll(calendarEventShareIds);
 
-                if (!user.getUserId().equals(calendar.getJsonObject("owner").getString("userId"))) {
-                    userIds.add(calendar.getJsonObject("owner").getString("userId"));
-                }
-                if (!user.getUserId().equals(calendarEvent.getJsonObject("owner").getString("userId"))){
-                    userIds.add(calendarEvent.getJsonObject("owner").getString("userId"));
-                }
+                    if (!user.getUserId().equals(calendar.getJsonObject("owner").getString("userId"))) {
+                        userIds.add(calendar.getJsonObject("owner").getString("userId"));
+                    }
+                    if (!user.getUserId().equals(calendarEvent.getJsonObject("owner").getString("userId"))) {
+                        userIds.add(calendarEvent.getJsonObject("owner").getString("userId"));
+                    }
 
-                JsonArray finalUserIds = new JsonArray(userIds.stream()
-                        .map((currentUser) -> new JsonObject().put("id", currentUser))
-                        .collect(Collectors.toList()));
+                    JsonArray finalUserIds = new JsonArray(userIds.stream()
+                            .map((currentUser) -> new JsonObject().put("id", currentUser))
+                            .collect(Collectors.toList()));
 
-                proceedOnUserList(finalUserIds, calendar, handler);
-            })
-            .onFailure( err -> {
-                String message = String.format("[Calendar@%s::restrictListOfUsers] An error has occured" +
-                                " during fetching userIds, see previous logs: %s",
-                        this.getClass().getSimpleName(), err.getMessage());
-                log.error(message, err.getMessage());
-            });
+                    proceedOnUserList(finalUserIds, calendar, handler);
+                })
+                .onFailure(err -> {
+                    String message = String.format("[Calendar@%s::restrictListOfUsers] An error has occured" +
+                                    " during fetching userIds, see previous logs: %s",
+                            this.getClass().getSimpleName(), err.getMessage());
+                    log.error(message, err.getMessage());
+                });
     }
 
     /**
      * Prepare information to notify users
      *
      * @param listOfUsers JsonArray of the users (ids) that should be notified
-     * @param calendar JsonObject of the current calendar
-     * @param handler Handler used by notifyUsersSharing()
+     * @param calendar    JsonObject of the current calendar
+     * @param handler     Handler used by notifyUsersSharing()
      */
     private void proceedOnUserList(JsonArray listOfUsers, JsonObject calendar, Handler<Map<String, Object>> handler) {
         List<String> recipients = new ArrayList<>();
@@ -517,16 +517,17 @@ public class EventHelper extends MongoDbControllerHelper {
         handler.handle(t);
     }
 
-    private List<String> getSharedIds(JsonArray shared){
+    private List<String> getSharedIds(JsonArray shared) {
         return getSharedIds(shared, null);
     }
+
     private List<String> getSharedIds(JsonArray shared, String filterRights) {
         List<String> shareIds = new ArrayList<>();
         for (Object o : shared) {
             if (!(o instanceof JsonObject)) continue;
             JsonObject userShared = (JsonObject) o;
 
-            if(filterRights != null && !userShared.getBoolean(filterRights, false))
+            if (filterRights != null && !userShared.getBoolean(filterRights, false))
                 continue;
 
             String userOrGroupId = userShared.getString("groupId",
@@ -586,11 +587,11 @@ public class EventHelper extends MongoDbControllerHelper {
     /**
      * method launched in background to add extra calendar into Calendar Event
      *
-     * @param eventId       calendar event identifier {@link String}
-     * @param shared        body's shared sent {@link JsonObject}
-     * @param user          user info {@link UserInfos}
-     * @param host          host param {@link String}
-     * @param lang          lang param {@link String}
+     * @param eventId calendar event identifier {@link String}
+     * @param shared  body's shared sent {@link JsonObject}
+     * @param user    user info {@link UserInfos}
+     * @param host    host param {@link String}
+     * @param lang    lang param {@link String}
      */
     public void addEventToUsersCalendar(String eventId, JsonObject shared, UserInfos user, String host, String lang) {
         List<String> sharedIds = new ArrayList<>(shared.getJsonObject("users").fieldNames());
@@ -605,7 +606,7 @@ public class EventHelper extends MongoDbControllerHelper {
                         shareIdsFromCalendar, host, lang, user))
                 .onFailure(err -> {
                     String message = String.format("[Calendar@%s::addEventToUsersCalendar] An error has occured" +
-                            " during fetching userIds or calendar event, see previous logs: %s",
+                                    " during fetching userIds or calendar event, see previous logs: %s",
                             this.getClass().getSimpleName(), err.getMessage());
                     log.error(message, err.getMessage());
                 });
@@ -616,9 +617,8 @@ public class EventHelper extends MongoDbControllerHelper {
      * {'calendarEvent': {@link JsonObject}, 'calendars': {@link JsonArray}}
      * will fetch all userIds and groupId to fetch all User
      *
-     * @param user                      user info {@link UserInfos}
-     * @param calendarsEventFuture      calendars and event data as {@link JsonObject}
-     *
+     * @param user                 user info {@link UserInfos}
+     * @param calendarsEventFuture calendars and event data as {@link JsonObject}
      * @return {@link Future} of {@link List<User>} containing list of User fetched
      */
     private Future<List<User>> retrieveAllUsersFromCalendarsEvent(UserInfos user, Future<JsonObject> calendarsEventFuture) {
@@ -631,16 +631,15 @@ public class EventHelper extends MongoDbControllerHelper {
      * {'calendarEvent': {@link JsonObject}, 'calendars': {@link JsonArray}}
      * will fetch all userIds and groupId to fetch all User
      *
-     * @param user                      user info {@link UserInfos}
+     * @param user                user info {@link UserInfos}
      * @param calendarsEvent      calendars and event data as {@link JsonObject}
-     * @param keepUserFromSession       if the user from the session should be fetched {@link boolean}
-     * @param keepCalendarsOwners       if the calendarOwners should be fetched {@link boolean}
-     *
+     * @param keepUserFromSession if the user from the session should be fetched {@link boolean}
+     * @param keepCalendarsOwners if the calendarOwners should be fetched {@link boolean}
      * @return {@link Future} of {@link List<User>} containing list of User fetched
      */
     @SuppressWarnings("unchecked")
     private Future<List<User>> retrieveAllUsersFromCalendarsEvent(UserInfos user, JsonObject calendarsEvent,
-      boolean keepUserFromSession, boolean keepCalendarsOwners) {
+                                                                  boolean keepUserFromSession, boolean keepCalendarsOwners) {
         List<String> shareIdsFromAllCalendar = ((List<JsonObject>) calendarsEvent.getJsonArray(Field.calendars, new JsonArray()).getList()).stream()
                 .flatMap(calendar -> ((List<JsonObject>) calendar.getJsonArray(Field.shared, new JsonArray()).getList())
                         .stream()
@@ -671,14 +670,13 @@ public class EventHelper extends MongoDbControllerHelper {
      * differences between users fetched from payload and calendars in order to get users that do not belong to both list
      * Afterwards, we will proceed on each user in order to get their default calendar identifier and add to our original event
      *
-     * @param eventId                   calendar event identifer {@link String}
-     * @param usersFromPayload          list of user identifier fetched from payload shared body sent info {@link List<User>}
-     * @param calendarsEventFuture      calendarEvent and calendars as {@link JsonObject}
-     * @param usersFromSharedCalendars  list of shared containing user and group identifier from all calendars {@link List<User>}
-     * @param host                      host param {@link String}
-     * @param lang                      lang param {@link String}
-     * @param userInfos                 user session infos {@link Object}
-     *
+     * @param eventId                  calendar event identifer {@link String}
+     * @param usersFromPayload         list of user identifier fetched from payload shared body sent info {@link List<User>}
+     * @param calendarsEventFuture     calendarEvent and calendars as {@link JsonObject}
+     * @param usersFromSharedCalendars list of shared containing user and group identifier from all calendars {@link List<User>}
+     * @param host                     host param {@link String}
+     * @param lang                     lang param {@link String}
+     * @param userInfos                user session infos {@link Object}
      * @return {@link Future} of {@link Void}
      */
     private Future<Void> proceedOnUsersFetched(String eventId, List<User> usersFromPayload, JsonObject calendarsEventFuture,
@@ -693,7 +691,7 @@ public class EventHelper extends MongoDbControllerHelper {
         List<String> originalCalendars = determineOriginalCalendars(calendarsEventFuture, userInfos);
 
         List<Future<String>> futures = new ArrayList<>();
-        for (User userNotAccess: usersFromPayload) {
+        for (User userNotAccess : usersFromPayload) {
             futures.add(fetchDefaultCalendar(userNotAccess, host, lang));
         }
 
@@ -717,9 +715,8 @@ public class EventHelper extends MongoDbControllerHelper {
      * Determine among these calendars who were the originals when the calendar event was created to keep persisting
      * its identifier(s)
      *
-     * @param calendarEvent      calendarEvent and calendars as {@link JsonObject}
-     * @param userInfos                 user session infos {@link Object}
-     *
+     * @param calendarEvent calendarEvent and calendars as {@link JsonObject}
+     * @param userInfos     user session infos {@link Object}
      * @return {@link Future} of {@link List<String>} the "original(s)" calendar(s)
      */
     @SuppressWarnings("unchecked")
@@ -747,10 +744,9 @@ public class EventHelper extends MongoDbControllerHelper {
     /**
      * retrieve default calendar identifier
      *
-     * @param user  user data {@link User}
-     * @param host  host param {@link String}
-     * @param lang  lang param {@link String}
-     *
+     * @param user user data {@link User}
+     * @param host host param {@link String}
+     * @param lang lang param {@link String}
      * @return {@link Future} of {@link String} default calendar identifier
      */
     private Future<String> fetchDefaultCalendar(User user, String host, String lang) {
@@ -776,8 +772,7 @@ public class EventHelper extends MongoDbControllerHelper {
     /**
      * fetch calendarEvent and all calendars linked to calendarEvent
      *
-     * @param eventId       calendar event identifier {@link String}
-     *
+     * @param eventId calendar event identifier {@link String}
      * @return {@link Future} of {@link JsonObject} containing JsonObject of
      * {'calendarEvent': {@link JsonObject}, 'calendars': {@link JsonArray}}
      */
@@ -807,8 +802,7 @@ public class EventHelper extends MongoDbControllerHelper {
     /**
      * fetch calendarEvent
      *
-     * @param eventId       calendar event identifier {@link String}
-     *
+     * @param eventId calendar event identifier {@link String}
      * @return {@link Future} of {@link JsonObject} containing calendarEvent
      */
     private Future<JsonObject> fetchCalendarEventById(String eventId) {
@@ -830,9 +824,9 @@ public class EventHelper extends MongoDbControllerHelper {
 
     /**
      * Check if the user has access to the event
-     * @param eventId the id of the event {@link String}
-     * @param user the user currently logged in {@link UserInfos}
      *
+     * @param eventId the id of the event {@link String}
+     * @param user    the user currently logged in {@link UserInfos}
      * @return {@link Boolean} being true if the user has access to the event, false instead
      */
     public Future<Boolean> hasAccessToEvent(String eventId, UserInfos user) {
@@ -848,7 +842,7 @@ public class EventHelper extends MongoDbControllerHelper {
                 .onSuccess(eventInfos -> {
                     //check if user is event owner
                     String calendarEventOwner = eventInfos.getJsonObject(Field.calendarEvent).getJsonObject(Field.owner).getString(Field.userId);
-                    if(calendarEventOwner.equals(user.getUserId())) {
+                    if (calendarEventOwner.equals(user.getUserId())) {
                         promise.complete(true); //user is event owner
                     } else {
                         //get all users with access to the calendars of this event
@@ -860,13 +854,13 @@ public class EventHelper extends MongoDbControllerHelper {
                                     promise.fail(fail.getMessage());
                                 })
                                 .onSuccess(usersWithAccessToEvent -> {
-                                        //find if user is among the users that can access the event
-                                        List<User> matchingUsers = usersWithAccessToEvent
-                                                .stream()
-                                                .filter(currentUser -> currentUser.id().equals(user.getUserId()))
-                                                .collect(Collectors.toList()); //check if users match user session
+                                    //find if user is among the users that can access the event
+                                    List<User> matchingUsers = usersWithAccessToEvent
+                                            .stream()
+                                            .filter(currentUser -> currentUser.id().equals(user.getUserId()))
+                                            .collect(Collectors.toList()); //check if users match user session
 
-                                        promise.complete(!matchingUsers.isEmpty());
+                                    promise.complete(!matchingUsers.isEmpty());
                                 });
                     }
                 });
@@ -876,15 +870,15 @@ public class EventHelper extends MongoDbControllerHelper {
 
     /**
      * Get file from documents collection
-     * @param hasAccess whether the user has access to the event or not
-     * @param attachmentId the id of the file {@link String}
      *
+     * @param hasAccess    whether the user has access to the event or not
+     * @param attachmentId the id of the file {@link String}
      * @return {@link Future} of {@link JsonObject} being true if the user is owner of the file, false instead
      */
     public Future<JsonObject> getAttachment(Boolean hasAccess, String attachmentId) {
         Promise<JsonObject> promise = Promise.promise();
 
-        if(Boolean.FALSE.equals(hasAccess)){
+        if (Boolean.FALSE.equals(hasAccess)) {
             promise.fail(String.format("[Calendar@EventHelper::getAttachment] User does not have access to file"));
         }
 
@@ -892,7 +886,7 @@ public class EventHelper extends MongoDbControllerHelper {
         QueryBuilder query = QueryBuilder.start(Field.id).is(attachmentId);
 
         mongo.findOne(Calendar.DOCUMENTS_COLLECTION, MongoQueryBuilder.build(query), validResultHandler(result -> {
-            if(result.isLeft() || result.right().getValue().size() == 0 || !(result.right().getValue() instanceof JsonObject) ) {
+            if (result.isLeft() || result.right().getValue().size() == 0 || !(result.right().getValue() instanceof JsonObject)) {
                 String message = String.format("[Calendar@%s::getAttachment]:  an error has occurred while finding file: %s",
                         this.getClass().getSimpleName(), result.left().getValue());
                 log.error(message);

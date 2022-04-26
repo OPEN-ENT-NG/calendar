@@ -24,6 +24,13 @@ public class Field {
     public static final String calendars = "calendars";
     //Owner
     public static final String owner = "owner";
+    //Calendar id
+    public static final String calendarId = "_id";
+
+    // start date from range
+    public static final String startDate = "startDate";
+    // end date from range
+    public static final String endDate = "endDate";
 
     //Recurrence
     // event is recurrent or not

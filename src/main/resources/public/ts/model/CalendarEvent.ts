@@ -6,6 +6,7 @@ import { Mix, Selectable, Selection } from "entcore-toolkit";
 import {getTime, makerFormatTimeInput, utcTime} from './Utils'
 import {multiDaysEventsUtils} from "../utils/multiDaysEventsUtils";
 import {FORMAT} from "../core/const/date-format";
+import {calendarEventService, CalendarEventService} from "../services/calendar-event.service";
 
 export class CalendarEvent implements Selectable, Shareable{
     _id: String;
@@ -167,8 +168,8 @@ export class CalendarEvents extends Selection<CalendarEvent> {
         this.calendar = calendar;
     }
 
-    async sync (calendar, calendars){
-        let { data } = await http.get('/calendar/' + calendar._id+ '/events');
+    async sync (calendar, calendars, startDate?: string, endDate?: string): Promise<void> {
+        let { data } = await calendarEventService.fetchCalendarEvents(calendar._id, startDate, endDate);
         this.all = [];
         this.multiDaysEvents = [];
         data.forEach(event => this.all.push(new CalendarEvent(event)));
