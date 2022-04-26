@@ -32,6 +32,8 @@ public interface EventServiceMongo {
 
     void list(String calendarId, UserInfos user, Handler<Either<String, JsonArray>> handler);
 
+    void list(String calendarId, UserInfos user,  String startDate, String endDate, Handler<Either<String, JsonArray>> handler);
+
     void create(String calendarId, JsonObject body, UserInfos user, Handler<Either<String, JsonObject>> handler);
 
     void retrieve(String calendarId, String eventId, UserInfos user, Handler<Either<String, JsonObject>> handler);

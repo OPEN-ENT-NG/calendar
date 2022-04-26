@@ -134,7 +134,7 @@ public class EventController extends MongoDbControllerHelper {
                         shareResource(request, "calendar.share", false, params, "title");
                         eventHelper.addEventToUsersCalendar(id, body, user, host, lang);
                     }
-        }));
+                }));
     }
 
     @Get("/:id/ical")
@@ -174,17 +174,18 @@ public class EventController extends MongoDbControllerHelper {
 
     /**
      * Get nb events from a list of calendars (widget)
+     *
      * @param request request
      */
     @Get("/events/widget")
     @SecuredAction(value = "", type = ActionType.RESOURCE)
     @ResourceFilter(CustomWidgetFilter.class)
-    public void getWidgetEvents (HttpServerRequest request) {
+    public void getWidgetEvents(HttpServerRequest request) {
         List<String> calendarIds = request.params().getAll("calendarId");
         int nbLimit;
         try {
             nbLimit = Integer.parseInt(request.params().get("nb"));
-        } catch(NumberFormatException e) {
+        } catch (NumberFormatException e) {
             nbLimit = 5;
         }
         eventHelper.listWidgetEvents(request, calendarIds.toArray(new String[0]), nbLimit);
