@@ -48,6 +48,7 @@
     "calendar.ics.file.import.report": "Rapport d'import de fichier ICS",
     "calendar.ics.file.to.import": "Sélectionner un fichier iCal",
     "calendar.notify.icsImportError": "Erreur d'importation du fichier ICS",
+    "calendar.notify.sync.calendars.error": "Erreur de synchronisation des calendriers",
     "calendar.recurrence": "Récurrence",
     "calendar.reccurent": "Récurrent",
     "calendar.recurrence.days": "jours",

@@ -33,6 +33,7 @@ import java.util.*;
 
 import io.vertx.core.Promise;
 import io.vertx.core.json.Json;
+import net.atos.entng.calendar.core.constants.Field;
 import net.atos.entng.calendar.ical.ICalHandler;
 import net.atos.entng.calendar.services.CalendarService;
 import net.atos.entng.calendar.services.EventServiceMongo;
@@ -70,60 +71,109 @@ public class EventServiceMongoImpl extends MongoDbCrudService implements EventSe
         this.userService = serviceFactory.userService();
     }
 
+    /**
+     * * fetch all the events of a calendar
+     * @param calendarId calendar id from which the events are linked
+     * @param user user id of the owner of the calendar
+     */
     @Override
     public void list(String calendarId, UserInfos user, final Handler<Either<String, JsonArray>> handler) {
-        Promise<JsonObject> promise = Promise.promise();
+        list(calendarId, user, null, null, handler);
+    }
 
-        QueryBuilder queryCalendar = QueryBuilder.start("_id").is(calendarId);
+    /**
+     * * fetch the events of a calendar in a range of date
+     * @param calendarId calendar id from which the events are linked
+     * @param user user id of the owner of the calendar
+     * @param startDate beginning of range from which to fetch the events (format "YYYY-MM-DD")
+     * @param endDate end of range from which to fetch the events (format "YYYY-MM-DD")
+     * if startDate and endDate are null, the function gets all elements from the calendar
+     */
+    @Override
+    public void list(String calendarId, UserInfos user, String startDate, String endDate, final Handler<Either<String, JsonArray>> handler) {
+        QueryBuilder queryCalendar = QueryBuilder.start(Field._ID).is(calendarId);
 
         mongo.findOne(CALENDAR_COLLECTION, MongoQueryBuilder.build(queryCalendar), validActionResultHandler(result -> {
             if (result.isLeft()) {
                 log.error("[Calendar@EventServiceMongo::list]: an error has occurred while finding targeted " +
                         "calendar: ", result.left().getValue());
-                promise.fail(result.left().getValue());
-                return;
+                handler.handle(new Either.Left<>(result.left().getValue()));
+            } else {
+                //result right
+                JsonObject currentCalendar = result.right().getValue();
+
+                //get calendar owner
+                String currentCalendarOwnerId = currentCalendar
+                        .getJsonObject("result", new JsonObject())
+                        .getJsonObject("owner", new JsonObject())
+                        .getString("userId");
+
+                Boolean userIsCalendarOwner = user.getUserId().equals(currentCalendarOwnerId);
+
+                JsonObject queryEvent = new JsonObject().put("calendar", calendarId);
+
+                if (Boolean.FALSE.equals(userIsCalendarOwner)) {
+                    JsonObject userIsEventOwner = new JsonObject().put("owner.userId", user.getUserId());
+                    JsonObject isNotSharedEvent = new JsonObject().put("shared", new JsonObject().put("$exists", false));
+                    JsonObject sharedIsEmpty = new JsonObject().put("shared", new JsonObject().put("$size", 0));
+                    JsonObject sharedContainsUserId = new JsonObject().put("shared.userId",
+                            new JsonObject().put("$in", new JsonArray().add(user.getUserId())));
+                    JsonObject sharedContainsUserGroupIds = new JsonObject().put("shared.groupId",
+                            new JsonObject().put("$in", user.getGroupsIds()));
+
+                    queryEvent.put("$or",
+                            new JsonArray()
+                                    .add(userIsEventOwner)
+                                    .add(isNotSharedEvent)
+                                    //case 'shared' field is empty
+                                    .add(sharedIsEmpty)
+                                    //case shared to the user individually
+                                    .add(sharedContainsUserId)
+                                    //case shared to the user by groupId
+                                    .add(sharedContainsUserGroupIds)
+
+                    );
+                }
+                JsonObject sort = new JsonObject().put("modified", -1);
+                // Projection
+                JsonObject projection = new JsonObject();
+                //JsonArray newQuery = new JsonArray();
+
+                if (startDate != null && endDate != null) {
+                    if (queryEvent.containsKey("$or")) {
+                        queryEvent.getJsonArray("$or").addAll(fetchEventsWithDates(startDate, endDate));
+                    } else {
+                        queryEvent.put("$or", fetchEventsWithDates(startDate, endDate));
+                    }
+                }
+
+                mongo.find(this.collection, queryEvent, sort, projection, validResultsHandler(handler));
             }
-            //result right
-            JsonObject currentCalendar = result.right().getValue();
-
-            //get calendar owner
-            String currentCalendarOwnerId = currentCalendar
-                    .getJsonObject("result", new JsonObject())
-                    .getJsonObject("owner", new JsonObject())
-                    .getString("userId");
-
-            Boolean userIsCalendarOwner = user.getUserId().equals(currentCalendarOwnerId);
-
-            JsonObject queryEvent = new JsonObject().put("calendar", calendarId);
-
-            if (Boolean.FALSE.equals(userIsCalendarOwner)) {
-                JsonObject userIsEventOwner = new JsonObject().put("owner.userId", user.getUserId());
-                JsonObject isNotSharedEvent = new JsonObject().put("shared", new JsonObject().put("$exists", false));
-                JsonObject sharedIsEmpty = new JsonObject().put("shared", new JsonObject().put("$size", 0));
-                JsonObject sharedContainsUserId = new JsonObject().put("shared.userId",
-                        new JsonObject().put("$in",new JsonArray().add(user.getUserId())));
-                JsonObject sharedContainsUserGroupIds = new JsonObject().put("shared.groupId",
-                        new JsonObject().put("$in", user.getGroupsIds()));
-
-                queryEvent.put("$or",
-                        new JsonArray()
-                                .add(userIsEventOwner)
-                                .add(isNotSharedEvent)
-                                //case 'shared' field is empty
-                                .add(sharedIsEmpty)
-                                //case shared to the user individually
-                                .add(sharedContainsUserId)
-                                //case shared to the user by groupId
-                                .add(sharedContainsUserGroupIds)
-
-                );
-            }
-            JsonObject sort = new JsonObject().put("modified", -1);
-            // Projection
-            JsonObject projection = new JsonObject();
-
-            mongo.find(this.collection, queryEvent, sort, projection, validResultsHandler(handler));
         }));
+    }
+
+    public JsonArray fetchEventsWithDates(String startDate, String endDate) {
+        JsonArray eventsFilterByDate = new JsonArray();
+
+        if (startDate != null && endDate != null) {
+            //fetch the single-day events
+            JsonObject datesISO = new JsonObject();
+            datesISO.put("$gte", startDate);
+            datesISO.put("$lt", endDate);
+
+            eventsFilterByDate.add(new JsonObject().put(Field.STARTMOMENT, datesISO));
+
+            //fetch the multiday events
+            JsonObject datesISOStart = new JsonObject();
+            JsonObject datesISOEnd = new JsonObject();
+            datesISOStart.put("$lt", startDate);
+            datesISOEnd.put("$gte", startDate);
+
+            eventsFilterByDate.add(new JsonObject().put(Field.STARTMOMENT, datesISOStart));
+            eventsFilterByDate.add(new JsonObject().put(Field.ENDMOMENT, datesISOEnd));
+        }
+
+        return eventsFilterByDate;
     }
 
     @Override
@@ -232,7 +282,6 @@ public class EventServiceMongoImpl extends MongoDbCrudService implements EventSe
                 JsonArray values = event.right().getValue();
                 message.put("events", values);
                 eb.send(ICalHandler.ICAL_HANDLER_ADDRESS, message, handlerToAsyncHandler(handler));
-
             }
         });
     }

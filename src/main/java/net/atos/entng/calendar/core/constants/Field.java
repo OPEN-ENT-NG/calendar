@@ -17,13 +17,20 @@ public class Field {
     public static final String calendarEvent = "calendarEvent";
 
     // event start moment
-    public static final String startMoment = "startMoment";
+    public static final String STARTMOMENT = "startMoment";
     // event end moment
-    public static final String endMoment = "endMoment";
+    public static final String ENDMOMENT = "endMoment";
     //calendars
-    public static final String calendars = "calendars";
+    public static final String CALENDARS = "calendars";
     //Owner
-    public static final String owner = "owner";
+    public static final String OWNER = "owner";
+    //Calendar id
+    public static final String _ID = "_id";
+
+    // start date from range
+    public static final String STARTDATE = "startDate";
+    // end date from range
+    public static final String ENDDATE = "endDate";
 
     //Recurrence
     // event is recurrent or not
