@@ -175,6 +175,20 @@
     </lightbox>
 </div>
 
+<!-- Lightbox : Event creation / edition -->
+<div ng-show="display.showEditEventPanel">
+    <lightbox show="display.showEditEventPanel" on-close="closeCalendarEvent()" delegate-close="canICloseLightBox()">
+        <div ng-include="'/calendar/public/template/edit-event.html'"></div>
+    </lightbox>
+</div>
+
+<!-- Lightbox : Event view -->
+<div ng-show="display.showViewEventPanel">
+    <lightbox show="display.showViewEventPanel" on-close="closeCalendarEvent()" delegate-close="canICloseLightBox()">
+        <div ng-include="'/calendar/public/template/view-event.html'"></div>
+    </lightbox>
+</div>
+
 <!--Lightbox : Edit all recurrence or only event-->
 <div ng-if="display.showRecurrencePanel && calendarEvent.isRecurrent">
     <lightbox show="display.showRecurrencePanel" on-close="cancelRecurrentEventEdit()">
@@ -214,6 +228,15 @@
                     </tr>
                 </tbody>
             </table>
+        </div>
+
+        <!-- Booking information -->
+        <div>
+            <rbs-booking-delete-info
+                    enable-rbs="ENABLE_RBS"
+                    rbs-emitter="rbsEmitter"
+                    calendar-event="calendarEvent">
+            </rbs-booking-delete-info>
         </div>
 
         <div class="row"> 

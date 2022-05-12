@@ -99,6 +99,7 @@
     "calendar.utils.edit": "Edit",
     "calendar.event.recurrence.edition": "These changes will impact",
     "calendar.error.date.saving": "Saving issue : data is not valid",
+    "calendar.error.booking.saving": "Error occurred when saving booking(s)",
     "calendar.error.time": "End time must be after start time.",
     "calendar.error.date": "End date must be after or equal to start date.",
     "calendar.event.date": "Date: ",
@@ -118,5 +119,4 @@
     "calendar.event.add": "Add",
     "calendar.event.attachments" : "Attachments",
     "calendar.event.attachment.download.error" : "Error when trying to download attachment"
-
 }

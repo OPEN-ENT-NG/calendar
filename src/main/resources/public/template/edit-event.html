@@ -6,7 +6,7 @@
     </h2>
 
     <section class="twelve cell">
-        <form name="form" id="event-form">
+        <form name="editEvent" id="event-form">
             <div class="row">
 
                 <!-- Event details -->
@@ -134,7 +134,7 @@
                                            placeholder="HH:mm" ng-model="calendarEvent.startTime"
                                            start-time="calendarEvent.startTime" end-time="calendarEvent.endTime"
                                            step="60" start-moment="calendarEvent.startMoment"
-                                           end-moment="calendarEvent.endMoment" required/>
+                                           end-moment="calendarEvent.endMoment" data-ng-change="rbsEmitter.updateRbsSniplet()" required/>
                                 </div>
                                 <!--event end hour-->
                                 <div class="three cell" ng-if="!calendarEvent.allday">
@@ -146,13 +146,13 @@
                                            placeholder="HH:mm" ng-model="calendarEvent.endTime"
                                            start-time="calendarEvent.startTime" end-time="calendarEvent.endTime"
                                            step="60" start-moment="calendarEvent.startMoment"
-                                           end-moment="calendarEvent.endMoment" required/>
+                                           end-moment="calendarEvent.endMoment" data-ng-change="rbsEmitter.updateRbsSniplet()" required/>
                                 </div>
                             </div>
 
                             <div class="row">
                                 <div class="six cell">
-                                    <input type="checkbox" ng-model="calendarEvent.allday"/>
+                                    <input type="checkbox" ng-model="calendarEvent.allday" ng-click="rbsEmitter.updateRbsSniplet()"/>
                                     <label>
                                         <i18n>calendar.event.allday</i18n>
                                     </label>
@@ -346,6 +346,14 @@
                         </div>
                     </div>
                 </article>
+                <!--RBS booking-->
+                <div ng-if="ENABLE_RBS">
+                    <sniplet
+                            template="calendar-rbs-booking"
+                            application="rbs"
+                            class="row">
+                    </sniplet>
+                </div>
             </div>
 
             <button class="right-magnet" ng-click="saveCalendarEventEdit(calendarEvent)"

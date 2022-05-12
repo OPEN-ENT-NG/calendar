@@ -22,6 +22,7 @@ package net.atos.entng.calendar.controllers;
 import fr.wseduc.rs.*;
 import fr.wseduc.webutils.I18n;
 import fr.wseduc.webutils.http.Renders;
+import io.vertx.core.eventbus.EventBus;
 import net.atos.entng.calendar.core.constants.Field;
 import net.atos.entng.calendar.helpers.EventHelper;
 
@@ -49,9 +50,10 @@ public class EventController extends MongoDbControllerHelper {
     private final EventHelper eventHelper;
     private final Storage storage;
 
-    public EventController(String collection, CrudService eventService, ServiceFactory serviceFactory, TimelineHelper timelineHelper, Storage storage) {
+    public EventController(String collection, CrudService eventService, ServiceFactory serviceFactory, TimelineHelper timelineHelper,
+                           Storage storage, EventBus eb, JsonObject config) {
         super(collection);
-        eventHelper = new EventHelper(collection, eventService, serviceFactory, timelineHelper);
+        eventHelper = new EventHelper(collection, eventService, serviceFactory, timelineHelper, eb, config);
         this.storage = storage;
     }
 

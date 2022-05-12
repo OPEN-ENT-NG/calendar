@@ -28,6 +28,7 @@ import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.json.JsonObject;
+import net.atos.entng.calendar.core.constants.Field;
 import net.atos.entng.calendar.security.ShareEventConf;
 import net.atos.entng.calendar.services.CalendarService;
 import net.atos.entng.calendar.services.ServiceFactory;
@@ -70,14 +71,16 @@ public class CalendarController extends MongoDbControllerHelper {
         String lang = I18n.acceptLanguage(request);
         UserUtils.getUserInfos(eb, request, user -> {
             if (user != null) {
+                final JsonObject context = new JsonObject();
+                context.put(Field.ENABLERBS, config.getBoolean(Field.ENABLE_RBS, false));
                 calendarService.getDefaultCalendar(user)
                         .onSuccess(calendar -> {
                             if (calendar.isEmpty() || calendar.fieldNames().isEmpty()) {
                                 calendarService.createDefaultCalendar(user, host, lang)
-                                        .onSuccess(res -> renderView(request))
+                                        .onSuccess(res -> renderView(request, context))
                                         .onFailure(err -> renderError(request));
                             } else {
-                                renderView(request);
+                                renderView(request, context);
                             }
                             // Create event "access to application Calendar" and store it, for module "statistics"
                             eventHelper.onAccess(request);
