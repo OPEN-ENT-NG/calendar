@@ -1455,6 +1455,7 @@ export const calendarController = ng.controller('CalendarController',
                                 cle.title = calendarEvent.title;
                                 cle.description = calendarEvent.description;
                                 cle.location = calendarEvent.location;
+                                cle.attachments = calendarEvent.attachments;
                                 save = true;
                             }
                             if (calendarEvent.startDateToRecurrence
