@@ -1332,6 +1332,14 @@ export const calendarController = ng.controller('CalendarController',
                                 userId: model.me.userId,
                                 displayName: model.me.username
                             };
+
+                            if (calendarEvent.isRecurrent && calendarEvent.bookings && calendarEvent.bookings.length > 0
+                                && items[count].calEvent.startMoment.isSame(items[0].calEvent.startMoment, 'day')
+                                && count != 0
+                                && $scope.rbsEmitter.newRecurrenceAdded()) {
+                                items[count].calEvent.bookings = items[0].calEvent.bookings;
+                            }
+
                             let itemCalendarEvent: any = items[count].calEvent;
                             let action: string = items[count].action;
                             if (action === ACTIONS.save) {

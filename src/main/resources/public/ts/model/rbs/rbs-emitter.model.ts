@@ -82,6 +82,12 @@ export class RbsEmitter {
         }
     };
 
+    newRecurrenceAdded = (): boolean => {
+        let rbsSniplet: any = angular.element(document.getElementById("calendar-rbs-booking")).scope();
+        if (this.scope.ENABLE_RBS && !!rbsSniplet && !!rbsSniplet.vm) {
+            return rbsSniplet.vm.hasRecurrenceBeenAdded();
+        }
+    };
 
 
 }

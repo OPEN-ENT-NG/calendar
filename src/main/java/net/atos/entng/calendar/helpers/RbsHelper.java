@@ -34,7 +34,7 @@ public class RbsHelper {
                 if(res.succeeded()) {
                     if (res.result() != null && !res.result().isEmpty()) {
                         object.put(Field.BOOKINGS, res.result());
-                    } else {
+                    } else if (object.getString(Field.PARENTID) == null) {
                         object.remove(Field.BOOKINGS);
                         object.remove(Field.HASBOOKING);
                     }
