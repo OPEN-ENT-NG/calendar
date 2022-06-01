@@ -102,27 +102,31 @@
                 <!-- Event Dates -->
                 <article>
                     <h2 class="backgroundBlueTitle">
-                        <i18n>calendar.event.header.dates</i18n>
+                        <i18n ng-if="!calendarEvent.editAllRecurrence">calendar.event.header.dates</i18n>
+                        <i18n ng-if="calendarEvent.editAllRecurrence">calendar.event.timeslot</i18n>
                     </h2>
                     <div class="toggle">
                         <div class="content">
 
                             <div class="row">
-                                <!--event start date-->
-                                <div class="three cell">
-                                    <label class="twelve cell form-label">
-                                        <i18n>calendar.event.start.date</i18n>
-                                    </label>
-                                    <date-picker ng-model="calendarEvent.startMoment"
-                                                 ng-change="changeStartMoment()" class="nine cell"></date-picker>
-                                </div>
-                                <!--event end date-->
-                                <div class="three cell">
-                                    <label class="twelve cell form-label">
-                                        <i18n>calendar.event.end.date</i18n>
-                                    </label>
-                                    <date-picker ng-model="calendarEvent.endMoment"
-                                                 ng-change="changeEndMoment()" class="nine cell"></date-picker>
+
+                                <div ng-if="!calendarEvent.editAllRecurrence">
+                                    <!--event start date-->
+                                    <div class="three cell">
+                                        <label class="twelve cell form-label">
+                                            <i18n>calendar.event.start.date</i18n>
+                                        </label>
+                                        <date-picker ng-model="calendarEvent.startMoment"
+                                                     ng-change="changeStartMoment()" class="nine cell"></date-picker>
+                                    </div>
+                                    <!--event end date-->
+                                    <div class="three cell">
+                                        <label class="twelve cell form-label">
+                                            <i18n>calendar.event.end.date</i18n>
+                                        </label>
+                                        <date-picker ng-model="calendarEvent.endMoment"
+                                                     ng-change="changeEndMoment()" class="nine cell"></date-picker>
+                                    </div>
                                 </div>
                                 <!--event start hour-->
                                 <div class="three cell" ng-if="!calendarEvent.allday">
@@ -130,7 +134,7 @@
                                         <i18n>calendar.event.start.time</i18n>
                                     </label>
                                     <input format-input-time type="time" id="time-picker-start-moment"
-                                           class="input-small cell"
+                                           class="input-small cell editEvent-time"
                                            placeholder="HH:mm" ng-model="calendarEvent.startTime"
                                            start-time="calendarEvent.startTime" end-time="calendarEvent.endTime"
                                            step="60" start-moment="calendarEvent.startMoment"
@@ -142,7 +146,7 @@
                                         <i18n>calendar.event.end.time</i18n>
                                     </label>
                                     <input format-input-time type="time" id="time-picker-end-moment"
-                                           class="input-small cell"
+                                           class="input-small cell editEvent-time"
                                            placeholder="HH:mm" ng-model="calendarEvent.endTime"
                                            start-time="calendarEvent.startTime" end-time="calendarEvent.endTime"
                                            step="60" start-moment="calendarEvent.startMoment"
