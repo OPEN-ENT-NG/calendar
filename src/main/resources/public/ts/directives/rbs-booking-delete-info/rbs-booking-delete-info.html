@@ -1,4 +1,4 @@
-<div ng-if="vm.enableRbs && vm.rbsEmitter.calendarEventHasBookings()">
+<div ng-if="vm.enableRbs && vm.rbsEmitter.calendarEventHasBookings() && vm.rbsEmitter.bookingExists()">
     <div ng-if="vm.rbsEmitter.hasAccessToSavedBookings()">
         <i18n>rbs.calendar.sniplet.booking.warning</i18n>
         <div ng-repeat="bookingDates in vm.rbsEmitter.calendarEventBookingsSlots()">[[bookingDates]]</div>
