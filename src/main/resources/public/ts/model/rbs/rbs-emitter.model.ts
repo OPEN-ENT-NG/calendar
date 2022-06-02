@@ -1,6 +1,6 @@
 import {CalendarEvent} from "../CalendarEvent";
 import {_, angular, Behaviours, moment, Rights} from "entcore";
-import {Bookings, SavedBooking} from "./booking.model";
+import {Booking, Bookings, SavedBooking} from "./booking.model";
 import {FORMAT} from "../../core/const/date-format";
 import {safeApply} from "../Utils";
 
@@ -82,6 +82,19 @@ export class RbsEmitter {
         }
     };
 
+
+    bookingExists = (): boolean => {
+        let rbsSnipletVm: any = this.getRbsSnipletController()['vm'];
+        if (this.scope.ENABLE_RBS && !!this.getRbsSnipletController() && !!rbsSnipletVm
+            && !!rbsSnipletVm.bookings && !!rbsSnipletVm.bookings.all) {
+            return (rbsSnipletVm.bookings.all.filter((booking: Booking) => booking.created != undefined).length > 0);
+        }
+        return false;
+    };
+
+    getRbsSnipletController(): ng.IScope {
+        return angular.element(document.getElementById("calendar-rbs-booking")).scope();
+    }
 
 
 }
