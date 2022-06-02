@@ -174,7 +174,7 @@
                 </article>
 
                 <!-- Event Recurrence -->
-                <article>
+                <article ng-if="!(calendarEvent.bookings && (calendarEvent.bookings.length > 0) && !calendarEvent.isRecurrent)">
                     <h2 class="backgroundBlueTitle">
                         <i18n>calendar.event.header.recurrence</i18n>
                     </h2>
