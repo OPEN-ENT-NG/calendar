@@ -1,7 +1,7 @@
 import http from "axios";
 import {_, Behaviours, moment, Rights, Shareable, Document, angular} from "entcore";
 import { timeConfig } from "./constantes";
-import {Bookings, Calendar, Calendars} from "./";
+import {Booking, Calendar, Calendars} from "./";
 import { Mix, Selectable, Selection } from "entcore-toolkit";
 import {getTime, makerFormatTimeInput, utcTime} from './Utils'
 import {multiDaysEventsUtils} from "../utils/multiDaysEventsUtils";
@@ -52,7 +52,8 @@ export class CalendarEvent implements Selectable, Shareable{
     isMultiDayPart: boolean;
     attachments: Array<Document>;
     hasBooking: boolean;
-    bookings: Bookings;
+    bookings: Array<SavedBooking|Booking>;
+    deleteAllBookings: boolean;
 
     constructor (calendarEvent? : Object) {
         this.myRights = new Rights(this);

@@ -792,6 +792,20 @@ export const calendarController = ng.controller('CalendarController',
                     }
                 });
                 $scope.display.confirmDeleteCalendarEvent = true;
+
+                if ($scope.listViewSelectedOneCalendarEventWithBooking()) {
+                    $scope.calendarEvent = $scope.calendarEvents.selectedElements[0];
+                    $scope.viewCalendarEvent($scope.calendarEvent);
+                }
+            };
+
+            /**
+             * Returns true if one element of the list is selected and if it has a booking
+             */
+            $scope.listViewSelectedOneCalendarEventWithBooking = (): boolean => {
+                return $scope.display.list && $scope.calendarEvents && $scope.calendarEvents.selectedElements
+                    && $scope.calendarEvents.selectedElements.length == 1 && $scope.calendarEvents.selectedElements[0].bookings
+                    && $scope.calendarEvents.selectedElements[0].bookings.length > 0;
             };
 
             /**
@@ -874,6 +888,7 @@ export const calendarController = ng.controller('CalendarController',
             $scope.cancelRemoveCalendarEvent = function () {
                 $scope.display.confirmDeleteCalendarEvent = undefined;
                 $scope.calendarEvent.deleteAllRecurrence = false;
+                $scope.calendarEvent.deleteAllBookings = undefined;
                 $scope.calendarEvents.forEach(function (calendarEvent) {
                     calendarEvent.selected = false;
                 });

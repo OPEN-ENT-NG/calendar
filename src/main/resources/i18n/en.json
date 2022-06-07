@@ -119,5 +119,13 @@
     "calendar.event.add": "Add",
     "calendar.event.attachments" : "Attachments",
     "calendar.event.attachment.download.error" : "Error when trying to download attachment",
-    "calendar.event.timeslot": "Timeslot"
+    "calendar.event.timeslot": "Timeslot",
+
+    "calendar.rbs.sniplet.booking.owner.is": "Resources were booked by",
+    "calendar.rbs.sniplet.for.this.event": "for this event.",
+    "calendar.rbs.sniplet.for.this.these.events": "for these events",
+    "calendar.rbs.sniplet.booking.deletion.advice.no.access": "The deletion of this event will not delete the bookings.",
+    "calendar.rbs.sniplet.deletion.wish": "Do you wish to delete:",
+    "calendar.rbs.sniplet.event.only": "This event only",
+    "calendar.rbs.sniplet.event.and.booking": "This event and its booking"
 }
