@@ -57,7 +57,7 @@ public class RbsHelper {
     public static boolean canEventHaveBooking(JsonObject object, JsonObject config) {
         return Boolean.TRUE.equals(config.getBoolean(Field.ENABLE_RBS))
                 && Boolean.TRUE.equals(object.getBoolean(Field.HASBOOKING))
-                && (object.getJsonObject(Field.BOOKINGS).size() > 0);
+                && (object.getJsonArray(Field.BOOKINGS).size() > 0);
     }
 
     /**
@@ -71,8 +71,7 @@ public class RbsHelper {
         JsonObject action = new JsonObject()
                 .put(Field.ACTION, Field.SAVE_BOOKINGS)
                 .put(Field.BOOKINGS, object
-                        .getJsonObject(Field.BOOKINGS, null)
-                        .getJsonArray(Field.ALL, null))
+                        .getJsonArray(Field.BOOKINGS, null))
                 .put(Field.userId, user.getUserId());
         eb.request(rbsAddress, action, messageJsonArrayHandler(handlerJsonObject(promise)));
 

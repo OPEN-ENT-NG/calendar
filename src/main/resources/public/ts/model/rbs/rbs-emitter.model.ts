@@ -61,10 +61,7 @@ export class RbsEmitter {
         if (rbsSniplet && rbsSniplet.vm) {
             let bookingsContent = rbsSniplet.vm.prepareBookingsToSave();
             if (bookingsContent.length > 0) {
-                calendarEvent.bookings = new Bookings();
-                calendarEvent.bookings = {
-                    all : [...bookingsContent]
-                };
+                calendarEvent.bookings = [...bookingsContent];
             }
         }
     }
@@ -95,6 +92,14 @@ export class RbsEmitter {
     getRbsSnipletController(): ng.IScope {
         return angular.element(document.getElementById("calendar-rbs-booking")).scope();
     }
+
+    canViewBooking = (): boolean => {
+        let rbsSnipletVm: any = this.getRbsSnipletController()['vm'];
+        if (this.scope.ENABLE_RBS && !!this.getRbsSnipletController() && !!rbsSnipletVm) {
+            return rbsSnipletVm.canViewBooking;
+        }
+        return false;
+    };
 
 
 }
