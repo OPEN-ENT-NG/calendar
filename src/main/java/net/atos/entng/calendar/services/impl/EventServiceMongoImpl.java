@@ -20,7 +20,6 @@
 package net.atos.entng.calendar.services.impl;
 
 import static fr.wseduc.webutils.Utils.handlerToAsyncHandler;
-import static fr.wseduc.webutils.Utils.validResults;
 import static net.atos.entng.calendar.Calendar.CALENDAR_COLLECTION;
 import static org.entcore.common.mongodb.MongoDbResult.validActionResultHandler;
 import static org.entcore.common.mongodb.MongoDbResult.validResultHandler;
@@ -31,11 +30,11 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
+import io.vertx.core.Future;
 import io.vertx.core.Promise;
-import io.vertx.core.json.Json;
 import net.atos.entng.calendar.core.constants.Field;
+import net.atos.entng.calendar.helpers.FutureHelper;
 import net.atos.entng.calendar.ical.ICalHandler;
-import net.atos.entng.calendar.services.CalendarService;
 import net.atos.entng.calendar.services.EventServiceMongo;
 import net.atos.entng.calendar.services.ServiceFactory;
 import net.fortuna.ical4j.util.UidGenerator;
@@ -215,6 +214,12 @@ public class EventServiceMongoImpl extends MongoDbCrudService implements EventSe
         mongo.findOne(this.collection, MongoQueryBuilder.build(query), projection, validResultHandler(handler));
     }
 
+    public Future<JsonObject> retrieve(String calendarId, String eventId, UserInfos user) {
+        Promise<JsonObject> promise = Promise.promise();
+        retrieve(calendarId, eventId, user, FutureHelper.handlerJsonObject(promise));
+        return promise.future();
+    }
+
     @Override
     public void retrieveByIcsUid(String calendarId, String icsUid, UserInfos user, Handler<Either<String, JsonObject>> handler) {
         // Query
@@ -270,6 +275,12 @@ public class EventServiceMongoImpl extends MongoDbCrudService implements EventSe
         query.put("calendar").is(calendarId);
         mongo.delete(this.collection, MongoQueryBuilder.build(query), validActionResultHandler(handler));
 
+    }
+
+    public Future<JsonObject> delete(String calendarId, String eventId, UserInfos user) {
+        Promise<JsonObject> promise = Promise.promise();
+        delete(calendarId, eventId, user, FutureHelper.handlerJsonObject(promise));
+        return promise.future();
     }
 
     @Override

@@ -9,12 +9,13 @@ public class Field {
     // Common
 
     //id
-    public static final String id = "_id";
+    public static final String ID = "id";
 
     //Event infos
 
     // event
     public static final String calendarEvent = "calendarEvent";
+    public static final String EVENTID = "eventid";
 
     // event start moment
     public static final String STARTMOMENT = "startMoment";
@@ -26,8 +27,6 @@ public class Field {
     public static final String OWNER = "owner";
     //Calendar id
     public static final String _ID = "_id";
-    // Event id
-    public static final String EVENTID = "eventId";
 
     // Start and end dates
     public static final String START_DATE = "start_date";
@@ -76,6 +75,10 @@ public class Field {
     public static final String BOOKINGS = "bookings";
     public static final String HASBOOKING = "hasBooking";
     public static final String SAVE_BOOKINGS = "save-bookings";
+    public static final String DELETE_BOOKINGS = "delete-bookings";
+    public static final String DELETE_BOOKING_RIGHTS = "delete-booking-rights";
+    public static final String DELETEBOOKINGS = "deleteBookings";
+    public static final String ISOWNER = "isOwner";
 
     //Event Bus
     public static final String OK = "ok";
@@ -92,5 +95,9 @@ public class Field {
 
     //Actions
     public static final String ACTION = "action";
+
+    //Routes
+    public static final String BINDING = "binding";
+    public static final String REQUESTMETHOD = "requestMethod";
 
 }

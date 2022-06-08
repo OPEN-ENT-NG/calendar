@@ -20,13 +20,10 @@
 package net.atos.entng.calendar.helpers;
 
 import static net.atos.entng.calendar.Calendar.*;
-import static net.atos.entng.calendar.helpers.FutureHelper.*;
-import static net.atos.entng.calendar.helpers.RbsHelper.*;
 import static org.entcore.common.http.response.DefaultResponseHandler.arrayResponseHandler;
 import static org.entcore.common.http.response.DefaultResponseHandler.defaultResponseHandler;
 import static org.entcore.common.http.response.DefaultResponseHandler.notEmptyResponseHandler;
 import static org.entcore.common.mongodb.MongoDbResult.validResultHandler;
-import static org.entcore.common.mongodb.MongoDbResult.*;
 
 import java.io.File;
 import java.io.IOException;
@@ -40,7 +37,6 @@ import fr.wseduc.mongodb.MongoDb;
 import fr.wseduc.mongodb.MongoQueryBuilder;
 import fr.wseduc.webutils.Either;
 import fr.wseduc.webutils.I18n;
-import fr.wseduc.webutils.Server;
 import fr.wseduc.webutils.collections.Joiner;
 import io.vertx.core.*;
 import net.atos.entng.calendar.Calendar;
@@ -132,7 +128,7 @@ public class EventHelper extends MongoDbControllerHelper {
                                     if (event.isRight()) {
                                         JsonObject eventId = event.right().getValue();
                                         final JsonObject message = new JsonObject();
-                                        message.put(Field.id, calendarId);
+                                        message.put(Field._ID, calendarId);
                                         message.put(Field.EVENTID, eventId.getString("_id"));
                                         message.put(Field.START_DATE, (String) null);
                                         message.put(Field.END_DATE, (String) null);
@@ -210,17 +206,37 @@ public class EventHelper extends MongoDbControllerHelper {
         });
     }
 
+    /**
+     * Delete calendarEvent
+     * The flow is the following:
+     * - if optional parameter deleteBookings is true, get calendarEvent
+     * - delete calendarEvent no matter what happens
+     * - if calendarEvent has been retrieved successfully, make calls to delete bookings in RBS (using event bus),
+     * if not the task is finished
+     * @param request HttpServerRequest request from the server
+     */
     @Override
     public void delete(final HttpServerRequest request) {
 
-        UserUtils.getUserInfos(eb, request, new Handler<UserInfos>() {
-            @Override
-            public void handle(final UserInfos user) {
-                final String calendarId = request.params().get(CALENDAR_ID_PARAMETER);
-                final String eventId = request.params().get(EVENT_ID_PARAMETER);
+        UserUtils.getUserInfos(eb, request, user -> {
+            final String calendarId = request.params().get(CALENDAR_ID_PARAMETER);
+            final String eventId = request.params().get(EVENT_ID_PARAMETER);
+            final Boolean deleteBookings = Boolean.parseBoolean(request.params().get(Field.DELETEBOOKINGS));
 
-                eventService.delete(calendarId, eventId, user, defaultResponseHandler(request));
-            }
+            Future<JsonObject> getCalendarEventInfos = Boolean.TRUE.equals(deleteBookings) ? eventService.retrieve(calendarId, eventId, user)
+                    : Future.succeededFuture(new JsonObject());
+
+            getCalendarEventInfos
+                .compose(event -> eventService.delete(calendarId, eventId, user))
+                .compose(result -> {
+                    if (!getCalendarEventInfos.result().isEmpty()) {
+                        return RbsHelper.checkAndDeleteBookingRights(user, getCalendarEventInfos.result(), eb);
+                    } else {
+                        return Future.succeededFuture(Collections.emptyList());
+                    }
+                })
+                .onSuccess(res -> ok(request))
+                .onFailure(err -> renderError(request));
         });
     }
 
@@ -889,7 +905,7 @@ public class EventHelper extends MongoDbControllerHelper {
         }
 
         // Query
-        QueryBuilder query = QueryBuilder.start(Field.id).is(attachmentId);
+        QueryBuilder query = QueryBuilder.start(Field._ID).is(attachmentId);
 
         mongo.findOne(Calendar.DOCUMENTS_COLLECTION, MongoQueryBuilder.build(query), validResultHandler(result -> {
             if (result.isLeft() || result.right().getValue().size() == 0 || !(result.right().getValue() instanceof JsonObject)) {
