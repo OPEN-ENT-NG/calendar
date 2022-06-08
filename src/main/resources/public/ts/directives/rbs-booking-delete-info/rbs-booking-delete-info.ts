@@ -1,4 +1,4 @@
-import {ng} from "entcore";
+import {model, ng} from "entcore";
 import {ROOTS} from "../../core/const/roots";
 import {CalendarEvent, CalendarEvents, RbsEmitter} from "../../model";
 import {IScope} from "angular";
@@ -13,6 +13,8 @@ interface IViewModel {
 
     hasBookingsToDeleteListView(): boolean;
 
+    canDeleteBooking(): boolean;
+
     listViewSelectedCalendarEvents(): Array<CalendarEvent>;
 
     listViewSelectedCalendarEventsWithBooking(): Array<CalendarEvent>;
@@ -20,7 +22,6 @@ interface IViewModel {
     hasListViewSelectedCalendarEventsWithBooking(): boolean;
 
     hasOneListViewSelectedCalendarEventsWithBooking(): boolean;
-
 }
 
 class Controller implements ng.IController, IViewModel {
@@ -49,8 +50,20 @@ class Controller implements ng.IController, IViewModel {
     /**
      * Returns true if a deletion has been initiated for events including a booking on List View
      */
-    hasBookingsToDeleteListView = () => {
+    hasBookingsToDeleteListView = (): boolean => {
         return this.display.list && this.hasListViewSelectedCalendarEventsWithBooking();
+    }
+
+    /**
+     * Returns true if the user has the right to delete a booking
+     */
+    canDeleteBooking = (): boolean => {
+        let userIsBookingOwner:boolean = this.calendarEvent.owner.userId == model.me.userId;
+        let userIsResourceOwner:boolean = this.rbsEmitter.userIsResourceOwner();
+        let userIsAdmlForStructure:boolean = this.rbsEmitter.userIsAdmlForStructure();
+        let userHasManageShareRight:boolean = this.rbsEmitter.hasManageShareRight();
+
+        return userIsBookingOwner || userIsResourceOwner || userIsAdmlForStructure || userHasManageShareRight;
     }
 
     /**

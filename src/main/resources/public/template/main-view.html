@@ -243,7 +243,7 @@
 
         <div class="row"> 
             <input type="button" class="cancel right-magnet" i18n-value="cancel" ng-click="cancelRemoveCalendarEvent()" />
-            <button class="right-magnet" ng-click="removeCalendarEvents($event)"><i18n>remove</i18n></button>
+            <button class="right-magnet" ng-click="removeCalendarEvents($event)" ng-disabled="noDeleteOptionChosen()"><i18n>remove</i18n></button>
         </div>
     </lightbox>
 </div>

@@ -166,10 +166,13 @@
     "calendar.event.attachment.download.error" : "Erreur lors du téléchargement de la pièce jointe",
     "calendar.event.timeslot": "Créneau",
 
+    "calendar.rbs.sniplet.booking.warning" : "Une réservation de ressources a été effectuée pour le(s) créneau(x) suivant(s) :",
     "calendar.rbs.sniplet.booking.owner.is": "Des ressources ont été réservées par",
+    "calendar.rbs.sniplet.booking.booked": "Des ressources ont été réservées",
     "calendar.rbs.sniplet.for.this.event": "pour cet évènement.",
     "calendar.rbs.sniplet.for.this.these.events": "pour le(s) évènement(s) suivant(s) ",
     "calendar.rbs.sniplet.booking.deletion.advice.no.access": "La suppression de l'évènement ne supprimera pas les réservations.",
+    "calendar.rbs.sniplet.booking.deletion.advice.no.access.multi.events": "La suppression des évènements ne supprimera pas les réservations.",
     "calendar.rbs.sniplet.deletion.wish": "Vous souhaitez supprimer :",
     "calendar.rbs.sniplet.event.only": "Cet évènement seulement",
     "calendar.rbs.sniplet.event.and.booking": "Cet évènement et ses réservations de ressources"

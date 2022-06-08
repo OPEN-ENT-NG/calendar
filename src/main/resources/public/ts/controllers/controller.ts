@@ -30,8 +30,8 @@ import {FORMAT} from "../core/const/date-format";
 import {DAY_OF_WEEK} from "../core/enum/dayOfWeek.enum";
 import {attachmentService} from "../services/attachment.service";
 import {PERIODE_TYPE} from "../core/enum/period-type.enum";
-import {IAngularEvent} from "angular";
 import {RbsEmitter} from "../model/rbs/rbs-emitter.model";
+import {IScope} from "angular";
 
 declare var ENABLE_RBS: boolean;
 declare let window: any;
@@ -1734,6 +1734,14 @@ export const calendarController = ng.controller('CalendarController',
             $scope.downloadAttachment = async (calendarEvent: CalendarEvent, attachment: Document): Promise<void> => {
                 let isUserAttachmentOwner: boolean = attachment.owner.userId != model.me.userId;
                 attachmentService.downloadAttachment(calendarEvent._id, attachment._id, isUserAttachmentOwner);
+            };
+
+            $scope.noDeleteOptionChosen = (): boolean => {
+                if($scope.calendarEvent.bookings && $scope.calendarEvent.bookings.length > 0) {
+                    let bookingDeletionInfo: IScope = angular.element(document.getElementById("booking-deletion-message")).scope();
+                    return bookingDeletionInfo['vm'].canDeleteBooking() && ($scope.calendarEvent.deleteAllBookings == undefined);
+                }
+                return false;
             };
 
 

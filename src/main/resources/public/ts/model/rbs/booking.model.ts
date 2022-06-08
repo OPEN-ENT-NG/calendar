@@ -30,4 +30,6 @@ export type Booking = {
     quantity: number;
     ownerName: string;
     moderatorName: string;
+    resource: any;
+    type: any;
 }

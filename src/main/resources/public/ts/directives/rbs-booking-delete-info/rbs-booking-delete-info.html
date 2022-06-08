@@ -1,21 +1,21 @@
 <div id="booking-deletion-message" ng-if="vm.hasBookingsToDeleteListView() || vm.hasBookingsToDeleteCalendarView()">
-    <div ng-if="vm.display.list && !vm.hasOneListViewSelectedCalendarEventsWithBooking()">
-        <i18n>calendar.rbs.sniplet.booking.owner.is</i18n> [[vm.calendarEvent.owner.displayName]]
-        <i18n>calendar.rbs.sniplet.for.this.these.events</i18n>:
+    <div ng-if="vm.display.list && !vm.hasOneListViewSelectedCalendarEventsWithBooking()" class="top-spacing-three">
+        <i18n>calendar.rbs.sniplet.booking.booked</i18n> <i18n>calendar.rbs.sniplet.for.this.these.events</i18n>:
         <div class="bottom-spacing-three">
             <div ng-repeat="event in vm.listViewSelectedCalendarEventsWithBooking()" >[[event.title]]</div>
         </div>
-        <i18n>calendar.rbs.sniplet.booking.deletion.advice.no.access</i18n>
+        <i18n>calendar.rbs.sniplet.booking.deletion.advice.no.access.multi.events</i18n>
     </div>
     <!-- Calendar View -->
     <div ng-if="vm.display.calendar || vm.display.list && vm.hasOneListViewSelectedCalendarEventsWithBooking()">
-        <div ng-if="vm.rbsEmitter.hasAccessToSavedBookings()" class="row">
+        <div ng-if="vm.rbsEmitter.hasAccessToSavedBookings() && vm.canDeleteBooking()" class="row">
             <i18n>calendar.rbs.sniplet.booking.warning</i18n>
             <div class="bottom-spacing-three">
                 <div ng-repeat="bookingDates in vm.rbsEmitter.calendarEventBookingsSlots()">[[bookingDates]]</div>
             </div>
-            <!--        <i18n>calendar.rbs.sniplet.booking.deletion.advice</i18n>-->
-            <i18n class="row">calendar.rbs.sniplet.deletion.wish</i18n>
+            <div class="bottom-spacing-twice">
+                <i18n class="row">calendar.rbs.sniplet.deletion.wish</i18n>
+            </div>
             <div class="row">
                 <input type="radio" ng-model="vm.calendarEvent.deleteAllBookings" value="false"/>
                 <label>
@@ -29,7 +29,7 @@
                 </label>
             </div>
         </div>
-        <div ng-if="!vm.rbsEmitter.hasAccessToSavedBookings()">
+        <div ng-if="!vm.rbsEmitter.hasAccessToSavedBookings() || !vm.canDeleteBooking()">
             <i18n>calendar.rbs.sniplet.booking.owner.is</i18n> [[vm.calendarEvent.owner.displayName]]
             <i18n>calendar.rbs.sniplet.for.this.event</i18n>
             <i18n>calendar.rbs.sniplet.booking.deletion.advice.no.access</i18n>
