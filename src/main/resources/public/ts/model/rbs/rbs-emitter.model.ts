@@ -1,5 +1,5 @@
 import {CalendarEvent} from "../CalendarEvent";
-import {_, angular, Behaviours, moment, Rights} from "entcore";
+import {_, angular, Behaviours, model, moment, Rights} from "entcore";
 import {Booking, Bookings, SavedBooking} from "./booking.model";
 import {FORMAT} from "../../core/const/date-format";
 import {safeApply} from "../Utils";
@@ -61,10 +61,7 @@ export class RbsEmitter {
         if (rbsSniplet && rbsSniplet.vm) {
             let bookingsContent = rbsSniplet.vm.prepareBookingsToSave();
             if (bookingsContent.length > 0) {
-                calendarEvent.bookings = new Bookings();
-                calendarEvent.bookings = {
-                    all : [...bookingsContent]
-                };
+                calendarEvent.bookings = [...bookingsContent];
             }
         }
     }
@@ -94,6 +91,46 @@ export class RbsEmitter {
 
     getRbsSnipletController(): ng.IScope {
         return angular.element(document.getElementById("calendar-rbs-booking")).scope();
+    }
+
+    canViewBooking = (): boolean => {
+        let rbsSnipletVm: any = this.getRbsSnipletController()['vm'];
+        if (this.scope.ENABLE_RBS && !!this.getRbsSnipletController() && !!rbsSnipletVm) {
+            return rbsSnipletVm.canViewBooking;
+        }
+        return false;
+    };
+
+    userIsResourceOwner = (): boolean => {
+        let rbsSnipletVm: any = this.getRbsSnipletController()['vm'];
+        if (this.scope.ENABLE_RBS && !!this.getRbsSnipletController() && !!rbsSnipletVm
+            && !!rbsSnipletVm.bookings && !!rbsSnipletVm.bookings.all) {
+            return rbsSnipletVm.bookings.all.find((b: Booking) => b.resource && (b.resource.owner == model.me.userId));
+        }
+        return false;
+    }
+
+    userIsAdmlForStructure = (): boolean => {
+        let rbsSnipletVm: any = this.getRbsSnipletController()['vm'];
+        if (this.scope.ENABLE_RBS && !!this.getRbsSnipletController() && !!rbsSnipletVm
+            && !!rbsSnipletVm.bookings && !!rbsSnipletVm.bookings.all && model.me.functions.ADMIN_LOCAL) {
+            let resourceTypeStructures: Array<string> = [];
+            rbsSnipletVm.bookings.all
+                .filter((b: Booking) => b.type && b.type.schoolId)
+                .forEach((book: Booking) => resourceTypeStructures = [...resourceTypeStructures, book.type.schoolId]);
+
+            return model.me.functions.ADMIN_LOCAL.scope.find(schoolId => (resourceTypeStructures.indexOf(schoolId) != -1));
+        }
+        return false;
+    }
+
+    hasManageShareRight = (): boolean => {
+        let rbsSnipletVm: any = this.getRbsSnipletController()['vm'];
+        if (this.scope.ENABLE_RBS && !!this.getRbsSnipletController() && !!rbsSnipletVm
+            && !!rbsSnipletVm.bookings && !!rbsSnipletVm.bookings.all) {
+            return rbsSnipletVm.bookings.all.find((b: Booking) => b.type && b.type.myRights && b.type.myRights.process);
+        }
+        return false;
     }
 
 
