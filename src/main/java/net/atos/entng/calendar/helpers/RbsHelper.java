@@ -79,8 +79,8 @@ public class RbsHelper {
         return promise.future();
     }
 
-    public static Future<List<JsonObject>> checkAndDeleteBookingRights(UserInfos user, JsonObject event, EventBus eb) {
-        Promise<List<JsonObject>> promise = Promise.promise();
+    public static Future<JsonArray> checkAndDeleteBookingRights(UserInfos user, JsonObject event, EventBus eb) {
+        Promise<JsonArray> promise = Promise.promise();
         List<Integer> bookingIds = event
                 .getJsonArray(Field.BOOKINGS, new JsonArray())
                 .stream()
@@ -94,7 +94,7 @@ public class RbsHelper {
                 .put(Field.BOOKINGS, bookingIds)
                 .put(Field.userId, user.getUserId());
 
-        eb.request(RbsEventBusActions.rbsAddress, action, messageListJsonObjectHandler((handlerListJsonObject(promise))));
+        eb.request(RbsEventBusActions.rbsAddress, action, messageJsonArrayHandler((handlerJsonArray(promise))));
         return promise.future();
     }
 }

@@ -838,14 +838,19 @@ export const calendarController = ng.controller('CalendarController',
                 let countReccurent = 0;
                 if ($scope.calendarEvents.selected.length === 0) {
                     let eventsCalendar = new CalendarEvent($scope.calendarEvent);
-                    eventsCalendar.delete();
+                    $scope.deleteCalendarEvent(eventsCalendar);
                     $scope.resetCalendarAfterRemoveEvent(count, countReccurent);
                 } else {
-                    $scope.calendarEvents.selected.forEach(calendarEvent => {
-                        calendarEvent.delete();
-                        count--;
-                        $scope.resetCalendarAfterRemoveEvent(count, countReccurent);
-                    });
+                    if ($scope.listViewSelectedOneCalendarEventWithBooking()) {
+                        $scope.deleteCalendarEvent($scope.calendarEvent);
+                        $scope.closeCalendarEvent();
+                    } else {
+                        $scope.calendarEvents.selected.forEach(calendarEvent => {
+                            $scope.deleteCalendarEvent(calendarEvent);
+                            count--;
+                            $scope.resetCalendarAfterRemoveEvent(count, countReccurent);
+                        });
+                    }
                 }
                 $scope.calendarEvents.deselectAll();
                 $scope.display.selectAllCalendarEvents = $scope.display.selectAllCalendarEvents && false;
@@ -859,6 +864,20 @@ export const calendarController = ng.controller('CalendarController',
                 }
                 template.close('lightbox');
                 $scope.display.confirmDeleteCalendarEvent = false;
+            };
+
+            $scope.deleteCalendarEvent = async (event: CalendarEvent): Promise<void> => {
+                try {
+                    await event.delete();
+                } catch (err) {
+                    let error: AxiosResponse = err.response;
+                    if (error.status === 400 && event.deleteAllBookings
+                        && ($scope.display.calendar || $scope.calendarEvents.selected.length == 1)) {
+                        toasts.warning(lang.translate('calendar.rbs.sniplet.error.booking.deletion'));
+                    } else {
+                        console.error(error.data.error);
+                    }
+                }
             };
 
             const addCssOnHtmlElement = (selectorHtml: string, propertyCss: string, valueCss: string): void => {

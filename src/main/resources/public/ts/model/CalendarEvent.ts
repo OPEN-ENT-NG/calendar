@@ -10,7 +10,7 @@ import {calendarEventService, CalendarEventService} from "../services/calendar-e
 import {SavedBooking} from "./rbs/booking.model";
 
 export class CalendarEvent implements Selectable, Shareable{
-    _id: String;
+    _id: string;
     selected: boolean;
     title: string;
     description: string;
