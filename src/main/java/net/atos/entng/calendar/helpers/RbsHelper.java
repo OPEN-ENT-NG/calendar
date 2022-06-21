@@ -1,6 +1,5 @@
 package net.atos.entng.calendar.helpers;
 
-import fr.wseduc.webutils.I18n;
 import fr.wseduc.webutils.http.Renders;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
@@ -11,15 +10,16 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import net.atos.entng.calendar.core.constants.Field;
+import net.atos.entng.calendar.core.enums.RbsEventBusActions;
 import org.entcore.common.user.UserInfos;
 
-import static fr.wseduc.webutils.http.Renders.getHost;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
+
 import static net.atos.entng.calendar.helpers.FutureHelper.*;
 
 public class RbsHelper {
-
-    private static String rbsAddress = "net.atos.entng.rbs";
-
     protected static final Logger log = LoggerFactory.getLogger(Renders.class);
 
     public static Future<Void> saveBookingsInRbs(HttpServerRequest request, JsonObject object, UserInfos user, JsonObject config, EventBus eb) {
@@ -29,6 +29,7 @@ public class RbsHelper {
         if (canEventHaveBooking(object, config)) {
             eventFuture = saveBookings(object, user, eb);
         }
+
         eventFuture
             .onComplete((res) -> {
                 if(res.succeeded()) {
@@ -69,14 +70,31 @@ public class RbsHelper {
     public static Future<JsonArray> saveBookings(JsonObject object, UserInfos user, EventBus eb) {
         Promise<JsonArray> promise = Promise.promise();
         JsonObject action = new JsonObject()
-                .put(Field.ACTION, Field.SAVE_BOOKINGS)
+                .put(Field.ACTION, RbsEventBusActions.SAVE_BOOKINGS.method())
                 .put(Field.BOOKINGS, object
                         .getJsonArray(Field.BOOKINGS, null))
                 .put(Field.userId, user.getUserId());
-        eb.request(rbsAddress, action, messageJsonArrayHandler(handlerJsonObject(promise)));
+        eb.request(RbsEventBusActions.rbsAddress, action, messageJsonArrayHandler(handlerJsonArray(promise)));
 
         return promise.future();
     }
 
+    public static Future<List<JsonObject>> checkAndDeleteBookingRights(UserInfos user, JsonObject event, EventBus eb) {
+        Promise<List<JsonObject>> promise = Promise.promise();
+        List<Integer> bookingIds = event
+                .getJsonArray(Field.BOOKINGS, new JsonArray())
+                .stream()
+                .map(booking -> ((JsonObject)booking).getInteger(Field.ID, null))
+                .filter(Objects::nonNull)
+                .distinct()
+                .collect(Collectors.toList());
 
+        JsonObject action = new JsonObject()
+                .put(Field.ACTION, RbsEventBusActions.DELETE_BOOKINGS.method())
+                .put(Field.BOOKINGS, bookingIds)
+                .put(Field.userId, user.getUserId());
+
+        eb.request(RbsEventBusActions.rbsAddress, action, messageListJsonObjectHandler((handlerListJsonObject(promise))));
+        return promise.future();
+    }
 }

@@ -20,6 +20,7 @@
 package net.atos.entng.calendar.services;
 
 import com.mongodb.QueryBuilder;
+import io.vertx.core.Future;
 import org.entcore.common.user.UserInfos;
 import io.vertx.core.Handler;
 import io.vertx.core.eventbus.Message;
@@ -38,6 +39,8 @@ public interface EventServiceMongo {
 
     void retrieve(String calendarId, String eventId, UserInfos user, Handler<Either<String, JsonObject>> handler);
 
+    Future<JsonObject> retrieve(String calendarId, String eventId, UserInfos user);
+
     void retrieveByIcsUid(String calendarId, String icsUid, UserInfos user, Handler<Either<String, JsonObject>> handler);
 
     void update(String calendarId, String eventId, JsonObject body, UserInfos user, Handler<Either<String, JsonObject>> handler);
@@ -45,6 +48,8 @@ public interface EventServiceMongo {
     void update(String eventId, JsonObject body, UserInfos user, Handler<Either<String, JsonObject>> handler);
 
     void delete(String calendarId, String eventId, UserInfos user, Handler<Either<String, JsonObject>> handler);
+
+    Future<JsonObject> delete(String calendarId, String eventId, UserInfos user);
 
     void getIcal(String calendarId, UserInfos user, Handler<Message<JsonObject>> handler);
     
