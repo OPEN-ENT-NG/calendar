@@ -216,6 +216,7 @@ public class EventHelper extends MongoDbControllerHelper {
      * @param request HttpServerRequest request from the server
      */
     @Override
+    @SuppressWarnings("unchecked")
     public void delete(final HttpServerRequest request) {
 
         UserUtils.getUserInfos(eb, request, user -> {
@@ -232,10 +233,21 @@ public class EventHelper extends MongoDbControllerHelper {
                     if (!getCalendarEventInfos.result().isEmpty()) {
                         return RbsHelper.checkAndDeleteBookingRights(user, getCalendarEventInfos.result(), eb);
                     } else {
-                        return Future.succeededFuture(Collections.emptyList());
+                        return Future.succeededFuture(new JsonArray());
                     }
                 })
-                .onSuccess(res -> ok(request))
+                .onSuccess(res -> {
+                    if (!res.isEmpty()) {
+                        List<JsonObject> failedDeletions = ((List<JsonObject>) res.getList()).stream()
+                                .filter((result) -> result.getString(Field.STATUS).equals(Field.ERROR))
+                                .collect(Collectors.toList());
+                        if (failedDeletions.size() > 0) {
+                            badRequest(request, I18n.getInstance().translate("calendar.rbs.sniplet.error.booking.deletion", getHost(request), I18n.acceptLanguage(request)));
+                            failedDeletions.forEach((failedDeletion) -> log.error(failedDeletion.getString(Field.MESSAGE)));
+                        }
+                    }
+                    ok(request);
+                })
                 .onFailure(err -> renderError(request));
         });
     }
