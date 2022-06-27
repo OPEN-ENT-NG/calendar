@@ -1785,12 +1785,8 @@ export const calendarController = ng.controller('CalendarController',
                     if (newVal !== oldVal && !$scope.display.list &&
                         newVal &&
                         newVal !== '') {
-                        updateCalendarSchedule(moment(
-                            newVal,
-                            'DD/MM/YYYY'
-                        ).startOf('isoweek'));
+                        updateChangeDateCalendarSchedule(newVal.startOf('isoweek'));
                     }
-
                 }
             );
 
@@ -1805,17 +1801,6 @@ export const calendarController = ng.controller('CalendarController',
                 template.open('calendar', 'events-list');
             });
 
-            const updateCalendarSchedule = (newDate) => {
-                model.calendar.firstDay.date(newDate.date());
-                model.calendar.firstDay.month(newDate.month());
-                model.calendar.firstDay.year(newDate.year());
-                $scope.calendar.calendarEvents.sync($scope.calendar, $scope.calendars);
-                $scope.calendarEvents.applyFilters();
-                template.open('calendar', 'read-calendar');
-                $('.hiddendatepickerform').datepicker('setValue', newDate.format(FORMAT.formattedDate)).datepicker('update');
-                $('.hiddendatepickerform').trigger({type: 'changeDate', date: newDate});
-
-            };
 
             const updateChangeDateCalendarSchedule = async function (newDate): Promise<void> {
                 model.calendar.firstDay.date(newDate.date());
