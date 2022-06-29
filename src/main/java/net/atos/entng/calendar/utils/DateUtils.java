@@ -16,6 +16,7 @@ public final class DateUtils {
     public static final String DAY_MONTH_YEAR_HOUR_TIME = "dd/MM/yyyy HH:mm:ss";
     public static final String HOUR_MINUTE_SECOND = "HH:mm:ss";
     public static final String HOUR_MINUTE = "HH:mm";
+    public static final String ICAL_DATE_FORMAT = "yyyyMMdd'T'HHmmss'Z'";
 
     private DateUtils()  {}
 
