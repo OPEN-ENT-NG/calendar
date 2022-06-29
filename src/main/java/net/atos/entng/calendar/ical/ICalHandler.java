@@ -22,6 +22,8 @@ package net.atos.entng.calendar.ical;
 import io.vertx.core.AbstractVerticle;
 import net.atos.entng.calendar.exception.CalendarException;
 import net.atos.entng.calendar.exception.UnhandledEventException;
+import net.atos.entng.calendar.helpers.FutureHelper;
+import net.atos.entng.calendar.utils.DateUtils;
 import net.fortuna.ical4j.data.CalendarBuilder;
 import net.fortuna.ical4j.data.ParserException;
 import net.fortuna.ical4j.model.*;
@@ -31,6 +33,8 @@ import io.vertx.core.Handler;
 import io.vertx.core.eventbus.Message;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import io.vertx.core.logging.Logger;
+import io.vertx.core.logging.LoggerFactory;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -38,6 +42,8 @@ import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.charset.Charset;
+import java.text.DateFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.GregorianCalendar;
 
@@ -48,6 +54,7 @@ import java.util.GregorianCalendar;
 public class ICalHandler extends AbstractVerticle implements Handler<Message<JsonObject>> {
 
     public static final String ICAL_HANDLER_ADDRESS = "ical.handler";
+    private static final Logger log = LoggerFactory.getLogger(FutureHelper.class);
 
     /**
      * Actions handled by worker
@@ -211,15 +218,16 @@ public class ICalHandler extends AbstractVerticle implements Handler<Message<Jso
      * @param event ical4j filled event
      * @param jsonEvent JsonObject event to fill
      */
-    private void setEventDates(VEvent event, JsonObject jsonEvent) {
+    private void setEventDates(VEvent event, JsonObject jsonEvent) throws UnhandledEventException {
         // get DTSTART;VALUE parameter
         String dtStartValue = event.getStartDate().getParameter(Parameter.VALUE) != null ? event.getStartDate().getParameter(Parameter.VALUE).getValue() : "";
         // check if DTSTART;VALUE=DATE
         boolean allDay = dtStartValue.equals("DATE");
         Date startDate = event.getStartDate().getDate();
         Date endDate = event.getEndDate().getDate();
-        String startMoment = MOMENT_FORMAT.format(startDate);
-        String endMoment = MOMENT_FORMAT.format(endDate);
+
+        String startMoment = formatIcsDate(startDate);
+        String endMoment = formatIcsDate(endDate);
 
         // If allDay, set Hours to 0 instead of 1
         if (allDay) {
@@ -301,6 +309,42 @@ public class ICalHandler extends AbstractVerticle implements Handler<Message<Jso
         } catch (Exception e) {
             throw new CalendarException(e);
         }
+    }
+
+    /**
+     * Format date depending on format "yyyyMMdd'T'HHmmss'Z'"
+     * @param date the date {@link java.util.Date}
+     * @return {@link String} the date in the right format "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"
+     * @throws UnhandledEventException
+     */
+    private static String formatIcsDate (java.util.Date date) throws UnhandledEventException {
+        java.util.Date newStartDate;
+        try {
+            newStartDate = new SimpleDateFormat(DateUtils.ICAL_DATE_FORMAT).parse(date.toString());
+        } catch (ParseException e) {
+            newStartDate = formatIcsAlldayDate(date, e);
+        }
+        return new SimpleDateFormat(DateUtils.DATE_FORMAT_UTC).format(newStartDate);
+    }
+
+    /**
+     * Format date depending on format "yyyyMMdd"
+     * @param date the date {@link java.util.Date}
+     * @param e1 {@link ParseException} the exception from the previous parse error
+     * @return {@link java.util.Date} the date
+     * @throws UnhandledEventException
+     */
+    private static java.util.Date formatIcsAlldayDate(java.util.Date date, ParseException e1) throws UnhandledEventException {
+        java.util.Date newStartDate;
+        try {
+            newStartDate = new SimpleDateFormat(DateUtils.ICAL_ALLDAY_FORMAT).parse(date.toString());
+        } catch (ParseException e2) {
+            String errorMessage = String.format("[Calendar@%s::formatIcsAlldayDate] Errors have occured during ical import: %s %s",
+                    ICalHandler.class.getSimpleName(), e1.getMessage(), e2.getMessage());
+            log.error(errorMessage);
+            throw new UnhandledEventException("calendar.ical.event.slot.problem");
+        }
+        return newStartDate;
     }
 
 }
