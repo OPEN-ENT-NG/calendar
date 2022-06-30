@@ -107,12 +107,11 @@ public class ICalHandler extends AbstractVerticle implements Handler<Message<Jso
             String description = ce.getString("description");
             boolean allDay = ce.containsKey("allday") && ce.getBoolean("allday");
             try {
-                java.util.Date startDate = MOMENT_FORMAT.parse(startMoment);
-                java.util.Date endDate = MOMENT_FORMAT.parse(endMoment);
                 if (allDay) {
+                    java.util.Date startDate = MOMENT_FORMAT.parse(startMoment);
                     addAllDayEvent(calendar, startDate, title, icsUid, location, description);
                 } else {
-                    addEvent(calendar, startDate, endDate, title, icsUid, location, description);
+                    addEvent(calendar, startMoment, endMoment, title, icsUid, location, description);
                 }
             } catch (Exception e) {
                 e.printStackTrace();
@@ -302,9 +301,18 @@ public class ICalHandler extends AbstractVerticle implements Handler<Message<Jso
      * @param title Event title
      * @throws CalendarException
      */
-    private void addEvent(Calendar calendar, java.util.Date startDate, java.util.Date endDate, String title, String icsUid, String location, String description) throws CalendarException {
-        DateTime startDateTime = new DateTime(startDate);
-        DateTime endDateTime = new DateTime(endDate);
+    private void addEvent(Calendar calendar, String startDate, String endDate, String title, String icsUid, String location, String description) throws CalendarException {
+        DateTime startDateTime = null;
+        DateTime endDateTime = null;
+        try {
+            startDateTime = new DateTime(startDate, DateUtils.DATE_FORMAT_UTC, true);
+            endDateTime = new DateTime(endDate, DateUtils.DATE_FORMAT_UTC, true);
+        } catch (ParseException e) {
+            String message = String.format("[Calendar@%s::addEvent] An error has occured during date formatting: %s",
+                    this.getClass().getSimpleName(), e.getMessage());
+            log.error(message, e.getMessage());
+            throw new CalendarException(e);
+        }
         VEvent event = new VEvent(startDateTime, endDateTime, title);
 
         try {
