@@ -166,6 +166,7 @@
     "calendar.event.attachment.download.error" : "Erreur lors du téléchargement de la pièce jointe",
     "calendar.event.timeslot": "Créneau",
     "calendar.ical.event.slot.problem": "Problème de gestion des horaires de l'évènement.",
+    "calendar.ical.event.no.title": "(sans titre)",
 
     "calendar.rbs.sniplet.booking.warning" : "Une réservation de ressources a été effectuée pour le(s) créneau(x) suivant(s) :",
     "calendar.rbs.sniplet.booking.owner.is": "Des ressources ont été réservées par",

@@ -121,6 +121,7 @@
     "calendar.event.attachment.download.error" : "Error when trying to download attachment",
     "calendar.event.timeslot": "Timeslot",
     "calendar.ical.event.slot.problem": "Error when handling event timeslots.",
+    "calendar.ical.event.no.title": "(no title)",
 
     "calendar.rbs.sniplet.booking.warning" : "A booking was carried out for the following slot(s):",
     "calendar.rbs.sniplet.booking.owner.is": "Resources were booked by",

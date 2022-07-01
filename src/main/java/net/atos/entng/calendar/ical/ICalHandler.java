@@ -19,7 +19,9 @@
 
 package net.atos.entng.calendar.ical;
 
+import fr.wseduc.webutils.I18n;
 import io.vertx.core.AbstractVerticle;
+import net.atos.entng.calendar.core.constants.Field;
 import net.atos.entng.calendar.exception.CalendarException;
 import net.atos.entng.calendar.exception.UnhandledEventException;
 import net.atos.entng.calendar.helpers.FutureHelper;
@@ -127,7 +129,8 @@ public class ICalHandler extends AbstractVerticle implements Handler<Message<Jso
      * @param message Contains ICS data
      */
     private void icsContentToJsonEvents(Message<JsonObject> message) {
-        String icsContent = message.body().getString("ics");
+        String icsContent = message.body().getString(Field.ICS);
+        JsonObject requestInfo = message.body().getJsonObject(Field.REQUESTINFO);
         InputStream inputStream = new ByteArrayInputStream(icsContent.getBytes());
         JsonObject results = new JsonObject();
 
@@ -144,7 +147,7 @@ public class ICalHandler extends AbstractVerticle implements Handler<Message<Jso
                     try {
                         VEvent event = (VEvent) component;
                         setEventDates(event, jsonEvent);
-                        setEventProperties(event, jsonEvent);
+                        setEventProperties(event, jsonEvent, requestInfo);
                         validateEvent(event);
                         events.add(jsonEvent);
                     } catch (UnhandledEventException uee) {
@@ -175,9 +178,10 @@ public class ICalHandler extends AbstractVerticle implements Handler<Message<Jso
      * @param event ical4j filled event
      * @param jsonEvent JsonObject event to fill
      */
-    private void setEventProperties(VEvent event, JsonObject jsonEvent) {
+    private void setEventProperties(VEvent event, JsonObject jsonEvent, JsonObject requestInfo) {
 
-        String title = encodeString(event.getSummary().getValue());
+        String title = event.getSummary() == null ? encodeString(I18n.getInstance().translate("calendar.ical.event.no.title",
+                requestInfo.getString(Field.DOMAIN), requestInfo.getString(Field.ACCEPTLANGUAGE))) : encodeString(event.getSummary().getValue());
         String location = event.getLocation() != null ? encodeString(event.getLocation().getValue()) : "";
         String description = event.getDescription() != null ? encodeString(event.getDescription().getValue()) : "";
         String uid = event.getUid() != null ? event.getUid().getValue() : "";

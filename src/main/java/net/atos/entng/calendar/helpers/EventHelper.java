@@ -292,8 +292,10 @@ public class EventHelper extends MongoDbControllerHelper {
                 RequestUtils.bodyToJson(request, new Handler<JsonObject>() {
                     @Override
                     public void handle(JsonObject object) {
-                        String icsContent = object.getString("ics");
-                        eventService.importIcal(calendarId, icsContent, user, defaultResponseHandler(request));
+                        String icsContent = object.getString(Field.ICS);
+                        JsonObject requestInfo = new JsonObject();
+                        requestInfo.put(Field.DOMAIN, getHost(request)).put(Field.ACCEPTLANGUAGE, I18n.acceptLanguage(request));
+                        eventService.importIcal(calendarId, icsContent, user, requestInfo, defaultResponseHandler(request));
                     }
                 });
 
