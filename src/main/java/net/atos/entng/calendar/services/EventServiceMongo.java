@@ -53,7 +53,7 @@ public interface EventServiceMongo {
 
     void getIcal(String calendarId, UserInfos user, Handler<Message<JsonObject>> handler);
     
-    void importIcal(String calendarId, String ics, UserInfos user, Handler<Either<String, JsonObject>> handler);
+    void importIcal(String calendarId, String ics, UserInfos user, JsonObject requestInfo, Handler<Either<String, JsonObject>> handler);
 
     void findOne(String Collection, QueryBuilder query, Handler<Either<String, JsonObject>> handler);
 
