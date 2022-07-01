@@ -11,6 +11,10 @@ public class Field {
     //id
     public static final String ID = "id";
 
+    //Calendar infos
+
+    public static final String CALENDARID = "calendarId";
+
     //Event infos
 
     // event
@@ -96,6 +100,12 @@ public class Field {
 
     //Actions
     public static final String ACTION = "action";
+    public static final String DOMAIN = "domain";
+    public static final String ACCEPTLANGUAGE = "acceptLanguage";
+    public static final String REQUESTINFO = "requestInfo";
+
+    //ics calendar
+    public static final String ICS = "ics";
 
     //Routes
     public static final String BINDING = "binding";

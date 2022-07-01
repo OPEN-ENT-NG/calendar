@@ -298,11 +298,12 @@ public class EventServiceMongoImpl extends MongoDbCrudService implements EventSe
     }
 
     @Override
-    public void importIcal(final String calendarId, String ics, final UserInfos user, final Handler<Either<String, JsonObject>> handler) {
+    public void importIcal(final String calendarId, String ics, final UserInfos user, JsonObject requestInfo, final Handler<Either<String, JsonObject>> handler) {
         final JsonObject message = new JsonObject();
-        message.put("action", ICalHandler.ACTION_PUT);
-        message.put("calendarId", calendarId);
-        message.put("ics", ics);
+        message.put(Field.ACTION, ICalHandler.ACTION_PUT);
+        message.put(Field.CALENDARID, calendarId);
+        message.put(Field.ICS, ics);
+        message.put(Field.REQUESTINFO, requestInfo);
         final EventServiceMongoImpl eventService = this;
         final MutableInt i = new MutableInt();
 
