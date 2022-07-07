@@ -48,6 +48,7 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.GregorianCalendar;
+import java.util.concurrent.TimeUnit;
 
 /**
  * ICal worker to handle ICS parsing and generation
@@ -111,7 +112,10 @@ public class ICalHandler extends AbstractVerticle implements Handler<Message<Jso
             try {
                 if (allDay) {
                     java.util.Date startDate = MOMENT_FORMAT.parse(startMoment);
-                    addAllDayEvent(calendar, startDate, title, icsUid, location, description);
+                    java.util.Date oldEndDate = MOMENT_FORMAT.parse(endMoment);
+                    //add 1 day to end date so that N-days events ends on day N+1 at 00:00
+                    java.util.Date endDate = new java.util.Date(oldEndDate.getTime() + TimeUnit.DAYS.toMillis(1));
+                    addAllDayEvent(calendar, startDate, endDate, title, icsUid, location, description);
                 } else {
                     addEvent(calendar, startMoment, endMoment, title, icsUid, location, description);
                 }
@@ -237,11 +241,12 @@ public class ICalHandler extends AbstractVerticle implements Handler<Message<Jso
             java.util.Calendar calendar = new GregorianCalendar();
             // Start Date
             calendar.setTime(startDate);
-            calendar.set(java.util.Calendar.HOUR_OF_DAY, 0);
+            calendar.set(java.util.Calendar.HOUR_OF_DAY, 5);
             startMoment = MOMENT_FORMAT.format(calendar.getTime());
             // End Date
             calendar.setTime(endDate);
-            calendar.set(java.util.Calendar.HOUR_OF_DAY, 0);
+            calendar.set(java.util.Calendar.HOUR_OF_DAY, 18);
+            calendar.add(java.util.Calendar.DATE, -1);
             endMoment = MOMENT_FORMAT.format(calendar.getTime());
             jsonEvent.put("allday", allDay);
         }
@@ -263,12 +268,14 @@ public class ICalHandler extends AbstractVerticle implements Handler<Message<Jso
     /**
      * Add an all day event to ical4j calendar
      * @param calendar Ical4j calendar
-     * @param date Event date
+     * @param startDate Event start date
+     * @param endDate Event end date
      * @param title Event title
      * @throws CalendarException
      */
-    private void addAllDayEvent(Calendar calendar, java.util.Date date, String title, String icsUid, String location, String description) throws CalendarException {
-        VEvent event = new VEvent(new Date(date.getTime()), title);
+    private void addAllDayEvent(Calendar calendar, java.util.Date startDate, java.util.Date endDate, String title, String icsUid,
+                                String location, String description) throws CalendarException {
+        VEvent event = new VEvent(new Date(startDate.getTime()), new Date(endDate.getTime()), title);
         try {
             Uid uid = new Uid();
             uid.setValue(icsUid);
