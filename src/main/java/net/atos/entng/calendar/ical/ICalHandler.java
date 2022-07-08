@@ -207,17 +207,12 @@ public class ICalHandler extends AbstractVerticle implements Handler<Message<Jso
 
     private String encodeString(String toEncode) {
         Charset utf8charset = Charset.forName("UTF-8");
-        Charset iso88591charset = Charset.forName("ISO-8859-1");
 
         ByteBuffer inputBuffer = ByteBuffer.wrap(toEncode.getBytes());
 
         // decode UTF-8
         CharBuffer data = utf8charset.decode(inputBuffer);
-
-        // encode ISO-8559-1
-        ByteBuffer outputBuffer = iso88591charset.encode(data);
-        byte[] outputData = outputBuffer.array();
-        return new String(outputData);
+        return data.toString();
     }
 
     /**
