@@ -86,8 +86,10 @@ export const calendarController = ng.controller('CalendarController',
             this.$onInit = () => {
                 // Control opening of event lightbox
                 model.calendar.eventer.on("calendar.create-item", function (timeSlot) {
-                    window.bookingState = ACTIONS.create;
-                    $scope.createCalendarEvent($scope.calendarEvent, true);
+                    if (model.calendar.display.mode != "month") {
+                        window.bookingState = ACTIONS.create;
+                        $scope.createCalendarEvent($scope.calendarEvent, true);
+                    }
                 });
             };
 
