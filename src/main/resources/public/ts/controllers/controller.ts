@@ -33,6 +33,7 @@ import {PERIODE_TYPE} from "../core/enum/period-type.enum";
 import {RbsEmitter} from "../model/rbs/rbs-emitter.model";
 import {IScope} from "angular";
 import {RBS_EVENTER} from "../core/enum/rbs/rbs-eventer.enum";
+import {RBS_SNIPLET} from "../core/const/rbs-sniplet.const";
 
 declare var ENABLE_RBS: boolean;
 declare let window: any;
@@ -717,8 +718,6 @@ export const calendarController = ng.controller('CalendarController',
                  }
             }
 
-            $scope.rbsEmitter.emitBookingInfo(RBS_EVENTER.INIT_BOOKING_INFOS, $scope.calendarEvent);
-
             if (($scope.hasManageRightOrIsEventOwner(calendarEvent) && $scope.hasRightOnSharedEvent(calendarEvent, rights.resources.updateEvent.right))
                 && calendarEvent.editAllRecurrence == undefined
                 && calendarEvent.isRecurrent && calendarEvent._id){
@@ -736,10 +735,10 @@ export const calendarController = ng.controller('CalendarController',
                 $scope.display.showRecurrencePanel = false;
                 template.close('recurrenceLightbox');
                 $scope.display.showEditEventPanel = true;
-                $scope.rbsEmitter.emitBookingInfo(RBS_EVENTER.CAN_EDIT_EVENT, true);
+                $scope.rbsEmitter.emitBookingInfo(RBS_EVENTER.INIT_BOOKING_INFOS, RBS_SNIPLET.editEventPanel, $scope.calendarEvent);
             } else {
                 $scope.display.showViewEventPanel = true;
-                $scope.rbsEmitter.emitBookingInfo(RBS_EVENTER.CAN_EDIT_EVENT, false);
+                $scope.rbsEmitter.emitBookingInfo(RBS_EVENTER.INIT_BOOKING_INFOS, RBS_SNIPLET.viewEventPanel, $scope.calendarEvent);
             }
         };
 
@@ -757,7 +756,7 @@ export const calendarController = ng.controller('CalendarController',
             $scope.display.showViewEventPanel = false;
             $scope.contentToWatch = "";
 
-            $scope.rbsEmitter.emitBookingInfo(RBS_EVENTER.CLOSE_BOOKING_INFOS);
+            $scope.rbsEmitter.emitBookingInfo(RBS_EVENTER.CLOSE_BOOKING_INFOS, RBS_SNIPLET.editEventPanel);
         };
 
             $scope.unselectRecurrenceRemovalCheckbox = (uncheckDeleteAllRecurrence: boolean): void => {
