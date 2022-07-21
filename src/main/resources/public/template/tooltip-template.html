@@ -14,7 +14,15 @@
         <div ng-if="!item.isMultiDayPart">
             [[item.startMomentDate]] : [[item.startMomentTime]] - [[item.endMomentTime]]
         </div>
+        <!--event location-->
+        <div ng-if="item.location" class="calendarTooltip-blueText">
+            <label>
+                <i18n>calendar.event.location</i18n> &#58
+            </label>
+            <span> [[item.location]]</span>
+        </div>
     </div>
+
 
     <!--recurrence information-->
     <div ng-if="item.isRecurrent" class="bottom-spacing-twice">
