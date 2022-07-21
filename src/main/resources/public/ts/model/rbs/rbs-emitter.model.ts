@@ -41,7 +41,7 @@ export class RbsEmitter {
         let finalSlots: Array<string> = [];
         this.scope.calendarEvent.bookings.forEach((booking: SavedBooking) => {
             let bookingDates: string = "";
-            bookingDates += moment(moment.utc(booking.start_date, FORMAT.displayDateTimeShortYear).toDate()).format(FORMAT.displayDateTimeShortYear)
+            bookingDates += moment(moment.utc(booking.start_date, FORMAT.displayDateTimeShortYear).toDate()).format(FORMAT.displayFRDate + " : " + FORMAT.displayTime)
                 + " - " + moment(moment.utc(booking.end_date, FORMAT.displayDateTimeShortYear).toDate()).format(FORMAT.displayTime);
 
             finalSlots.push(bookingDates);
