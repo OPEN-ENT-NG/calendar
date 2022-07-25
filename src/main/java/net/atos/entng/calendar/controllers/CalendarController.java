@@ -101,7 +101,7 @@ public class CalendarController extends MongoDbControllerHelper {
     public void createCalendar(final HttpServerRequest request) {
         RequestUtils.bodyToJson(request, pathPrefix + "calendar", object -> {
             super.create(request, r -> {
-                if(r.succeeded()){
+                if (r.succeeded()) {
                     eventHelper.onCreateResource(request, RESOURCE_NAME);
                 }
             });
@@ -186,31 +186,42 @@ public class CalendarController extends MongoDbControllerHelper {
     @ResourceFilter(ShareEventConf.class)
     @SecuredAction(value = "calendar.manager", type = ActionType.RESOURCE)
     public void shareResource(final HttpServerRequest request) {
-        UserUtils.getUserInfos(eb, request, new Handler<UserInfos>() {
-            @Override
-            public void handle(final UserInfos user) {
-                if (user != null) {
-                    final String id = request.params().get("id");
-                    if (id == null || id.trim().isEmpty()) {
-                        badRequest(request, "invalid.id");
-                        return;
-                    }
-
-                    JsonObject params = new JsonObject();
-                    params.put("profilUri", "/userbook/annuaire#" + user.getUserId() + "#" + user.getType());
-                    params.put("username", user.getUsername());
-                    params.put("calendarUri", "/calendar#/view/" + id);
-                    params.put("resourceUri", params.getString("calendarUri"));
-
-                    JsonObject pushNotif = new JsonObject()
-                            .put("title", "push.notif.calendar.share")
-                            .put("body", user.getUsername() + " " + I18n.getInstance().translate("calendar.shared.push.notif.body",
-                                    getHost(request), I18n.acceptLanguage(request)));
-
-                    params.put("pushNotif", pushNotif);
-
-                    shareResource(request, "calendar.share", false, params, "title");
+        UserUtils.getUserInfos(eb, request, user -> {
+            if (user != null) {
+                final String id = request.params().get("id");
+                if (id == null || id.trim().isEmpty()) {
+                    badRequest(request, "invalid.id");
+                    return;
                 }
+                request.pause();
+                calendarService.isDefaultCalendar(id)
+                        .onSuccess(res -> {
+                            request.resume();
+                            if (Boolean.FALSE.equals(res)) {
+                                JsonObject params = new JsonObject();
+                                params.put(Field.PROFILURI, "/userbook/annuaire#" + user.getUserId() + "#" + user.getType());
+                                params.put(Field.USERNAME, user.getUsername());
+                                params.put(Field.CALENDARID, "/calendar#/view/" + id);
+                                params.put(Field.RESOURCEURI, params.getString(Field.CALENDARID));
+
+                                JsonObject pushNotif = new JsonObject()
+                                        .put(Field.TITLE, "push.notif.calendar.share")
+                                        .put(Field.BODY, user.getUsername() + " " + I18n.getInstance().translate("calendar.shared.push.notif.body",
+                                                getHost(request), I18n.acceptLanguage(request)));
+
+                                params.put(Field.PUSHNOTIF, pushNotif);
+                                shareResource(request, "calendar.share", false, params, Field.TITLE);
+
+                            } else {
+                                unauthorized(request);
+                            }
+                        })
+                        .onFailure(err -> {
+                            request.resume();
+                            renderError(request);
+                        });
+            } else {
+                unauthorized(request);
             }
         });
     }

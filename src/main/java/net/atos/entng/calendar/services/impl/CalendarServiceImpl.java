@@ -28,6 +28,7 @@ import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
+import net.atos.entng.calendar.core.constants.Field;
 import net.atos.entng.calendar.models.User;
 import net.atos.entng.calendar.services.CalendarService;
 
@@ -53,7 +54,6 @@ public class CalendarServiceImpl implements CalendarService {
         this.mongo = mongo;
     }
 
-    private static final String IS_DEFAULT = "is_default";
 
     @Override
     public Future<JsonArray> list(List<String> calendarIds) {
@@ -84,7 +84,7 @@ public class CalendarServiceImpl implements CalendarService {
         Promise<JsonObject> promise = Promise.promise();
         // Query
         QueryBuilder query = QueryBuilder.start("owner.userId").is(user.getUserId());
-        query.put(IS_DEFAULT).is(true);
+        query.put(Field.IS_DEFAULT).is(true);
 
         mongo.findOne(this.collection, MongoQueryBuilder.build(query), validResultHandler(result -> {
             if(result.isLeft()) {
@@ -112,7 +112,7 @@ public class CalendarServiceImpl implements CalendarService {
         defaultCalendar.put("created", now);
         defaultCalendar.put("modified", now);
         defaultCalendar.put("owner", new JsonObject().put("userId", user.getUserId()).put("displayName", user.getUsername()));
-        defaultCalendar.put(IS_DEFAULT, true);
+        defaultCalendar.put(Field.IS_DEFAULT, true);
 
         insertDefaultCalendar(promise, defaultCalendar);
 
@@ -124,7 +124,7 @@ public class CalendarServiceImpl implements CalendarService {
         Promise<Boolean> promise = Promise.promise();
         // Query
         QueryBuilder query = QueryBuilder.start("_id").is(calendarId);
-        query.put(IS_DEFAULT).is(true);
+        query.put(Field.IS_DEFAULT).is(true);
 
         mongo.findOne(this.collection, MongoQueryBuilder.build(query), validResultHandler(result -> {
             if(result.isLeft()) {
