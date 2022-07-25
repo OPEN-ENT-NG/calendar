@@ -30,6 +30,7 @@ import net.atos.entng.calendar.security.CustomWidgetFilter;
 import net.atos.entng.calendar.security.ShareEventConf;
 import net.atos.entng.calendar.services.ServiceFactory;
 import org.entcore.common.http.filter.ResourceFilter;
+import org.entcore.common.http.filter.Trace;
 import org.entcore.common.storage.Storage;
 import org.entcore.common.mongodb.MongoDbControllerHelper;
 import org.entcore.common.notification.TimelineHelper;
@@ -65,6 +66,7 @@ public class EventController extends MongoDbControllerHelper {
 
     @Post("/:id/events")
     @SecuredAction(value = "calendar.contrib", type = ActionType.RESOURCE)
+    @Trace(value="CREATE_EVENT")
     public void createEvent(final HttpServerRequest request) {
         RequestUtils.bodyToJson(request, pathPrefix + "event", new Handler<JsonObject>() {
             @Override
@@ -82,6 +84,7 @@ public class EventController extends MongoDbControllerHelper {
 
     @Put("/:id/event/:eventid")
     @SecuredAction(value = "calendar.contrib", type = ActionType.RESOURCE)
+    @Trace(value="UPDATE_EVENT")
     public void updateEvent(final HttpServerRequest request) {
         RequestUtils.bodyToJson(request, pathPrefix + "event", new Handler<JsonObject>() {
             @Override
@@ -93,6 +96,7 @@ public class EventController extends MongoDbControllerHelper {
 
     @Delete("/:id/event/:eventid")
     @SecuredAction(value = "calendar.contrib", type = ActionType.RESOURCE)
+    @Trace(value="DELETE_EVENT")
     public void deleteEvent(HttpServerRequest request) {
         eventHelper.delete(request);
     }
@@ -109,6 +113,7 @@ public class EventController extends MongoDbControllerHelper {
     @ApiDoc("Share calendar by id.")
     @ResourceFilter(ShareEventConf.class)
     @SecuredAction(value = "calendar.manager", type = ActionType.RESOURCE)
+    @Trace(value="SHARE_EVENT")
     public void shareResource(final HttpServerRequest request) {
         String host = getHost(request);
         String lang = I18n.acceptLanguage(request);
@@ -147,6 +152,7 @@ public class EventController extends MongoDbControllerHelper {
 
     @Put("/:id/ical")
     @SecuredAction(value = "calendar.manager", type = ActionType.RESOURCE)
+    @Trace(value="IMPORT_ICAL")
     public void importIcal(HttpServerRequest request) {
         eventHelper.importIcal(request);
     }
