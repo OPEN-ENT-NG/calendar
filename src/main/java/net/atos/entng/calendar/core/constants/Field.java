@@ -14,6 +14,8 @@ public class Field {
     //Calendar infos
 
     public static final String CALENDARID = "calendarId";
+    public static final String IS_DEFAULT = "is_default";
+
 
     //Event infos
 
@@ -111,4 +113,12 @@ public class Field {
     public static final String BINDING = "binding";
     public static final String REQUESTMETHOD = "requestMethod";
 
+    //Resource infos
+    public static final String PROFILURI = "profilUri";
+    public static final String USERNAME = "username";
+    public static final String CALENDARURI = "calendarUri";
+    public static final String RESOURCEURI = "resourceUri";
+    public static final String TITLE = "title";
+    public static final String BODY = "body";
+    public static final String PUSHNOTIF = "pushNotif";
 }
