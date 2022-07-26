@@ -32,6 +32,7 @@ import {attachmentService} from "../services/attachment.service";
 import {PERIODE_TYPE} from "../core/enum/period-type.enum";
 import {RbsEmitter} from "../model/rbs/rbs-emitter.model";
 import {IScope} from "angular";
+import {RBS_EVENTER} from "../core/enum/rbs/rbs-eventer.enum";
 
 declare var ENABLE_RBS: boolean;
 declare let window: any;
@@ -78,7 +79,7 @@ export const calendarController = ng.controller('CalendarController',
             $scope.buttonAction = ACTIONS;
             $scope.eventSidebar$ = new Subject<void>();
             $scope.ENABLE_RBS = ENABLE_RBS;
-            $scope.rbsEmitter = new RbsEmitter($scope);
+            $scope.rbsEmitter = new RbsEmitter($scope, !!$scope.ENABLE_RBS);
 
                 template.open('main', 'main-view');
                 template.open('top-menu', 'top-menu');
@@ -716,7 +717,7 @@ export const calendarController = ng.controller('CalendarController',
                  }
             }
 
-            $scope.rbsEmitter.emitBookingInfo(Behaviours.applicationsBehaviours.rbs.eventerRbs.INIT_BOOKING_INFOS, $scope.calendarEvent);
+            $scope.rbsEmitter.emitBookingInfo(RBS_EVENTER.INIT_BOOKING_INFOS, $scope.calendarEvent);
 
             if (($scope.hasManageRightOrIsEventOwner(calendarEvent) && $scope.hasRightOnSharedEvent(calendarEvent, rights.resources.updateEvent.right))
                 && calendarEvent.editAllRecurrence == undefined
@@ -735,10 +736,10 @@ export const calendarController = ng.controller('CalendarController',
                 $scope.display.showRecurrencePanel = false;
                 template.close('recurrenceLightbox');
                 $scope.display.showEditEventPanel = true;
-                $scope.rbsEmitter.emitBookingInfo(Behaviours.applicationsBehaviours.rbs.eventerRbs.CAN_EDIT_EVENT, true);
+                $scope.rbsEmitter.emitBookingInfo(RBS_EVENTER.CAN_EDIT_EVENT, true);
             } else {
                 $scope.display.showViewEventPanel = true;
-                $scope.rbsEmitter.emitBookingInfo(Behaviours.applicationsBehaviours.rbs.eventerRbs.CAN_EDIT_EVENT, false);
+                $scope.rbsEmitter.emitBookingInfo(RBS_EVENTER.CAN_EDIT_EVENT, false);
             }
         };
 
@@ -756,7 +757,7 @@ export const calendarController = ng.controller('CalendarController',
             $scope.display.showViewEventPanel = false;
             $scope.contentToWatch = "";
 
-            $scope.rbsEmitter.emitBookingInfo(Behaviours.applicationsBehaviours.rbs.eventerRbs.CLOSE_BOOKING_INFOS);
+            $scope.rbsEmitter.emitBookingInfo(RBS_EVENTER.CLOSE_BOOKING_INFOS);
         };
 
             $scope.unselectRecurrenceRemovalCheckbox = (uncheckDeleteAllRecurrence: boolean): void => {
@@ -1416,9 +1417,7 @@ export const calendarController = ng.controller('CalendarController',
 
                 }
                 $scope.recurrentCalendarEventToShare = null;
-                if ($scope.ENABLE_RBS && calendarEvent.hasBooking) {
-                    $scope.rbsEmitter.prepareBookingToSave(calendarEvent);
-                }
+                $scope.rbsEmitter.prepareBookingToSave(calendarEvent);
 
                 $scope.createContentToWatch();
                 let items = [];
@@ -1760,7 +1759,8 @@ export const calendarController = ng.controller('CalendarController',
             $scope.noDeleteOptionChosen = (): boolean => {
                 if($scope.calendarEvent.bookings && $scope.calendarEvent.bookings.length > 0) {
                     let bookingDeletionInfo: IScope = angular.element(document.getElementById("booking-deletion-message")).scope();
-                    return bookingDeletionInfo['vm'].canDeleteBooking() && ($scope.calendarEvent.deleteAllBookings == undefined);
+                    return (bookingDeletionInfo && bookingDeletionInfo['vm'] && bookingDeletionInfo['vm'].canDeleteBooking()
+                        && ($scope.calendarEvent.deleteAllBookings == undefined));
                 }
                 return false;
             };
