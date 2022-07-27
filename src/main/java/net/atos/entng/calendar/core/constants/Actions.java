@@ -17,6 +17,6 @@ public class Actions {
     public static final String UPDATE_EVENT = "UpdateEvent";
     public static final String DELETE_EVENT = "DeleteEvent";
     public static final String SHARE_EVENT = "ShareEvent";
-    public static final String IMPORT_ICL = "ImportIcal";
+    public static final String IMPORT_ICAL = "ImportIcal";
 
 }

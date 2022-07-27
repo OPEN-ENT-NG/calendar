@@ -153,7 +153,7 @@ public class EventController extends MongoDbControllerHelper {
 
     @Put("/:id/ical")
     @SecuredAction(value = "calendar.manager", type = ActionType.RESOURCE)
-    @Trace(Actions.IMPORT_ICL)
+    @Trace(Actions.IMPORT_ICAL)
     public void importIcal(HttpServerRequest request) {
         eventHelper.importIcal(request);
     }
