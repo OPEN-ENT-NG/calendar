@@ -7,7 +7,6 @@ public class Actions {
     }
 
     //Trace actions
-    public static final String ID = "id";
     public static final String CREATE_CALENDAR = "createCalendar";
     public static final String UPDATE_CALENDAR = "UpdateCalendar";
     public static final String DELETE_CALENDAR = "DeleteCalendar";
