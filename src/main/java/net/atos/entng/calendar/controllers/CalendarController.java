@@ -28,6 +28,7 @@ import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.json.JsonObject;
+import net.atos.entng.calendar.core.constants.Actions;
 import net.atos.entng.calendar.core.constants.Field;
 import net.atos.entng.calendar.security.ShareEventConf;
 import net.atos.entng.calendar.services.CalendarService;
@@ -36,6 +37,7 @@ import org.entcore.common.events.EventHelper;
 import org.entcore.common.events.EventStore;
 import org.entcore.common.events.EventStoreFactory;
 import org.entcore.common.http.filter.ResourceFilter;
+import org.entcore.common.http.filter.Trace;
 import org.entcore.common.mongodb.MongoDbConf;
 import org.entcore.common.mongodb.MongoDbControllerHelper;
 import org.entcore.common.user.UserInfos;
@@ -98,6 +100,7 @@ public class CalendarController extends MongoDbControllerHelper {
 
     @Post("/calendars")
     @SecuredAction("calendar.create")
+    @Trace(Actions.CREATE_CALENDAR)
     public void createCalendar(final HttpServerRequest request) {
         RequestUtils.bodyToJson(request, pathPrefix + "calendar", object -> {
             super.create(request, r -> {
@@ -110,6 +113,7 @@ public class CalendarController extends MongoDbControllerHelper {
 
     @Put("/:id")
     @SecuredAction(value = "calendar.manager", type = ActionType.RESOURCE)
+    @Trace(Actions.UPDATE_CALENDAR)
     public void updateCalendar(final HttpServerRequest request) {
         RequestUtils.bodyToJson(request, pathPrefix + "calendar", new Handler<JsonObject>() {
             @Override
@@ -121,6 +125,7 @@ public class CalendarController extends MongoDbControllerHelper {
 
     @Delete("/:id")
     @SecuredAction(value = "calendar.manager", type = ActionType.RESOURCE)
+    @Trace(Actions.DELETE_CALENDAR)
     public void deleteCalendar(HttpServerRequest request) {
         String calendarId = request.params().get("id");
         calendarService.isDefaultCalendar(calendarId)
@@ -149,6 +154,7 @@ public class CalendarController extends MongoDbControllerHelper {
     @Put("/share/json/:id")
     @ApiDoc("Share calendar by id.")
     @SecuredAction(value = "calendar.manager", type = ActionType.RESOURCE)
+    @Trace(Actions.SHARE_CALENDAR_SUBMIT)
     public void shareCalendarSubmit(final HttpServerRequest request) {
         UserUtils.getUserInfos(eb, request, user -> {
             if (user != null) {
@@ -177,6 +183,7 @@ public class CalendarController extends MongoDbControllerHelper {
     @Put("/share/remove/:id")
     @ApiDoc("Remove calendar by id.")
     @SecuredAction(value = "calendar.manager", type = ActionType.RESOURCE)
+    @Trace(Actions.SHARE_CALENDAR_REMOVE)
     public void removeShareCalendar(final HttpServerRequest request) {
         removeShare(request, false);
     }
@@ -185,6 +192,7 @@ public class CalendarController extends MongoDbControllerHelper {
     @ApiDoc("Share calendar by id.")
     @ResourceFilter(ShareEventConf.class)
     @SecuredAction(value = "calendar.manager", type = ActionType.RESOURCE)
+    @Trace(Actions.SHARE_CALENDAR)
     public void shareResource(final HttpServerRequest request) {
         UserUtils.getUserInfos(eb, request, user -> {
             if (user != null) {
