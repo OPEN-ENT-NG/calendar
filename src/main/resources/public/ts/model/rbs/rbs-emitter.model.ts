@@ -1,8 +1,8 @@
 import {CalendarEvent} from "../CalendarEvent";
 import {_, angular, Behaviours, model, moment, Rights} from "entcore";
-import {Booking, Bookings, SavedBooking} from "./booking.model";
+import {Booking, SavedBooking} from "./booking.model";
 import {FORMAT} from "../../core/const/date-format";
-import {safeApply} from "../Utils";
+import {RBS_SNIPLET} from "../../core/const/rbs-sniplet.const";
 
 
 const rbsViewRight: string = "rbs.view";
@@ -16,16 +16,15 @@ export class RbsEmitter {
         this.ENABLE_RBS = ENABLE_RBS;
     }
 
-    emitBookingInfo = (event: string, data?: boolean|CalendarEvent): void => {
+    emitBookingInfo = (event: string, targetSniplet: string, data?: boolean|CalendarEvent): void => {
         if (this.ENABLE_RBS && !!model.me.authorizedActions.find((action) => action.displayName == rbsViewRight)) {
             switch (event) {
                 case Behaviours.applicationsBehaviours.rbs.eventerRbs.INIT_BOOKING_INFOS:
-                case Behaviours.applicationsBehaviours.rbs.eventerRbs.CAN_EDIT_EVENT:
                 case Behaviours.applicationsBehaviours.rbs.eventerRbs.UPDATE_BOOKING_INFOS:
-                    this.scope.$broadcast(event, data);
+                    this.scope.$broadcast(targetSniplet + event, data);
                     break;
                 case Behaviours.applicationsBehaviours.rbs.eventerRbs.CLOSE_BOOKING_INFOS:
-                    this.scope.$broadcast(event);
+                    this.scope.$broadcast(targetSniplet + event);
                     break;
             }
         }
@@ -33,7 +32,7 @@ export class RbsEmitter {
 
     updateRbsSniplet = () : void => {
         if (this.ENABLE_RBS) {
-            this.scope.rbsEmitter.emitBookingInfo(Behaviours.applicationsBehaviours.rbs.eventerRbs.UPDATE_BOOKING_INFOS, this.scope.calendarEvent);
+            this.scope.rbsEmitter.emitBookingInfo(Behaviours.applicationsBehaviours.rbs.eventerRbs.UPDATE_BOOKING_INFOS, RBS_SNIPLET.editEventPanel, this.scope.calendarEvent);
             this.scope.rbsEmitter.checkBookingValidAndSendInfoToSniplet();
         }
     };
