@@ -32,6 +32,12 @@ body.calendar {
       }
     }
   }
+
+  .grid {
+    @media (min-width: $tablette) {
+      display: block;
+    }
+  }
 }
 
 calendar .week-switcher .date-picker-icon {
