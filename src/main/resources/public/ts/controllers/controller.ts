@@ -917,6 +917,7 @@ export const calendarController = ng.controller('CalendarController',
 
             $scope.editCalendar = function (calendar, event) {
                 $scope.calendar = calendar;
+                $scope.calendarBeforeEdition = angular.copy(calendar);
                 event.stopPropagation();
                 template.open('calendar', 'edit-calendar');
                 $scope.createContentToWatch();
@@ -1003,14 +1004,19 @@ export const calendarController = ng.controller('CalendarController',
             };
 
             $scope.cancelCalendarEdit = function () {
-                $scope.calendarCreationScreen = false;
-                $scope.calendar = undefined;
-
                 if ($scope.isEmpty()) {
                     template.close('calendar');
                 } else {
+                    $scope.updateCalendars();
                     template.open('calendar', 'read-calendar');
+                    $scope.calendar = $scope.calendarBeforeEdition;
+                    let calendarElementSideBar = angular.element(document.getElementsByClassName("sidebar")).scope();
+                    if (calendarElementSideBar && calendarElementSideBar.vm && calendarElementSideBar.vm.calendar) {
+                        calendarElementSideBar.vm.calendar = $scope.calendarBeforeEdition;
+                        safeApply($scope);
+                    }
                 }
+
             };
 
             $scope.confirmRemoveCalendar = function (calendar, event) {
