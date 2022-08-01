@@ -2,6 +2,7 @@ import {CalendarEvent} from "../CalendarEvent";
 import {_, angular, Behaviours, model, moment, Rights} from "entcore";
 import {Booking, SavedBooking} from "./booking.model";
 import {FORMAT} from "../../core/const/date-format";
+import {RBS_SNIPLET} from "../../core/const/rbs-sniplet.const";
 
 
 const rbsViewRight: string = "rbs.view";
@@ -31,7 +32,7 @@ export class RbsEmitter {
 
     updateRbsSniplet = () : void => {
         if (this.ENABLE_RBS) {
-            this.scope.rbsEmitter.emitBookingInfo(Behaviours.applicationsBehaviours.rbs.eventerRbs.UPDATE_BOOKING_INFOS, this.scope.calendarEvent);
+            this.scope.rbsEmitter.emitBookingInfo(Behaviours.applicationsBehaviours.rbs.eventerRbs.UPDATE_BOOKING_INFOS, RBS_SNIPLET.editEventPanel, this.scope.calendarEvent);
             this.scope.rbsEmitter.checkBookingValidAndSendInfoToSniplet();
         }
     };
