@@ -331,34 +331,10 @@ public class ICalHandler extends AbstractVerticle implements Handler<Message<Jso
      * @return {@link String} the date in the right format "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"
      * @throws UnhandledEventException
      */
-    private static String formatIcsDate (java.util.Date date) throws UnhandledEventException {
-        java.util.Date newStartDate;
-        try {
-            newStartDate = new SimpleDateFormat(DateUtils.ICAL_DATE_FORMAT).parse(date.toString());
-        } catch (ParseException e) {
-            newStartDate = formatIcsAlldayDate(date, e);
-        }
-        return new SimpleDateFormat(DateUtils.DATE_FORMAT_UTC).format(newStartDate);
-    }
-
-    /**
-     * Format date depending on format "yyyyMMdd"
-     * @param date the date {@link java.util.Date}
-     * @param e1 {@link ParseException} the exception from the previous parse error
-     * @return {@link java.util.Date} the date
-     * @throws UnhandledEventException
-     */
-    private static java.util.Date formatIcsAlldayDate(java.util.Date date, ParseException e1) throws UnhandledEventException {
-        java.util.Date newStartDate;
-        try {
-            newStartDate = new SimpleDateFormat(DateUtils.ICAL_ALLDAY_FORMAT).parse(date.toString());
-        } catch (ParseException e2) {
-            String errorMessage = String.format("[Calendar@%s::formatIcsAlldayDate] Errors have occured during ical import: %s %s",
-                    ICalHandler.class.getSimpleName(), e1.getMessage(), e2.getMessage());
-            log.error(errorMessage);
-            throw new UnhandledEventException("calendar.ical.event.slot.problem");
-        }
-        return newStartDate;
+    private static String formatIcsDate (java.util.Date date) {
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat(DateUtils.DATE_FORMAT_UTC);
+        simpleDateFormat.setTimeZone(java.util.TimeZone.getTimeZone("UTC"));
+        return simpleDateFormat.format(date);
     }
 
 }

@@ -31,8 +31,9 @@ public class ICalHandlerTest {
     public void formatIcsDateTest(TestContext ctx) throws Exception {
         String icsDateString = "20220125T105800Z";
         String expectedDateString = "2022-01-25T10:58:00.000Z";
-        Date icsDate = Mockito.mock(Date.class);
-        Mockito.doReturn(icsDateString).when(icsDate).toString();
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat(DateUtils.ICAL_DATE_FORMAT);
+        simpleDateFormat.setTimeZone(java.util.TimeZone.getTimeZone("UTC"));
+        Date icsDate = simpleDateFormat.parse(icsDateString);
 
         String resultString = Whitebox.invokeMethod(ICalHandler.class, "formatIcsDate", icsDate);
         ctx.assertEquals(expectedDateString, resultString);
@@ -42,26 +43,24 @@ public class ICalHandlerTest {
     public void formatIcsAlldayDateTest(TestContext ctx) throws Exception {
         String icsDateString = "20220125";
         String expectedDateString = "2022-01-25T00:00:00.000Z";
-        Date icsDate = Mockito.mock(Date.class);
-        Mockito.doReturn(icsDateString).when(icsDate).toString();
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat(DateUtils.ICAL_ALLDAY_FORMAT);
+        simpleDateFormat.setTimeZone(java.util.TimeZone.getTimeZone("UTC"));
+        Date icsDate = simpleDateFormat.parse(icsDateString);
 
         String resultString = Whitebox.invokeMethod(ICalHandler.class, "formatIcsDate", icsDate);
         ctx.assertEquals(expectedDateString, resultString);
     }
 
     @Test
-    public void formatIcsBadDateTest(TestContext ctx) throws Exception {
-        Async async = ctx.async(1);
-        String icsDateString = "abcdefghijklm";
-        Date icsDate = Mockito.mock(Date.class);
-        Mockito.doReturn(icsDateString).when(icsDate).toString();
+    public void formatIcsTimezoneDateTest(TestContext ctx) throws Exception {
+        String icsDateString = "20220125T125800";
+        String expectedDateString = "2022-01-25T10:58:00.000Z";
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyyMMdd'T'HHmmss");
+        simpleDateFormat.setTimeZone(java.util.TimeZone.getTimeZone("Europe/Kaliningrad"));
+        Date icsDate = simpleDateFormat.parse(icsDateString);
 
-        try {
-            Whitebox.invokeMethod(ICalHandler.class, "formatIcsDate", icsDate);
-            ctx.fail();
-        } catch (UnhandledEventException e) {
-            async.countDown();
-        }
+        String resultString = Whitebox.invokeMethod(ICalHandler.class, "formatIcsDate", icsDate);
+        ctx.assertEquals(expectedDateString, resultString);
     }
 
     @Test
