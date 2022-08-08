@@ -221,7 +221,7 @@
                 <tbody>
                     <tr ng-repeat="calendarEvent in calendarEvents.selected">
                         <td class="icon" ng-class="calendarEvent.calendar.color"></td>
-                        <td>[[calendarEvent.calendar.title]]</td>
+                        <td><div ng-repeat="calendar in calendarEvent.calendar">[[calendar.title]]</div></td>
                         <td>[[calendarEvent.title]]</td>
                         <td>[[calendarEvent.startMoment.format('DD/MM/YYYY HH:mm')]]</td>
                         <td>[[calendarEvent.endMoment.format('DD/MM/YYYY HH:mm')]]</td>
