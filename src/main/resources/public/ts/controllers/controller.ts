@@ -295,6 +295,14 @@ export const calendarController = ng.controller('CalendarController',
             $scope.rbsEmitter.updateRbsSniplet();
         };
 
+        $scope.formatFRDate = (date: Date): string => {
+            return DateUtils.getFRDateFormat(date, FORMAT.displayFRDate);
+        }
+
+        $scope.formatTime = (date: Date): string => {
+            return DateUtils.getFRDateFormat(date, FORMAT.displayTime);
+        }
+
         $scope.toggleIsRecurrent = function (calendarEvent) {
             $scope.rbsEmitter.updateRbsSniplet();
             if (calendarEvent.isRecurrent) {
