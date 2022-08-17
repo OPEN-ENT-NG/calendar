@@ -38,6 +38,7 @@ import org.entcore.common.events.EventStore;
 import org.entcore.common.events.EventStoreFactory;
 import org.entcore.common.http.filter.AdminFilter;
 import org.entcore.common.http.filter.ResourceFilter;
+import org.entcore.common.http.filter.SuperAdminFilter;
 import org.entcore.common.http.filter.Trace;
 import org.entcore.common.mongodb.MongoDbConf;
 import org.entcore.common.mongodb.MongoDbControllerHelper;
@@ -69,7 +70,7 @@ public class CalendarController extends MongoDbControllerHelper {
 
     @Get("/config")
     @SecuredAction(value = "", type = ActionType.RESOURCE)
-    @ResourceFilter(AdminFilter.class)
+    @ResourceFilter(SuperAdminFilter.class)
     public void getConfig(final HttpServerRequest request) {
         renderJson(request, config);
     }
