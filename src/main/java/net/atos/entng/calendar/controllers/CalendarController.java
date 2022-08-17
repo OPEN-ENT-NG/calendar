@@ -36,6 +36,7 @@ import net.atos.entng.calendar.services.ServiceFactory;
 import org.entcore.common.events.EventHelper;
 import org.entcore.common.events.EventStore;
 import org.entcore.common.events.EventStoreFactory;
+import org.entcore.common.http.filter.AdminFilter;
 import org.entcore.common.http.filter.ResourceFilter;
 import org.entcore.common.http.filter.Trace;
 import org.entcore.common.mongodb.MongoDbConf;
@@ -64,6 +65,13 @@ public class CalendarController extends MongoDbControllerHelper {
         this.calendarService = serviceFactory.calendarService();
         final EventStore eventStore = EventStoreFactory.getFactory().getEventStore(Calendar.class.getSimpleName());
         this.eventHelper = new org.entcore.common.events.EventHelper(eventStore);
+    }
+
+    @Get("/config")
+    @SecuredAction(value = "", type = ActionType.RESOURCE)
+    @ResourceFilter(AdminFilter.class)
+    public void getConfig(final HttpServerRequest request) {
+        renderJson(request, config);
     }
 
     @Get("")
