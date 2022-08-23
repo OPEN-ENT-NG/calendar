@@ -8,11 +8,11 @@
     <div class="bottom-spacing-twice calendarTooltip-blueText">
         <!--multi day event-->
         <div ng-if="item.isMultiDayPart">
-            [[item.notifStartMoment]] - [[item.notifEndMoment]]
+            [[convertFormat(item, true)]] &#45 [[convertFormat(item, false)]]
         </div>
         <!-normal event-->
         <div ng-if="!item.isMultiDayPart">
-            [[item.startMomentDate]] : [[item.startMomentTime]] - [[item.endMomentTime]]
+            [[item.startMomentDate]] &#58 [[item.startMomentTime]] &#45 [[item.endMomentTime]]
         </div>
         <!--event location-->
         <div ng-if="item.location" class="calendarTooltip-blueText">
