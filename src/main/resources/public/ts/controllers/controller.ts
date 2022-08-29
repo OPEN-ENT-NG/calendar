@@ -295,13 +295,15 @@ export const calendarController = ng.controller('CalendarController',
             $scope.rbsEmitter.updateRbsSniplet();
         };
 
-        $scope.formatFRDate = (date: Date): string => {
-            return DateUtils.getFRDateFormat(date, FORMAT.displayFRDate);
-        }
+        $scope.retrieveMultiDaysEvent = (id : string) : string => {
+            return $scope.calendar.calendarEvents.multiDaysEvents.find(event => event._id === id);
+        };
 
-        $scope.formatTime = (date: Date): string => {
-            return DateUtils.getFRDateFormat(date, FORMAT.displayTime);
-        }
+        $scope.convertFormat = (item: CalendarEvent,  isStart: boolean) : string => {
+            let event : CalendarEvent =  $scope.retrieveMultiDaysEvent(item._id);
+            return isStart ? (event.startMoment.format(FORMAT.displayFRDate)) + " : " + (event.startMoment.format(FORMAT.displayTime))
+                : (event.endMoment.format(FORMAT.displayFRDate)) + " : " + (event.endMoment.format(FORMAT.displayTime));
+        };
 
         $scope.toggleIsRecurrent = function (calendarEvent) {
             $scope.rbsEmitter.updateRbsSniplet();
