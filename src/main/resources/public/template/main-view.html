@@ -201,7 +201,7 @@
     <lightbox class="remove-calendar-event" show="display.confirmDeleteCalendarEvent" on-close="cancelRemoveCalendarEvent()">
         <div class="row height-one">
             <i18n>calendar.confirm.delete.event</i18n>
-            <div ng-if="display.calendar">
+            <div ng-if="display.calendar && !calendarEvent.deleteAllRecurrence">
                 <div>[[calendarEvent.title]]</div>
                 <div>[[calendarEvent.startMoment.format('DD/MM/YYYY : HH:mm')]] &#58 [[calendarEvent.endMoment.format('DD/MM/YYYY : HH:mm')]]</div>
                 <div ng-if="calendarEvent.location">
