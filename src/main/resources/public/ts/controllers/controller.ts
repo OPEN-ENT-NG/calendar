@@ -296,7 +296,7 @@ export const calendarController = ng.controller('CalendarController',
         };
 
         $scope.retrieveMultiDaysEvent = (id : string) : string => {
-            return $scope.calendar.calendarEvents.multiDaysEvents.find(event => event._id === id);
+            return $scope.calendarEvents.multiDaysEvents.find((event: CalendarEvent) => event._id === id);
         };
 
         $scope.convertFormat = (item: CalendarEvent,  isStart: boolean) : string => {
