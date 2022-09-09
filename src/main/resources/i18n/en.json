@@ -133,6 +133,9 @@
     "calendar.rbs.sniplet.deletion.wish": "Do you wish to delete:",
     "calendar.rbs.sniplet.event.only": "This event only",
     "calendar.rbs.sniplet.event.and.booking": "This event and its booking",
-    "calendar.rbs.sniplet.error.booking.deletion": "Error: some of this event's bookings could not be deleted."
+    "calendar.rbs.sniplet.error.booking.deletion": "Error: some of this event's bookings could not be deleted.",
+
+    "calendar.external.calendars" : "External calendars",
+    "calendar.add.external.calendar": "Add external calendar"
 
 }
