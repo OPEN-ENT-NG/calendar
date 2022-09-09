@@ -44,11 +44,20 @@
     <div class="toggle">
         <div class="row">
             <behaviour name="manage" resource="showButtonsCalendar">
-                    <a href="/calendar/[[showButtonsCalendar._id]]/ical"><button><i18n>calendar.export</i18n></button></a>
-                    <button ng-click="displayImportIcsPanel()"><i18n>calendar.import</i18n></button>
+                    <a href="/calendar/[[showButtonsCalendar._id]]/ical" ng-if="!showButtonsCalendar.isExternal">
+                        <button>
+                            <i18n>calendar.export</i18n>
+                        </button>
+                    </a>
+                    <button ng-click="displayImportIcsPanel()" ng-if="!showButtonsCalendar.isExternal"><i18n>calendar.import</i18n></button>
                     <button ng-click="editCalendar(showButtonsCalendar, $event)"><i18n>edit</i18n></button>
-                    <button ng-click="confirmRemoveCalendar(showButtonsCalendar, $event)" ng-if="!showButtonsCalendar.is_default"><i18n>remove</i18n></button>
-                    <button ng-if="!showButtonsCalendar.is_default" ng-click="shareCalendar(showButtonsCalendar, $event)"><i18n>share</i18n></button>
+                    <button ng-click="confirmRemoveCalendar(showButtonsCalendar, $event)" ng-if="!showButtonsCalendar.is_default">
+                        <i18n>remove</i18n>
+                    </button>
+                    <button ng-if="!showButtonsCalendar.is_default && !showButtonsCalendar.isExternal"
+                            ng-click="shareCalendar(showButtonsCalendar, $event)">
+                        <i18n>share</i18n>
+                    </button>
             </behaviour>
         </div>
     </div>
