@@ -178,5 +178,8 @@
     "calendar.rbs.sniplet.deletion.wish": "Vous souhaitez supprimer :",
     "calendar.rbs.sniplet.event.only": "Cet évènement seulement",
     "calendar.rbs.sniplet.event.and.booking": "Cet évènement et ses réservations de ressources",
-    "calendar.rbs.sniplet.error.booking.deletion": "Une erreur est survenue : toutes les réservations de ressources de l'évènement n'ont pas pu être supprimées."
+    "calendar.rbs.sniplet.error.booking.deletion": "Une erreur est survenue : toutes les réservations de ressources de l'évènement n'ont pas pu être supprimées.",
+
+    "calendar.external.calendars": "Agendas externes",
+    "calendar.add.external.calendar": "Ajouter un agenda externe"
 }
