@@ -72,6 +72,19 @@
                             </ul>
                             <ul ng-if="!vm.hasSharedCalendars()"><li><i18n>calendar.calendars.empty</i18n></li></ul>
                         </li>
+                        <!-- External calendars -->
+                        <li workflow="calendar.admin">
+                            <h3 class="selected"><i18n>calendar.external.calendars</i18n></h3>
+                            <ul ng-if="vm.hasExternalCalendars()" class="colored">
+                                <li ng-repeat="cl in vm.calendars.all | filter:vm.isExternalCalendar | orderBy: '+title'">
+                                    <calendar-item calendar="cl"
+                                                   on-open-or-close-clicked-calendar="vm.onOpenOrCloseCalendar"
+                                                   on-uncheck-other-calendar-checkboxes="vm.hideOtherCalendarCheckboxes">
+                                    </calendar-item>
+                                </li>
+                            </ul>
+                            <ul ng-if="!vm.hasExternalCalendars()"><li><i18n>calendar.calendars.empty</i18n></li></ul>
+                        </li>
                     </ul>
                 </nav>
             </section>

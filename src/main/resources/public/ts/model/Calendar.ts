@@ -14,6 +14,7 @@ export class Calendar implements Selectable, Shareable {
     owner: any;
     title: string;
     icsImport: any;
+    isExternal: boolean;
 
     constructor(calendar?) {
         this.calendarEvents = new CalendarEvents(this);

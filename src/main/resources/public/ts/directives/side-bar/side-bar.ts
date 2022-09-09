@@ -15,10 +15,12 @@ interface IViewModel {
 
     ownCalendars(): boolean;
     hasSharedCalendars(): boolean;
-    isCalendarSharedWithMe(calendar): any;
+    isCalendarSharedWithMe(calendar): boolean;
     hideOtherCalendarCheckboxes(calendar): void;
-    isMyCalendar(calendar: Calendar): void;
-    isEmpty(): void;
+    isMyCalendar(calendar: Calendar): boolean;
+    isExternalCalendar(calendar: Calendar): boolean;
+    hasExternalCalendars(): boolean;
+    isEmpty(): boolean;
 
     //scope
     calendar: Calendar;
@@ -84,7 +86,7 @@ export const sideBar = ng.directive('sideBar', () =>{
             }
 
             vm.isMyCalendar = (calendar: Calendar) : boolean => {
-                return calendar.owner.userId == $scope.$parent.me.userId;
+                return (calendar.owner.userId == $scope.$parent.me.userId) && !vm.isExternalCalendar(calendar);
             }
 
             vm.hasSharedCalendars = () : boolean => {
@@ -95,6 +97,14 @@ export const sideBar = ng.directive('sideBar', () =>{
             vm.isCalendarSharedWithMe = (calendar) : boolean => {
                 return calendar && calendar.shared && calendar.owner.userId != $scope.$parent.me.userId;
             };
+
+            vm.isExternalCalendar = (calendar: Calendar) : boolean => {
+                return calendar.isExternal;
+            }
+
+            vm.hasExternalCalendars = () : boolean => {
+                return vm.calendars.all.some((calendar:Calendar): boolean => vm.isExternalCalendar(calendar));
+            }
 
             vm.hideOtherCalendarCheckboxes = (calendar) : void => {
                 vm.calendar = calendar;
