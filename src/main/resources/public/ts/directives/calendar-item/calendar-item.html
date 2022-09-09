@@ -1,0 +1,9 @@
+<a class="[[vm.calendar.color]]" ng-class="{'selected': vm.calendar.selected, 'notselected': !vm.calendar.selected}"
+   ng-click="vm.onOpenOrCloseCalendar(vm.calendar, true)">
+    <span>[[vm.calendar.title]]</span>
+    <input type="checkbox" class="calendar-checkbox"
+           ng-click="$event.stopPropagation();"
+           ng-model="vm.calendar.showButtons"
+           ng-checked="vm.calendar.showButtons"
+           ng-change="vm.hideOtherCalendarCheckboxes(vm.calendar)"/>
+</a>
