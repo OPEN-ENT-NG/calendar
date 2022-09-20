@@ -1,0 +1,13 @@
+<div class="right-magnet">
+    <button workflow="calendar.admin" ng-click="vm.openExternalCalendarForm()"><i18n>calendar.add.external.calendar</i18n></button>
+</div>
+
+<div>
+    <lightbox show="vm.display.showPanelExternalCalendar" on-close="vm.closeExternalCalendarForm()">
+        <external-calendar-form
+                calendar="vm.calendar"
+                calendar-platforms="vm.calendarPlatforms"
+                on-create-external-calendar="vm.createExternalCalendar">
+        </external-calendar-form>
+    </lightbox>
+</div>

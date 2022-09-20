@@ -181,5 +181,13 @@
     "calendar.rbs.sniplet.error.booking.deletion": "Une erreur est survenue : toutes les réservations de ressources de l'évènement n'ont pas pu être supprimées.",
 
     "calendar.external.calendars": "Agendas externes",
-    "calendar.add.external.calendar": "Ajouter un agenda externe"
+    "calendar.add.external.calendar": "Ajouter un agenda externe",
+    "calendar.external.enter.url": "Entrer l'URL de l'agenda",
+    "calendar.external.in.new.calendar": "Cet agenda sera ajouté dans un nouvel agenda externe.",
+    "calendar.external.sync.information": "Les changements seront mis à jour dans votre agenda ENT.",
+    "calendar.external.select.source": "Sélectionner la source de l'agenda",
+
+    "calendar.from.url": "A partir d'une URL",
+    "calendar.name": "Nom de l'agenda",
+    "calendar.add": "Ajouter l'agenda"
 }
