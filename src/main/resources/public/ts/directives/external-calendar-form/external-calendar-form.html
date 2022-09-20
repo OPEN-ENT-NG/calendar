@@ -1,0 +1,49 @@
+<div class="row" >
+    <form name="externalCalendarForm" id="external-calendar-form">
+
+        <h3 class="row drop-down-block"><i18n>calendar.add.external.calendar</i18n></h3>
+
+        <h2 class="row"><i18n>calendar.from.url</i18n></h2>
+
+        <!--Calendar URL-->
+        <div>
+            <div class="twelve cell">
+                <i18n>calendar.external.enter.url</i18n>
+            </div>
+            <div class="twelve cell" >
+                <input class="seven cell top-spacing-twice right-spacing-twice" id="external-calendar-url-input" required ng-model="vm.calendar.icsLink"
+                       type="text" ng-pattern="/^(http[s]?:\/\/){0,1}(www\.){0,1}[a-zA-Z0-9\.\-]+\.[a-zA-Z]{2,5}[\.]{0,1}/"/>
+                <select class="seven cell" required ng-model="vm.calendar.icsLinkPlatform"
+                        ng-options="platform for platform in vm.calendarPlatforms">
+                    <option value="" disabled selected style="display: none;">[[vm.translate('calendar.external.select.source')]]</i18n></option>
+                </select>
+            </div>
+            <div>
+                <i18n class="twelve cell">calendar.external.in.new.calendar</i18n>
+                <i18n class="twelve cell drop-down-block">calendar.external.sync.information</i18n>
+            </div>
+        </div>
+
+
+        <!--Calendar title-->
+        <div>
+            <label class="twelve cell">
+                <i18n>calendar.name</i18n>
+            </label>
+            <div class="twelve cell drop-down-block" >
+                <input class="five cell top-spacing-twice" required ng-model="vm.calendar.title"
+                       type="text"/>
+            </div>
+        </div>
+
+
+        <!--Calendar color-->
+        <div class="row drop-down-block">
+            <label class="twelve cell"><i18n>calendar.color</i18n></label>
+            <color-selector ng-model='vm.calendar.color'></color-selector>
+        </div>
+
+        <button class="right-magnet" ng-disabled="!vm.isFormComplete()"
+                ng-click="vm.onCreateExternalCalendarAction()"><i18n>calendar.add</i18n></button>
+    </form>
+</div>
