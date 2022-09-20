@@ -3,18 +3,21 @@ import {CalendarEvents} from "./";
 import {Rights, notify, Shareable, Behaviours, _, idiom as lang, moment} from 'entcore';
 import {Mix, Selectable, Selection} from "entcore-toolkit";
 import {CalendarEventService, calendarEventService, calendarService} from "../services";
+import {PLATFORM} from "../core/enum/platform.enum";
 
 export class Calendar implements Selectable, Shareable {
     _id: string;
     calendarEvents: CalendarEvents;
     selected: boolean;
-    color: Array<string>;
+    color: string;
     myRights: any;
     shared: any;
     owner: any;
     title: string;
     icsImport: any;
     isExternal: boolean;
+    icsLink: string;
+    icsLinkPlatform: string;
 
     constructor(calendar?) {
         this.calendarEvents = new CalendarEvents(this);

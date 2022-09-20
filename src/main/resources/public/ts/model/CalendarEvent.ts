@@ -31,7 +31,7 @@ export class CalendarEvent implements Selectable, Shareable{
     endMomentTime:Date;
     is_periodic:boolean;
     locked:boolean = true;
-    color:Array<string>;
+    color: string;
     shared:any;
     owner:any;
     myRights: any;
