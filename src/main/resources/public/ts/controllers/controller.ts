@@ -687,7 +687,6 @@ export const calendarController = ng.controller('CalendarController',
                 }
             };
 
-
             $scope.newCalendar = function () {
                 $scope.calendarCreationScreen = true;
                 $scope.calendar = new Calendar();
@@ -702,7 +701,6 @@ export const calendarController = ng.controller('CalendarController',
                 let startDate: Moment = moment(originalEvent.startMoment).second(0).millisecond(0);
                 let endDate: Moment = moment(originalEvent.endMoment).second(0).millisecond(0);
                 $scope.calendarEvent.startTime = makerFormatTimeInput(moment(startDate), moment(startDate));
-                ;
                 $scope.calendarEvent.endTime = makerFormatTimeInput(moment(endDate), moment(endDate));
             };
 
@@ -1779,7 +1777,6 @@ export const calendarController = ng.controller('CalendarController',
                 }
                 return false;
             };
-
 
             var updateCalendarList = function (start, end) {
                 model.calendarEvents.filters.startMoment.date(start.date());
