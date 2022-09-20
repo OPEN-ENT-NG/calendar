@@ -136,6 +136,13 @@
     "calendar.rbs.sniplet.error.booking.deletion": "Error: some of this event's bookings could not be deleted.",
 
     "calendar.external.calendars" : "External calendars",
-    "calendar.add.external.calendar": "Add external calendar"
+    "calendar.add.external.calendar": "Add external calendar",
+    "calendar.external.enter.url": "Enter calendar URL",
+    "calendar.external.in.new.calendar": "This calendar will be added to a new external calendar.",
+    "calendar.external.sync.information": "Changes will be updated in your ENT calendar.",
+
+    "calendar.from.url": "From the URL",
+    "calendar.name": "Calendar name",
+    "calendar.add": "Add calendar"
 
 }
