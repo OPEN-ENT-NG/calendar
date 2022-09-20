@@ -3,10 +3,12 @@ import {ROOTS} from "../../core/const/roots";
 import {Calendar} from "../../model";
 import {IScope} from "angular";
 import {Subject} from "rxjs";
+import {ICalendarService} from "../../services";
 
 interface IViewModel {
     onOpenOrCloseCalendar(calendar: Calendar, savePreferences: boolean): void;
     hideOtherCalendarCheckboxes(calendar: Calendar) : void;
+    updateExternalCalendar() : Promise<void>;
 }
 
 interface ICalendarItemProps {
@@ -22,7 +24,7 @@ interface ICalendarItemScope extends IScope {
 
 class Controller implements ng.IController, IViewModel {
 
-    constructor(private $scope: ICalendarItemScope) {
+    constructor(private $scope: ICalendarItemScope, private calendarService: ICalendarService) {
     }
 
     $onInit() {
@@ -38,6 +40,10 @@ class Controller implements ng.IController, IViewModel {
     hideOtherCalendarCheckboxes = (calendar: Calendar) : void => {
         this.$scope.$parent.$eval(this.$scope.vm.onUncheckOtherCalendarCheckboxes)(calendar);
     };
+
+    updateExternalCalendar = async (): Promise<void> => {
+        await this.calendarService.updateExternalCalendar(this.$scope.vm.calendar);
+    };
 }
 
 function directive() {
@@ -51,7 +57,7 @@ function directive() {
             onUncheckOtherCalendarCheckboxes: '&',
         },
         bindToController: true,
-        controller: ['$scope', Controller]
+        controller: ['$scope', 'CalendarService', Controller]
     }
 }
 
