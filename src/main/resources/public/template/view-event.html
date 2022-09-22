@@ -97,7 +97,7 @@
         </div>
 
         <div class="warningEventView">
-            <label class="warning" ng-if="hasACalendarWithRightsOfModifyEvent(calendarEvent)">
+            <label class="warning" ng-if="hasACalendarWithRightsOfModifyEvent(calendarEvent) && !calendarEvent.isExternal">
                 <i18n>calendar.event.not.all.calendar.rights</i18n></label>
         </div>
     </div>
