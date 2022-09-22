@@ -25,7 +25,8 @@
     <tbody>
         <tr ng-repeat="calendarEvent in calendarEvents.filtered | orderBy:propertyName:reverse">
             <td class="one" colspan="2">
-                <input ng-if="hasManageRightOrIsEventOwner(calendarEvent)" type="checkbox" ng-model="calendarEvent.selected"/>
+                <input ng-if="hasManageRightOrIsEventOwner(calendarEvent) && !calendarEvent.isExternal"
+                       type="checkbox" ng-model="calendarEvent.selected"/>
             </td>
             <td><div ng-repeat="calendar in calendarEvent.calendar">[[calendar.title]]</div></td>
             <td>[[calendarEvent.title]]</td>
