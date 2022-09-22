@@ -8,6 +8,7 @@ import {multiDaysEventsUtils} from "../utils/multiDaysEventsUtils";
 import {FORMAT} from "../core/const/date-format";
 import {calendarEventService, CalendarEventService} from "../services/calendar-event.service";
 import {SavedBooking} from "./rbs/booking.model";
+import {externalCalendarUtils} from "../utils/externalCalendarUtils";
 
 export class CalendarEvent implements Selectable, Shareable{
     _id: string;
@@ -54,6 +55,7 @@ export class CalendarEvent implements Selectable, Shareable{
     hasBooking: boolean;
     bookings: Array<SavedBooking|Booking>;
     deleteAllBookings: boolean;
+    isExternal: boolean;
 
     constructor (calendarEvent? : Object) {
         this.myRights = new Rights(this);
@@ -184,6 +186,7 @@ export class CalendarEvents extends Selection<CalendarEvent> {
         this.all.forEach(calendarEvent => {
             // Let's reconstruct the "calendar" array from found _id(s).
             let newArray = new Array<Calendar>();
+            if(externalCalendarUtils.isCalendarExternal(calendar)) calendarEvent.isExternal = true;
             let idCalendars: any = calendarEvent.calendar;
             if( typeof idCalendars.forEach === "function" ) {
                 idCalendars.forEach(function (id){
