@@ -34,6 +34,7 @@ import {RbsEmitter} from "../model/rbs/rbs-emitter.model";
 import {IScope} from "angular";
 import {RBS_EVENTER} from "../core/enum/rbs/rbs-eventer.enum";
 import {RBS_SNIPLET} from "../core/const/rbs-sniplet.const";
+import {externalCalendarUtils} from "../utils/externalCalendarUtils";
 
 declare var ENABLE_RBS: boolean;
 declare let window: any;
@@ -731,7 +732,8 @@ export const calendarController = ng.controller('CalendarController',
                 && calendarEvent.isRecurrent && calendarEvent._id){
                 template.open('recurrenceLightbox', 'recurrent-event-edition-popup');
                 $scope.display.showRecurrencePanel = true;
-            } else if(!calendarEvent._id || ($scope.hasManageRightOrIsEventOwner(calendarEvent)
+            } else if(!calendarEvent._id || (!calendarEvent.isExternal
+                && $scope.hasManageRightOrIsEventOwner(calendarEvent)
                 && $scope.hasRightOnSharedEvent(calendarEvent, rights.resources.updateEvent.right))) {
                 if (calendarEvent.editAllRecurrence){
                     //event content
@@ -1184,7 +1186,7 @@ export const calendarController = ng.controller('CalendarController',
         const setListCalendarWithContribFilter = (): void => {
             $scope.calendars.arr.forEach(
                 function (calendar) {
-                    if ($scope.hasContribRight(calendar) != null) {
+                    if ($scope.hasContribRight(calendar) != null && !externalCalendarUtils.isCalendarExternal(calendar)) {
                         $scope.calendarAsContribRight.push(calendar);
                     }
                 });
