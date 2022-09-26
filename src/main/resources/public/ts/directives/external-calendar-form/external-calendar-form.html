@@ -11,10 +11,11 @@
                 <i18n>calendar.external.enter.url</i18n>
             </div>
             <div class="twelve cell" >
-                <input class="five cell top-spacing-twice" id="external-calendar-url-input" required ng-model="vm.calendar.icsLink"
+                <input class="seven cell top-spacing-twice right-spacing-twice" id="external-calendar-url-input" required ng-model="vm.calendar.icsLink"
                        type="text" ng-pattern="/^(http[s]?:\/\/){0,1}(www\.){0,1}[a-zA-Z0-9\.\-]+\.[a-zA-Z]{2,5}[\.]{0,1}/"/>
-                <select class="four cell left-spacing-twice" required ng-model="vm.calendar.icsLinkPlatform"
+                <select class="seven cell" required ng-model="vm.calendar.icsLinkPlatform"
                         ng-options="platform for platform in vm.calendarPlatforms">
+                    <option value="" disabled selected style="display: none;">[[vm.translate('calendar.external.select.source')]]</i18n></option>
                 </select>
             </div>
             <div>
@@ -42,7 +43,7 @@
             <color-selector ng-model='vm.calendar.color'></color-selector>
         </div>
 
-        <button class="right-magnet" ng-disabled="!vm.calendar.icsLink || !vm.calendar.title"
+        <button class="right-magnet" ng-disabled="!vm.isFormComplete()"
                 ng-click="vm.onCreateExternalCalendarAction()"><i18n>calendar.add</i18n></button>
     </form>
 </div>

@@ -4,6 +4,7 @@ import {Calendar} from "../../model";
 import {IScope} from "angular";
 import {safeApply} from "../../model/Utils";
 import {CalendarForm} from "../../model/calendar-form.model";
+import {idiom as lang} from "entcore";
 
 
 interface IExternalCalendarFormProps {
@@ -16,6 +17,8 @@ interface IExternalCalendarFormProps {
 interface IViewModel extends ng.IController, IExternalCalendarFormProps {
     // for link method
     resetForm?(calendar: CalendarForm): void;
+    isFormComplete?(): boolean;
+    translate?(text: string): string;
 }
 
 interface IExternalCalendarFormScope extends IScope {
@@ -45,6 +48,16 @@ class Controller implements IViewModel {
 
         safeApply(this.$scope);
     }
+
+    isFormComplete(): boolean {
+        return !!this.$scope.vm.calendar && !!this.$scope.vm.calendar.title && !!this.$scope.vm.calendar.icsLink
+            && !!this.$scope.vm.calendar.icsLinkPlatform;
+    }
+
+    translate(text: string): string {
+        return lang.translate(text);
+    }
+
 }
 
 function directive($parse) {

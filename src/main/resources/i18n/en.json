@@ -140,6 +140,7 @@
     "calendar.external.enter.url": "Enter calendar URL",
     "calendar.external.in.new.calendar": "This calendar will be added to a new external calendar.",
     "calendar.external.sync.information": "Changes will be updated in your ENT calendar.",
+    "calendar.external.select.source": "Select calendar source",
 
     "calendar.from.url": "From the URL",
     "calendar.name": "Calendar name",
