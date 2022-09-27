@@ -6,4 +6,10 @@ i {
   &.cross::before {
     content: "\e866";
   }
+
+  &.sync::before {
+    font-family: 'material-icons';
+    content: "\F04E6";
+  }
+
 }

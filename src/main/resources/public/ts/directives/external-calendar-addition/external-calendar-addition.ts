@@ -16,7 +16,7 @@ interface IViewModel {
 
     openExternalCalendarForm(): void;
     closeExternalCalendarForm(): void;
-    createExternalCalendar(calendar: Calendar): void;
+    createExternalCalendar(calendar: Calendar): Promise<void>;
 }
 
 interface IExternalCalendarAdditionProps {
