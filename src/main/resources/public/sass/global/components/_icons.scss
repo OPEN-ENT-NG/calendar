@@ -8,4 +8,10 @@ i {
     content: "\e866";
     font-family: 'generic-icons';
   }
+
+  &.sync::before {
+    font-family: 'calendar-material-icons';
+    content: "\F04E6";
+  }
+
 }
