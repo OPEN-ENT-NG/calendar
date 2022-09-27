@@ -169,6 +169,12 @@
         <div class="row height-one">
         	<h2 class="subtitle"><i18n>calendar.confirm.delete.calendar</i18n></h2>
         </div>
+
+        <div ng-if="calendar.isExternal" class="bottom-spacing-three">
+            <i18n>calendar.the.calendar</i18n>
+            &#34;[[calendar.title]]&#34;
+            <i18n>calendar.external.will.appear.in.original.platform</i18n>
+        </div>
         
         <div class="row">
             <button class="right-magnet" ng-click="removeCalendar()"><i18n>remove</i18n></button>
