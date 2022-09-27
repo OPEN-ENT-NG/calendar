@@ -8,6 +8,12 @@
       font-weight: normal;
       color: $calendar-white;
       padding-left: 10px !important;
+
+      &-sync {
+        transform: rotate(-45deg);
+        opacity: 1 !important;
+      }
+
     }
   }
 
