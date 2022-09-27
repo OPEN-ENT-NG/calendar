@@ -47,7 +47,6 @@ class Controller implements ng.IController, IViewModel {
         this.calendar.color = defaultColor;
         this.calendar.isExternal = true;
         this.calendarPlatforms = Object.keys(PLATFORM).filter(key => !isNaN(Number(PLATFORM[key])));
-        this.calendar.icsLinkPlatform = this.calendarPlatforms[0];
         angular.element(document.getElementsByClassName("color grey")).addClass("selected");
         safeApply(this.$scope);
         this.$scope.vm.display.showPanelExternalCalendar = true;
