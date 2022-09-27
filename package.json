@@ -49,6 +49,7 @@
     "gulp-append-prepend": "^1.0.9",
     "jest": "^24.7.1",
     "jest-environment-node": "^23.0.0",
-    "ts-jest": "^22.4.2"
+    "ts-jest": "^22.4.2",
+    "@mdi/font": "^6.5.95"
   }
 }
