@@ -186,6 +186,7 @@
     "calendar.external.in.new.calendar": "Cet agenda sera ajouté dans un nouvel agenda externe.",
     "calendar.external.sync.information": "Les changements seront mis à jour dans votre agenda ENT.",
     "calendar.external.select.source": "Sélectionner la source de l'agenda",
+    "calendar.external.will.appear.in.original.platform": "n'apparaîtra plus dans l'ENT. Il sera toujours disponible sur sa plateforme d'origine.",
 
     "calendar.from.url": "A partir d'une URL",
     "calendar.name": "Nom de l'agenda",
