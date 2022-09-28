@@ -8,7 +8,7 @@ import {ICalendarService} from "../../services";
 interface IViewModel {
     onOpenOrCloseCalendar(calendar: Calendar, savePreferences: boolean): void;
     hideOtherCalendarCheckboxes(calendar: Calendar) : void;
-    updateExternalCalendar() : Promise<void>;
+    updateExternalCalendar($event: MouseEvent) : Promise<void>;
 }
 
 interface ICalendarItemProps {
@@ -41,7 +41,8 @@ class Controller implements ng.IController, IViewModel {
         this.$scope.$parent.$eval(this.$scope.vm.onUncheckOtherCalendarCheckboxes)(calendar);
     };
 
-    updateExternalCalendar = async (): Promise<void> => {
+    updateExternalCalendar = async ($event: MouseEvent): Promise<void> => {
+        $event.stopPropagation();
         await this.calendarService.updateExternalCalendar(this.$scope.vm.calendar);
     };
 }

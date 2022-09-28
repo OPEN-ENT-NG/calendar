@@ -6,5 +6,5 @@
            ng-model="vm.calendar.showButtons"
            ng-checked="vm.calendar.showButtons"
            ng-change="vm.hideOtherCalendarCheckboxes(vm.calendar)"/>
-    <i class="sync sidebar-title-calendar-display-sync top-spacing-small" ng-click="vm.updateExternalCalendar()"></i>
+    <i class="sync sidebar-title-calendar-display-sync top-spacing-small" ng-click="vm.updateExternalCalendar($event)"></i>
 </a>
