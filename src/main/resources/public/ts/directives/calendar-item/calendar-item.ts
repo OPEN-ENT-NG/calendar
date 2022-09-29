@@ -1,14 +1,15 @@
-import {model, ng} from "entcore";
+import {model, moment, ng} from "entcore";
 import {ROOTS} from "../../core/const/roots";
 import {Calendar} from "../../model";
 import {IScope} from "angular";
-import {Subject} from "rxjs";
 import {ICalendarService} from "../../services";
+import {DateUtils} from "../../utils/date.utils";
 
 interface IViewModel {
     onOpenOrCloseCalendar(calendar: Calendar, savePreferences: boolean): void;
     hideOtherCalendarCheckboxes(calendar: Calendar) : void;
     updateExternalCalendar($event: MouseEvent) : Promise<void>;
+    getLastUpdate(format: string) : string;
 }
 
 interface ICalendarItemProps {
@@ -45,6 +46,10 @@ class Controller implements ng.IController, IViewModel {
         $event.stopPropagation();
         await this.calendarService.updateExternalCalendar(this.$scope.vm.calendar);
     };
+
+    getLastUpdate = (format: string): string => {
+        return DateUtils.getFormattedString(this.$scope.vm.calendar.updated, format)
+    }
 }
 
 function directive() {
