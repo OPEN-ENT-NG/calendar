@@ -1,4 +1,4 @@
-<a class="[[vm.calendar.color]]" ng-class="{'selected': vm.calendar.selected, 'notselected': !vm.calendar.selected}"
+<a class="[[vm.calendar.color]]  sidebar-calendar-list" ng-class="{'selected': vm.calendar.selected, 'notselected': !vm.calendar.selected}"
    ng-click="vm.onOpenOrCloseCalendar(vm.calendar, true)">
     <span>[[vm.calendar.title]]</span>
     <input type="checkbox" class="calendar-checkbox"
@@ -7,4 +7,12 @@
            ng-checked="vm.calendar.showButtons"
            ng-change="vm.hideOtherCalendarCheckboxes(vm.calendar)"/>
     <i class="sync sidebar-title-calendar-display-sync top-spacing-small" ng-click="vm.updateExternalCalendar($event)"></i>
+    <span class="tooltip-top sidebar-title-calendar-display-center-text">
+        <i18n>calendar.last.update</i18n>
+        </br>
+        <div class="tooltip-top-text">
+            <i18n>calendar.recurrence.onlc</i18n> <span>[[vm.getLastUpdate('DD/MM/YYYY')]]</span>
+            <i18n>calendar.search.date.to</i18n> <span>[[vm.getLastUpdate('HH:mm')]]</span>
+        </div>
+    </span>
 </a>

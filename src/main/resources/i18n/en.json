@@ -145,6 +145,7 @@
 
     "calendar.from.url": "From the URL",
     "calendar.name": "Calendar name",
-    "calendar.add": "Add calendar"
+    "calendar.add": "Add calendar",
+    "calendar.last.update": "Last update"
 
 }
