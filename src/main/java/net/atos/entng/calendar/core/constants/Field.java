@@ -121,4 +121,7 @@ public class Field {
     public static final String TITLE = "title";
     public static final String BODY = "body";
     public static final String PUSHNOTIF = "pushNotif";
+
+    //External calendars fields
+    public static final String URL = "url";
 }
