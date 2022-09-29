@@ -4,6 +4,9 @@ import {Rights, notify, Shareable, Behaviours, _, idiom as lang, moment} from 'e
 import {Mix, Selectable, Selection} from "entcore-toolkit";
 import {CalendarEventService, calendarEventService, calendarService} from "../services";
 import {PLATFORM} from "../core/enum/platform.enum";
+import {extend} from "angular";
+import {DateUtils} from "../utils/date.utils";
+import {FORMAT} from "../core/const/date-format";
 
 export class Calendar implements Selectable, Shareable {
     _id: string;
@@ -18,6 +21,7 @@ export class Calendar implements Selectable, Shareable {
     isExternal: boolean;
     icsLink: string;
     icsLinkPlatform: string;
+    updated: string;
 
     constructor(calendar?) {
         this.calendarEvents = new CalendarEvents(this);
@@ -26,6 +30,10 @@ export class Calendar implements Selectable, Shareable {
         if (!_.isEmpty(calendar)) {
             this.myRights.fromBehaviours();
             Mix.extend(this, Behaviours.applicationsBehaviours.calendar.resourceRights(calendar));
+            // calendar.updated['$date'] is a number (timestamp)
+            if (calendar.updated && calendar.updated['$date']) {
+                this.updated = DateUtils.getFormattedDate(calendar.updated['$date'], FORMAT.formattedISODate);
+            }
         }
     }
 
