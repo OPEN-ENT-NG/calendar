@@ -112,6 +112,7 @@ public class CalendarController extends MongoDbControllerHelper {
     @Trace(Actions.CREATE_CALENDAR)
     public void createCalendar(final HttpServerRequest request) {
         RequestUtils.bodyToJson(request, pathPrefix + "calendar", object -> {
+            String url = request.params().get(Field.URL);
             super.create(request, r -> {
                 if (r.succeeded()) {
                     eventHelper.onCreateResource(request, RESOURCE_NAME);
@@ -146,6 +147,15 @@ public class CalendarController extends MongoDbControllerHelper {
                     }
                 })
                 .onFailure(err -> renderError(request));
+    }
+
+    @Put("/:id/ical")
+    @SecuredAction("calendar.create")
+    @Trace(Actions.SYNC_EXTERNAL_CALENDAR)
+    public void syncExternalCalendar(final HttpServerRequest request) {
+        String calendar = request.params().get(Field.ID);
+        String url = request.params().get(Field.URL);
+        //processing method here
     }
 
     @Get("/share/json/:id")
