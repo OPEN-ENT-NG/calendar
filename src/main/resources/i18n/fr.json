@@ -190,5 +190,6 @@
 
     "calendar.from.url": "A partir d'une URL",
     "calendar.name": "Nom de l'agenda",
-    "calendar.add": "Ajouter l'agenda"
+    "calendar.add": "Ajouter l'agenda",
+    "calendar.last.update": "Dernière mise à jour"
 }
