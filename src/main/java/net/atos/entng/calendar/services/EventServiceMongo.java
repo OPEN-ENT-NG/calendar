@@ -57,6 +57,13 @@ public interface EventServiceMongo {
 
     void findOne(String Collection, QueryBuilder query, Handler<Either<String, JsonObject>> handler);
 
+    /**
+     * Gets a calendarEvent from its id
+     * @param eventId the id of the event {@link String}
+     * @return {@link JsonObject} the calendar event
+     */
+    Future<JsonObject> getCalendarEventById(String eventId);
+
     void getCalendarEventById(String eventId, Handler<Either<String, JsonObject>> handler);
 
     /**

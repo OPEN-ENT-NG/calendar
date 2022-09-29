@@ -29,6 +29,7 @@ public class Field {
     public static final String ENDMOMENT = "endMoment";
     // calendars
     public static final String CALENDARS = "calendars";
+    public static final String CALENDAR = "calendar";
     // Owner
     public static final String OWNER = "owner";
     //Calendar id
@@ -124,4 +125,6 @@ public class Field {
 
     //External calendars fields
     public static final String URL = "url";
+    public static final String ISEXTERNAL = "isExternal";
+    public static final String ICSLINK = "icsLink";
 }

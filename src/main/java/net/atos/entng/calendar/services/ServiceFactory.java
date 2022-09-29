@@ -35,6 +35,6 @@ public class ServiceFactory {
     }
 
     public CalendarService calendarService() {
-       return new CalendarServiceImpl(Calendar.CALENDAR_COLLECTION, mongoDb);
+        return new CalendarServiceImpl(Calendar.CALENDAR_COLLECTION, mongoDb);
     }
 }
