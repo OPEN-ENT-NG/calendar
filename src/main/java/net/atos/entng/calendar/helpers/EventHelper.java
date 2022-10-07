@@ -121,32 +121,44 @@ public class EventHelper extends MongoDbControllerHelper {
                 final String calendarId = request.params().get(CALENDAR_ID_PARAMETER);
                 if (user != null) {
                     RequestUtils.bodyToJson(request, (Handler<JsonObject>) object -> {
+                        calendarService.hasExternalCalendarId(object.getJsonArray("calendar")
+                                        .stream().map((Object::toString))
+                                        .collect(Collectors.toList()))
+                                .onSuccess(isExternal -> {
+                                    if(Boolean.FALSE.equals(isExternal)) {
+                                        if (isEventValid(object, request)) {
+                                            RbsHelper.saveBookingsInRbs(request, object, user, config, eb).onComplete(e ->
+                                                    eventService.create(calendarId, object, user, event -> {
+                                                        if (event.isRight()) {
+                                                            JsonObject eventId = event.right().getValue();
+                                                            final JsonObject message = new JsonObject();
+                                                            message.put(Field._ID, calendarId);
+                                                            message.put(Field.EVENTID, eventId.getString("_id"));
+                                                            message.put(Field.START_DATE, (String) null);
+                                                            message.put(Field.END_DATE, (String) null);
+                                                            message.put(Field.SENDNOTIF, object.getBoolean(Field.SENDNOTIF, null));
+                                                            notifyEventCreatedOrUpdated(request, user, message, true);
+                                                            renderJson(request, event.right().getValue(), 200);
+                                                            eventHelper.onCreateResource(request, RESOURCE_NAME);
+                                                        } else if (event.isLeft()) {
+                                                            log.error("[Calendar@EventHelper::create] Error when getting notification informations.");
+                                                        }
+                                                    })
+                                            );
 
-                        if (isEventValid(object, request)) {
-                            RbsHelper.saveBookingsInRbs(request, object, user, config, eb).onComplete(e ->
-                                eventService.create(calendarId, object, user, event -> {
-                                    if (event.isRight()) {
-                                        JsonObject eventId = event.right().getValue();
-                                        final JsonObject message = new JsonObject();
-                                        message.put(Field._ID, calendarId);
-                                        message.put(Field.EVENTID, eventId.getString("_id"));
-                                        message.put(Field.START_DATE, (String) null);
-                                        message.put(Field.END_DATE, (String) null);
-                                        message.put(Field.SENDNOTIF, object.getBoolean(Field.SENDNOTIF, null));
-                                        notifyEventCreatedOrUpdated(request, user, message, true);
-                                        renderJson(request, event.right().getValue(), 200);
-                                        eventHelper.onCreateResource(request, RESOURCE_NAME);
-                                    } else if (event.isLeft()) {
-                                        log.error("[Calendar@EventHelper::create] Error when getting notification informations.");
+                                        } else {
+                                            log.error(String.format("[Calendar@EventHelper::create] " + "Submitted event is not valid"),
+                                                    I18n.getInstance().translate("calendar.error.date.saving", getHost(request), I18n.acceptLanguage(request)));
+                                            Renders.unauthorized(request);
+                                        }
+                                    } else {
+                                        unauthorized(request);
                                     }
                                 })
-                            );
+                                .onFailure(err -> {
+                                    renderError(request);
+                                });
 
-                        } else {
-                            log.error(String.format("[Calendar@EventHelper::create] " + "Submitted event is not valid"),
-                                    I18n.getInstance().translate("calendar.error.date.saving", getHost(request), I18n.acceptLanguage(request)));
-                            Renders.unauthorized(request);
-                        }
                     });
                 } else {
                     log.debug("User not found in session.");
@@ -167,22 +179,32 @@ public class EventHelper extends MongoDbControllerHelper {
                         public void handle(JsonObject object) {
                             final String eventId = request.params().get(EVENT_ID_PARAMETER);
                             final String calendarId = request.params().get(CALENDAR_ID_PARAMETER);
-                            crudService.update(eventId, object, user, new Handler<Either<String, JsonObject>>() {
-                                public void handle(Either<String, JsonObject> event) {
-                                    if (event.isRight()) {
-                                        final JsonObject message = new JsonObject();
-                                        message.put("id", calendarId);
-                                        message.put("eventId", eventId);
-                                        message.put("start_date", (String) null);
-                                        message.put("end_date", (String) null);
-                                        message.put("sendNotif", object.containsKey("sendNotif") ? object.getBoolean("sendNotif") : null);
-                                        notifyEventCreatedOrUpdated(request, user, message, false);
-                                        renderJson(request, event.right().getValue(), 200);
-                                    } else if (event.isLeft()) {
-                                        log.error("Error when getting notification informations.");
-                                    }
-                                }
-                            });
+                            isEventFromExternalCalendar(eventId)
+                                    .onSuccess(isExternal -> {
+                                        if(Boolean.FALSE.equals(isExternal)) {
+                                            crudService.update(eventId, object, user, new Handler<Either<String, JsonObject>>() {
+                                                public void handle(Either<String, JsonObject> event) {
+                                                    if (event.isRight()) {
+                                                        final JsonObject message = new JsonObject();
+                                                        message.put("id", calendarId);
+                                                        message.put("eventId", eventId);
+                                                        message.put("start_date", (String) null);
+                                                        message.put("end_date", (String) null);
+                                                        message.put("sendNotif", object.containsKey("sendNotif") ? object.getBoolean("sendNotif") : null);
+                                                        notifyEventCreatedOrUpdated(request, user, message, false);
+                                                        renderJson(request, event.right().getValue(), 200);
+                                                    } else if (event.isLeft()) {
+                                                        log.error("Error when getting notification informations.");
+                                                    }
+                                                }
+                                            });
+                                        } else {
+                                            unauthorized(request);
+                                        }
+                                    })
+                                    .onFailure(err -> {
+                                        renderError(request);
+                                    });
                         }
                     });
                 } else {
@@ -224,61 +246,84 @@ public class EventHelper extends MongoDbControllerHelper {
             final String eventId = request.params().get(EVENT_ID_PARAMETER);
             final Boolean deleteBookings = Boolean.parseBoolean(request.params().get(Field.DELETEBOOKINGS));
 
-            Future<JsonObject> getCalendarEventInfos = Boolean.TRUE.equals(deleteBookings) ? eventService.retrieve(calendarId, eventId, user)
-                    : Future.succeededFuture(new JsonObject());
+            isEventFromExternalCalendar(eventId)
+                    .onSuccess(isExternal -> {
+                        if(Boolean.FALSE.equals(isExternal)) {
+                            Future<JsonObject> getCalendarEventInfos = Boolean.TRUE.equals(deleteBookings) ? eventService.retrieve(calendarId, eventId, user)
+                                    : Future.succeededFuture(new JsonObject());
 
-            getCalendarEventInfos
-                .compose(event -> eventService.delete(calendarId, eventId, user))
-                .compose(result -> {
-                    if (!getCalendarEventInfos.result().isEmpty()) {
-                        return RbsHelper.checkAndDeleteBookingRights(user, getCalendarEventInfos.result(), eb);
-                    } else {
-                        return Future.succeededFuture(new JsonArray());
-                    }
-                })
-                .onSuccess(res -> {
-                    if (!res.isEmpty()) {
-                        List<JsonObject> failedDeletions = ((List<JsonObject>) res.getList()).stream()
-                                .filter((result) -> result.getString(Field.STATUS).equals(Field.ERROR))
-                                .collect(Collectors.toList());
-                        if (failedDeletions.size() > 0) {
-                            badRequest(request, I18n.getInstance().translate("calendar.rbs.sniplet.error.booking.deletion", getHost(request), I18n.acceptLanguage(request)));
-                            failedDeletions.forEach((failedDeletion) -> log.error(failedDeletion.getString(Field.MESSAGE)));
+                            getCalendarEventInfos
+                                    .compose(event -> eventService.delete(calendarId, eventId, user))
+                                    .compose(result -> {
+                                        if (!getCalendarEventInfos.result().isEmpty()) {
+                                            return RbsHelper.checkAndDeleteBookingRights(user, getCalendarEventInfos.result(), eb);
+                                        } else {
+                                            return Future.succeededFuture(new JsonArray());
+                                        }
+                                    })
+                                    .onSuccess(res -> {
+                                        if (!res.isEmpty()) {
+                                            List<JsonObject> failedDeletions = ((List<JsonObject>) res.getList()).stream()
+                                                    .filter((result) -> result.getString(Field.STATUS).equals(Field.ERROR))
+                                                    .collect(Collectors.toList());
+                                            if (failedDeletions.size() > 0) {
+                                                badRequest(request, I18n.getInstance().translate("calendar.rbs.sniplet.error.booking.deletion", getHost(request), I18n.acceptLanguage(request)));
+                                                failedDeletions.forEach((failedDeletion) -> log.error(failedDeletion.getString(Field.MESSAGE)));
+                                            }
+                                        }
+                                        ok(request);
+                                    })
+                                    .onFailure(err -> renderError(request));
+                        } else {
+                            unauthorized(request);
                         }
-                    }
-                    ok(request);
-                })
-                .onFailure(err -> renderError(request));
+                    })
+                    .onFailure(err -> {
+                        renderError(request);
+                    });
+
+
         });
     }
 
 
     public void getIcal(final HttpServerRequest request) {
-
         UserUtils.getUserInfos(eb, request, new Handler<UserInfos>() {
             @Override
             public void handle(final UserInfos user) {
                 final String calendarId = request.params().get(CALENDAR_ID_PARAMETER);
-                eventService.getIcal(calendarId, user, new Handler<Message<JsonObject>>() {
-                    @Override
-                    public void handle(Message<JsonObject> reply) {
-                        log.warn("Handling response");
-                        JsonObject response = reply.body();
-                        String content = response.getString("ics");
-                        try {
-                            File f = File.createTempFile(calendarId, "ics");
-                            Files.write(Paths.get(f.getAbsolutePath()), content.getBytes());
-                            request.response().putHeader("Content-Type", "text/calendar");
-                            request.response().putHeader("Content-disposition", "attachment; filename=\"" + calendarId + ".ics\"");
+                calendarService.hasExternalCalendarId(Collections.singletonList(calendarId))
+                        .onSuccess(isExternal -> {
+                            if(Boolean.FALSE.equals(isExternal)) {
+                                eventService.getIcal(calendarId, user, new Handler<Message<JsonObject>>() {
+                                    @Override
+                                    public void handle(Message<JsonObject> reply) {
+                                        log.warn("Handling response");
+                                        JsonObject response = reply.body();
+                                        String content = response.getString("ics");
+                                        try {
+                                            File f = File.createTempFile(calendarId, "ics");
+                                            Files.write(Paths.get(f.getAbsolutePath()), content.getBytes());
+                                            request.response().putHeader("Content-Type", "text/calendar");
+                                            request.response().putHeader("Content-disposition", "attachment; filename=\"" + calendarId + ".ics\"");
 
-                            request.response().sendFile(f.getAbsolutePath());
+                                            request.response().sendFile(f.getAbsolutePath());
 
-                        } catch (IOException e) {
-                            // TODO Auto-generated catch block
-                            e.printStackTrace();
-                        }
-                    }
-                });
+                                        } catch (IOException e) {
+                                            // TODO Auto-generated catch block
+                                            e.printStackTrace();
+                                        }
+                                    }
+                                });
+                            } else {
+                                unauthorized(request);
+                            }
+                        })
+                        .onFailure(err -> {
+                            renderError(request);
+                        });
+
+
             }
         });
     }
@@ -292,10 +337,20 @@ public class EventHelper extends MongoDbControllerHelper {
                 RequestUtils.bodyToJson(request, new Handler<JsonObject>() {
                     @Override
                     public void handle(JsonObject object) {
-                        String icsContent = object.getString(Field.ICS);
-                        JsonObject requestInfo = new JsonObject();
-                        requestInfo.put(Field.DOMAIN, getHost(request)).put(Field.ACCEPTLANGUAGE, I18n.acceptLanguage(request));
-                        eventService.importIcal(calendarId, icsContent, user, requestInfo, defaultResponseHandler(request));
+                        calendarService.hasExternalCalendarId(Collections.singletonList(calendarId))
+                                .onSuccess(isExternal -> {
+                                    if(Boolean.FALSE.equals(isExternal)) {
+                                        String icsContent = object.getString(Field.ICS);
+                                        JsonObject requestInfo = new JsonObject();
+                                        requestInfo.put(Field.DOMAIN, getHost(request)).put(Field.ACCEPTLANGUAGE, I18n.acceptLanguage(request));
+                                        eventService.importIcal(calendarId, icsContent, user, requestInfo, defaultResponseHandler(request));
+                                    } else {
+                                        unauthorized(request);
+                                    }
+                                })
+                                .onFailure(err -> {
+                                    renderError(request);
+                                });
                     }
                 });
 
@@ -932,6 +987,24 @@ public class EventHelper extends MongoDbControllerHelper {
 
             promise.complete(result.right().getValue());
         }));
+
+        return promise.future();
+    }
+
+    @SuppressWarnings("unchecked")
+    public Future<Boolean> isEventFromExternalCalendar(String calendarEventId) {
+        Promise<Boolean> promise = Promise.promise();
+
+        this.eventService.getCalendarEventById(calendarEventId)
+                .compose( calendarEvent ->
+                    this.calendarService.hasExternalCalendarId((
+                            (List<String>) calendarEvent.getJsonArray(Field.CALENDAR).getList()))
+                )
+                .onFailure(err -> {
+                    promise.fail(err.getMessage());
+                    log.error(err.getMessage());
+                })
+                .onSuccess(promise::complete);
 
         return promise.future();
     }

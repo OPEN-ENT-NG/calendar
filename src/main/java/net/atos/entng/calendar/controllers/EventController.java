@@ -29,6 +29,7 @@ import net.atos.entng.calendar.helpers.EventHelper;
 
 import net.atos.entng.calendar.security.CustomWidgetFilter;
 import net.atos.entng.calendar.security.ShareEventConf;
+import net.atos.entng.calendar.services.CalendarService;
 import net.atos.entng.calendar.services.ServiceFactory;
 import org.entcore.common.http.filter.ResourceFilter;
 import org.entcore.common.http.filter.Trace;
@@ -50,11 +51,13 @@ import java.util.List;
 public class EventController extends MongoDbControllerHelper {
 
     private final EventHelper eventHelper;
+    private final CalendarService calendarService;
     private final Storage storage;
 
     public EventController(String collection, CrudService eventService, ServiceFactory serviceFactory, TimelineHelper timelineHelper,
                            Storage storage, EventBus eb, JsonObject config) {
         super(collection);
+        this.calendarService = serviceFactory.calendarService();
         eventHelper = new EventHelper(collection, eventService, serviceFactory, timelineHelper, eb, config);
         this.storage = storage;
     }
@@ -127,20 +130,30 @@ public class EventController extends MongoDbControllerHelper {
                             return;
                         }
 
-                        JsonObject params = new JsonObject();
-                        params.put("profilUri", "/userbook/annuaire#" + user.getUserId() + "#" + user.getType());
-                        params.put("username", user.getUsername());
-                        params.put("eventUri", "/calendar#/view/" + id);
-                        params.put("resourceUri", params.getString("eventUri"));
+                        eventHelper.isEventFromExternalCalendar(id)
+                                .onSuccess(isExternal -> {
+                                    if(Boolean.FALSE.equals(isExternal)) {
+                                        JsonObject params = new JsonObject();
+                                        params.put("profilUri", "/userbook/annuaire#" + user.getUserId() + "#" + user.getType());
+                                        params.put("username", user.getUsername());
+                                        params.put("eventUri", "/calendar#/view/" + id);
+                                        params.put("resourceUri", params.getString("eventUri"));
 
-                        JsonObject pushNotif = new JsonObject()
-                                .put("title", "push.notif.calendar.share")
-                                .put("body", user.getUsername() + " " + I18n.getInstance().translate("calendar.shared.push.notif.body",
-                                        getHost(request), I18n.acceptLanguage(request)));
+                                        JsonObject pushNotif = new JsonObject()
+                                                .put("title", "push.notif.calendar.share")
+                                                .put("body", user.getUsername() + " " + I18n.getInstance().translate("calendar.shared.push.notif.body",
+                                                        getHost(request), I18n.acceptLanguage(request)));
 
-                        params.put("pushNotif", pushNotif);
-                        shareResource(request, "calendar.share", false, params, "title");
-                        eventHelper.addEventToUsersCalendar(id, body, user, host, lang);
+                                        params.put("pushNotif", pushNotif);
+                                        shareResource(request, "calendar.share", false, params, "title");
+                                        eventHelper.addEventToUsersCalendar(id, body, user, host, lang);
+                                    } else {
+                                        unauthorized(request);
+                                    }
+                                })
+                                .onFailure(err -> {
+                                    renderError(request);
+                                });
                     }
                 }));
     }
