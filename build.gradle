@@ -57,6 +57,7 @@ compileTestJava {
 }
 dependencies {
   compileOnly "io.vertx:vertx-core:$vertxVersion"
+  compile "io.vertx:vertx-web-client:$vertxVersion"
   compile "org.entcore:common:$entCoreVersion"
   compile "org.mnode.ical4j:ical4j:2.0.2"
   testCompile "io.vertx:vertx-unit:$vertxVersion"
