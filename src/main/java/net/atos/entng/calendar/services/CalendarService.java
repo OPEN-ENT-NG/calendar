@@ -32,6 +32,14 @@ public interface CalendarService {
     Future<JsonArray> list(List<String> calendarIds);
 
     /**
+     * Returns external calendars from id list
+     * @param calendarIds the calendar ids {@link List<String>}
+     * @param isExternal whether we want the calendar to be external or not {@link Boolean}
+     * @return {@link Future<JsonArray>} the calendars that fit the criteria
+     */
+    Future<JsonArray> list(List<String> calendarIds, Boolean isExternal);
+
+    /**
      * Get Default Calendar
      *
      * @param user {@link UserInfos}
@@ -58,4 +66,11 @@ public interface CalendarService {
      */
     Future<Boolean> isDefaultCalendar(String calendarId);
 
+    /**
+     * Array Contains External Calendar
+     *
+     * @param calendarIds ids of the checked calendars {@link List<String>}
+     * @return Future {@link Future<Boolean>} telling if at least one calendar is external
+     */
+    Future<Boolean> hasExternalCalendarId(List<String> calendarIds);
 }

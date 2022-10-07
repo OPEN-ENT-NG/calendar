@@ -18,18 +18,16 @@
  */
 
 package net.atos.entng.calendar.services.impl;
-import static fr.wseduc.webutils.http.Renders.getHost;
 import static org.entcore.common.mongodb.MongoDbResult.*;
 
+import com.mongodb.DBObject;
 import fr.wseduc.webutils.I18n;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
-import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import net.atos.entng.calendar.core.constants.Field;
-import net.atos.entng.calendar.models.User;
 import net.atos.entng.calendar.services.CalendarService;
 
 import org.entcore.common.user.UserInfos;
@@ -40,6 +38,8 @@ import com.mongodb.QueryBuilder;
 import fr.wseduc.mongodb.MongoDb;
 import fr.wseduc.mongodb.MongoQueryBuilder;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 
@@ -61,7 +61,6 @@ public class CalendarServiceImpl implements CalendarService {
         // Query
         QueryBuilder query = QueryBuilder.start("_id").in(calendarIds);
         JsonObject sort = new JsonObject().put("modified", -1);
-
         // Projection
         JsonObject projection = new JsonObject();
 
@@ -79,6 +78,43 @@ public class CalendarServiceImpl implements CalendarService {
         return promise.future();
     }
 
+    public Future<JsonArray> list(List<String> calendarIds, Boolean isExternal) {
+        Promise<JsonArray> promise = Promise.promise();
+
+        List<DBObject> queryList = new ArrayList<>();
+
+        // filter by ids
+        QueryBuilder query = QueryBuilder.start("_id").in(calendarIds);
+
+
+        // if a calendar is external it contains "isExternal" = true and a string icsUrl
+        if (Boolean.TRUE.equals(isExternal)) {
+            query.or(
+                QueryBuilder.start(Field.ISEXTERNAL).is(true).get(),
+                QueryBuilder.start(Field.ICSLINK).notIn(new String[]{"", null}).get()
+            );
+        }
+
+        queryList.add(query.get());
+
+        JsonObject sort = new JsonObject().put("modified", -1);
+
+        // Projection
+        JsonObject projection = new JsonObject();
+
+        mongo.find(this.collection, MongoQueryBuilder.build(query), sort, projection, validResultsHandler(event -> {
+            if (event.isLeft()) {
+                String message = String.format("[Calendar@%s::list] An error has occured" +
+                        " during fetch calendars: %s", this.getClass().getSimpleName(), event.left().getValue());
+                log.error(message, event.left().getValue());
+                promise.fail(event.left().getValue());
+            } else {
+                promise.complete(event.right().getValue());
+            }
+        }));
+
+        return promise.future();
+    }
     @Override
     public Future<JsonObject> getDefaultCalendar(UserInfos user) {
         Promise<JsonObject> promise = Promise.promise();
@@ -155,6 +191,23 @@ public class CalendarServiceImpl implements CalendarService {
             }
             promise.complete(result.right().getValue());
         }));
+    }
+
+    public Future<Boolean> hasExternalCalendarId(List<String> calendarIds) {
+        Promise<Boolean> promise = Promise.promise();
+
+        this.list(calendarIds, true)
+                .onSuccess(result -> {
+                    boolean isExternal = !result.isEmpty();
+                    promise.complete(isExternal);
+                })
+                .onFailure(err -> {
+                    log.error("[Calendar@CalendarService::hasExternalCalendarId]: an error has occurred while checking external calendars: ",
+                            err.getMessage());
+                    promise.fail(err.getMessage());
+                });
+
+        return promise.future();
     }
 
 
