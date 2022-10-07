@@ -30,6 +30,7 @@ import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.json.JsonObject;
 import net.atos.entng.calendar.core.constants.Actions;
 import net.atos.entng.calendar.core.constants.Field;
+import net.atos.entng.calendar.core.constants.Rights;
 import net.atos.entng.calendar.security.ShareEventConf;
 import net.atos.entng.calendar.services.CalendarService;
 import net.atos.entng.calendar.services.ServiceFactory;
@@ -47,6 +48,7 @@ import org.entcore.common.user.UserUtils;
 import org.vertx.java.core.http.RouteMatcher;
 
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.Map;
 
 public class CalendarController extends MongoDbControllerHelper {
@@ -149,8 +151,8 @@ public class CalendarController extends MongoDbControllerHelper {
                 .onFailure(err -> renderError(request));
     }
 
-    @Put("/:id/ical")
-    @SecuredAction("calendar.create")
+    @Put("/:id/url")
+    @SecuredAction(Rights.SYNC)
     @Trace(Actions.SYNC_EXTERNAL_CALENDAR)
     public void syncExternalCalendar(final HttpServerRequest request) {
         String calendar = request.params().get(Field.ID);
@@ -221,30 +223,40 @@ public class CalendarController extends MongoDbControllerHelper {
                     return;
                 }
                 request.pause();
-                calendarService.isDefaultCalendar(id)
-                        .onSuccess(res -> {
-                            request.resume();
-                            if (Boolean.FALSE.equals(res)) {
-                                JsonObject params = new JsonObject();
-                                params.put(Field.PROFILURI, "/userbook/annuaire#" + user.getUserId() + "#" + user.getType());
-                                params.put(Field.USERNAME, user.getUsername());
-                                params.put(Field.CALENDARID, "/calendar#/view/" + id);
-                                params.put(Field.RESOURCEURI, params.getString(Field.CALENDARID));
+                calendarService.hasExternalCalendarId(Collections.singletonList(id))
+                        .onSuccess(isExternal -> {
+                            if(Boolean.FALSE.equals(isExternal)) {
+                                calendarService.isDefaultCalendar(id)
+                                        .onSuccess(res -> {
+                                            request.resume();
+                                            if (Boolean.FALSE.equals(res)) {
+                                                JsonObject params = new JsonObject();
+                                                params.put(Field.PROFILURI, "/userbook/annuaire#" + user.getUserId() + "#" + user.getType());
+                                                params.put(Field.USERNAME, user.getUsername());
+                                                params.put(Field.CALENDARID, "/calendar#/view/" + id);
+                                                params.put(Field.RESOURCEURI, params.getString(Field.CALENDARID));
 
-                                JsonObject pushNotif = new JsonObject()
-                                        .put(Field.TITLE, "push.notif.calendar.share")
-                                        .put(Field.BODY, user.getUsername() + " " + I18n.getInstance().translate("calendar.shared.push.notif.body",
-                                                getHost(request), I18n.acceptLanguage(request)));
+                                                JsonObject pushNotif = new JsonObject()
+                                                        .put(Field.TITLE, "push.notif.calendar.share")
+                                                        .put(Field.BODY, user.getUsername() + " " + I18n.getInstance().translate("calendar.shared.push.notif.body",
+                                                                getHost(request), I18n.acceptLanguage(request)));
 
-                                params.put(Field.PUSHNOTIF, pushNotif);
-                                shareResource(request, "calendar.share", false, params, Field.TITLE);
+                                                params.put(Field.PUSHNOTIF, pushNotif);
+                                                shareResource(request, "calendar.share", false, params, Field.TITLE);
 
+                                            } else {
+                                                unauthorized(request);
+                                            }
+                                        })
+                                        .onFailure(err -> {
+                                            request.resume();
+                                            renderError(request);
+                                        });
                             } else {
                                 unauthorized(request);
                             }
                         })
                         .onFailure(err -> {
-                            request.resume();
                             renderError(request);
                         });
             } else {

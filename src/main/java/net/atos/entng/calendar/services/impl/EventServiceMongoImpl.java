@@ -35,6 +35,7 @@ import io.vertx.core.Promise;
 import net.atos.entng.calendar.core.constants.Field;
 import net.atos.entng.calendar.helpers.FutureHelper;
 import net.atos.entng.calendar.ical.ICalHandler;
+import net.atos.entng.calendar.services.CalendarService;
 import net.atos.entng.calendar.services.EventServiceMongo;
 import net.atos.entng.calendar.services.ServiceFactory;
 import net.fortuna.ical4j.util.UidGenerator;
@@ -62,12 +63,14 @@ public class EventServiceMongoImpl extends MongoDbCrudService implements EventSe
 
     private final EventBus eb;
     private final UserService userService;
+    private final CalendarService calendarService;
     protected static final Logger log = LoggerFactory.getLogger(CalendarServiceImpl.class);
 
     public EventServiceMongoImpl(String collection, EventBus eb, ServiceFactory serviceFactory) {
         super(collection);
         this.eb = eb;
         this.userService = serviceFactory.userService();
+        this.calendarService = serviceFactory.calendarService();
     }
 
     /**
@@ -373,6 +376,19 @@ public class EventServiceMongoImpl extends MongoDbCrudService implements EventSe
     public void findOne(String collection, QueryBuilder query, Handler<Either<String, JsonObject>> handler) {
         JsonObject projection = new JsonObject();
         mongo.findOne(collection, MongoQueryBuilder.build(query), validResultHandler(handler));
+    }
+
+    @Override
+    public Future<JsonObject> getCalendarEventById(String eventId) {
+        Promise<JsonObject> promise = Promise.promise();
+        getCalendarEventById(eventId, event -> {
+            if (event.isLeft()) {
+                promise.fail(event.left().getValue());
+            } else {
+                promise.complete(event.right().getValue());
+            }
+        });
+        return promise.future();
     }
 
     @Override
