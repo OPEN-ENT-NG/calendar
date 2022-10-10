@@ -1,9 +1,11 @@
 i {
   &.attachment::before {
     content: "\e805";
+    font-family: 'generic-icons';
   }
 
   &.cross::before {
     content: "\e866";
+    font-family: 'generic-icons';
   }
 }
