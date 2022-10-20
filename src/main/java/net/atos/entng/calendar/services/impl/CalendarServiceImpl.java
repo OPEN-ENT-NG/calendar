@@ -21,6 +21,7 @@ package net.atos.entng.calendar.services.impl;
 import static org.entcore.common.mongodb.MongoDbResult.*;
 
 import com.mongodb.DBObject;
+import fr.wseduc.mongodb.MongoUpdateBuilder;
 import fr.wseduc.webutils.I18n;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
@@ -203,6 +204,55 @@ public class CalendarServiceImpl implements CalendarService {
                 })
                 .onFailure(err -> {
                     log.error("[Calendar@CalendarService::hasExternalCalendarId]: an error has occurred while checking external calendars: ",
+                            err.getMessage());
+                    promise.fail(err.getMessage());
+                });
+
+        return promise.future();
+    }
+
+    public Future<Void> update(String calendarId, JsonObject body, Boolean isSync) {
+        Promise<Void> promise = Promise.promise();
+        // Query
+        QueryBuilder query = QueryBuilder.start(Field._ID).is(calendarId);
+
+        // Modifier
+        MongoUpdateBuilder modifier = new MongoUpdateBuilder();
+        for (String attribute : body.fieldNames()) {
+            modifier.set(attribute, body.getValue(attribute));
+        }
+        JsonObject now = MongoDb.now();
+        modifier.set(Field.MODIFIED, now);
+
+        if(Boolean.TRUE.equals(isSync)) {
+            modifier.set(Field.UPDATED, now);
+        }
+
+        mongo.update(this.collection, MongoQueryBuilder.build(query), modifier.build(), validResultHandler(result -> {
+            if(result.isLeft()) {
+                log.error("[Calendar@CalendarService::update]: an error has occurred while updating calendar: ",
+                        result.left().getValue());
+                promise.fail(result.left().getValue());
+                return;
+            } else {
+                promise.complete();
+            }
+        }));
+
+        return promise.future();
+    }
+
+    public Future<Boolean> checkBooleanField(String calendarId, String field) {
+        Promise<Boolean> promise = Promise.promise();
+
+        this.list(Collections.singletonList(calendarId))
+                .onSuccess(result -> {
+                    Boolean fieldValue = (result != null && !result.isEmpty()) ?
+                            result.getJsonObject(0).getBoolean(field, null) : null;
+                    promise.complete(fieldValue);
+                })
+                .onFailure(err -> {
+                    log.error("[Calendar@CalendarService::checkBooleanField]: an error has occurred while checking calendar boolean field: ",
                             err.getMessage());
                     promise.fail(err.getMessage());
                 });

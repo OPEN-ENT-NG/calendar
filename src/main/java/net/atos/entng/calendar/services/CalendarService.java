@@ -73,4 +73,24 @@ public interface CalendarService {
      * @return Future {@link Future<Boolean>} telling if at least one calendar is external
      */
     Future<Boolean> hasExternalCalendarId(List<String> calendarIds);
-}
+
+    /**
+     * Updates calendar
+     *
+     * @param calendarId id of the calendar {@link String}
+     * @param body the fields to change {@link JsonObject}
+     * @param isSync whether the update is part of the sync process {@link Boolean}
+     * @return Future {@link Future<JsonObject>} the updated calendar
+     */
+    Future<Void> update(String calendarId, JsonObject body, Boolean isSync);
+
+    /**
+     * Checks the value of a boolean field in the calendar
+     *
+     * @param calendarId id of the calendar {@link String}
+     * @param field the field to check {@link String}
+     * @return Future {@link Future<JsonObject>} the field value
+     */
+    Future<Boolean> checkBooleanField(String calendarId, String field);
+
+    }

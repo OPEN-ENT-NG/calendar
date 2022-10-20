@@ -177,9 +177,12 @@ public class EventServiceMongoImpl extends MongoDbCrudService implements EventSe
 
         return eventsFilterByDate;
     }
-
     @Override
     public void create(String calendarId, JsonObject body, UserInfos user, Handler<Either<String, JsonObject>> handler) {
+        create(calendarId, body, user, null, handler);
+    }
+
+    public void create(String calendarId, JsonObject body, UserInfos user, String collection, Handler<Either<String, JsonObject>> handler) {
         // Clean data
         body.remove("_id");
 
@@ -202,7 +205,8 @@ public class EventServiceMongoImpl extends MongoDbCrudService implements EventSe
         if (body.getValue("calendar") == null) {
             body.put("calendar", new JsonArray().add(calendarId));
         }
-        mongo.save(this.collection, body, validActionResultHandler(handler));
+
+        mongo.save((collection != null) ? collection : this.collection, body, validActionResultHandler(handler));
     }
 
     @Override
@@ -302,6 +306,20 @@ public class EventServiceMongoImpl extends MongoDbCrudService implements EventSe
 
     @Override
     public void importIcal(final String calendarId, String ics, final UserInfos user, JsonObject requestInfo, final Handler<Either<String, JsonObject>> handler) {
+        importIcal(calendarId, ics, user, requestInfo, null, handler);
+    }
+
+    @Override
+    public Future<JsonObject> importIcal(final String calendarId, String ics, final UserInfos user, JsonObject requestInfo, String collection) {
+        Promise<JsonObject> promise = Promise.promise();
+
+        this.importIcal(calendarId, ics, user, requestInfo, collection, FutureHelper.handlerJsonObject(promise));
+
+        return promise.future();
+    }
+
+    @Override
+    public void importIcal(final String calendarId, String ics, final UserInfos user, JsonObject requestInfo, String collection, final Handler<Either<String, JsonObject>> handler) {
         final JsonObject message = new JsonObject();
         message.put(Field.ACTION, ICalHandler.ACTION_PUT);
         message.put(Field.CALENDARID, calendarId);
@@ -334,7 +352,7 @@ public class EventServiceMongoImpl extends MongoDbCrudService implements EventSe
                             public void handle(Either<String, JsonObject> event) {
                                 // No existing event found
                                 if (event.isRight() && event.right().getValue().size() == 0) {
-                                    eventService.create(calendarId, calendarEvent, user, new Handler<Either<String, JsonObject>>() {
+                                    eventService.create(calendarId, calendarEvent, user, collection, new Handler<Either<String, JsonObject>>() {
                                         @Override
                                         public void handle(Either<String, JsonObject> event) {
                                             i.subtract(1);

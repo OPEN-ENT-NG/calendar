@@ -37,6 +37,8 @@ public interface EventServiceMongo {
 
     void create(String calendarId, JsonObject body, UserInfos user, Handler<Either<String, JsonObject>> handler);
 
+    void create(String calendarId, JsonObject body, UserInfos user, String collection, Handler<Either<String, JsonObject>> handler);
+
     void retrieve(String calendarId, String eventId, UserInfos user, Handler<Either<String, JsonObject>> handler);
 
     Future<JsonObject> retrieve(String calendarId, String eventId, UserInfos user);
@@ -54,6 +56,10 @@ public interface EventServiceMongo {
     void getIcal(String calendarId, UserInfos user, Handler<Message<JsonObject>> handler);
     
     void importIcal(String calendarId, String ics, UserInfos user, JsonObject requestInfo, Handler<Either<String, JsonObject>> handler);
+
+    Future<JsonObject> importIcal(String calendarId, String ics, UserInfos user, JsonObject requestInfo, String collection);
+
+    void importIcal(String calendarId, String ics, UserInfos user, JsonObject requestInfo, String collection, Handler<Either<String, JsonObject>> handler);
 
     void findOne(String Collection, QueryBuilder query, Handler<Either<String, JsonObject>> handler);
 
