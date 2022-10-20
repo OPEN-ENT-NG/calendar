@@ -22,10 +22,14 @@ package net.atos.entng.calendar;
 import fr.wseduc.mongodb.MongoDb;
 import fr.wseduc.webutils.Server;
 import io.vertx.core.DeploymentOptions;
+import io.vertx.core.json.JsonObject;
+import io.vertx.ext.web.client.WebClient;
+import io.vertx.ext.web.client.WebClientOptions;
 import net.atos.entng.calendar.controllers.CalendarController;
 import net.atos.entng.calendar.controllers.EventController;
 import net.atos.entng.calendar.event.CalendarRepositoryEvents;
 import net.atos.entng.calendar.event.CalendarSearchingEvents;
+import net.atos.entng.calendar.ical.ExternalImportICal;
 import net.atos.entng.calendar.ical.ICalHandler;
 import net.atos.entng.calendar.services.CalendarService;
 import net.atos.entng.calendar.services.ServiceFactory;
@@ -56,7 +60,7 @@ public class Calendar extends BaseServer {
     @Override
     public void start() throws Exception {
         super.start();
-        ServiceFactory serviceFactory = new ServiceFactory(vertx, Neo4j.getInstance(), Sql.getInstance(), MongoDb.getInstance());
+        ServiceFactory serviceFactory = new ServiceFactory(vertx, Neo4j.getInstance(), Sql.getInstance(), MongoDb.getInstance(), initWebclient());
         CrudService eventService = new EventServiceMongoImpl(CALENDAR_EVENT_COLLECTION, vertx.eventBus(), serviceFactory);
 
         final MongoDbConf conf = MongoDbConf.getInstance();
@@ -75,8 +79,19 @@ public class Calendar extends BaseServer {
         }
         EventBus eb = Server.getEventBus(vertx);
         final TimelineHelper timelineHelper = new TimelineHelper(vertx, eb, config);
-        addController(new CalendarController(CALENDAR_COLLECTION, serviceFactory));
+        addController(new CalendarController(CALENDAR_COLLECTION, serviceFactory, eb));
         addController(new EventController(CALENDAR_EVENT_COLLECTION, eventService, serviceFactory, timelineHelper, storage, eb, config));
+
+        // External Import Calendar services
+        vertx.deployVerticle(ExternalImportICal.class, new DeploymentOptions().setConfig(config).setWorker(true));
+
+    }
+
+    private WebClient initWebclient() {
+        WebClientOptions options = new WebClientOptions();
+        options.setSsl(true);
+        options.setTrustAll(true);
+        return WebClient.create(vertx, options);
     }
     
 }

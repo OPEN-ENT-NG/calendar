@@ -10,15 +10,24 @@ public class Field {
 
     //id
     public static final String ID = "id";
+    public static final String CREATED = "created";
+    public static final String MODIFIED = "modified";
+
+    public static final String REQUEST = "request";
+    public static final String USERID = "userId";
+    public static final String DISPLAYNAME = "displayName";
 
     //Calendar infos
 
     public static final String CALENDARID = "calendarId";
     public static final String IS_DEFAULT = "is_default";
+    public static final String UPDATED = "updated";
+    public static final String ISUPDATING = "isUpdating";
 
 
     //Event infos
-
+    //collection
+    public static final String CALENDAREVENT = "calendarevent";
     // event
     public static final String calendarEvent = "calendarEvent";
     public static final String EVENTID = "eventid";
@@ -127,4 +136,8 @@ public class Field {
     public static final String URL = "url";
     public static final String ISEXTERNAL = "isExternal";
     public static final String ICSLINK = "icsLink";
+
+    //Http Methods
+    public static final String POST = "post";
+    public static final String PUT = "put";
 }
