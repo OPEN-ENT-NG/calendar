@@ -19,5 +19,7 @@ public class Actions {
     public static final String SHARE_EVENT = "SHARE_EVENT";
     public static final String IMPORT_ICAL = "IMPORT_ICAL";
     public static final String SYNC_EXTERNAL_CALENDAR = "SYNC_EXTERNAL_CALENDAR";
+    public static final String IMPORT_EXTERNAL_CALENDAR = "IMPORT_EXTERNAL_CALENDAR";
+    public static final String CHECK_EXTERNAL_CALENDAR = "CHECK_EXTERNAL_CALENDAR";
 
 }

@@ -23,21 +23,26 @@ import fr.wseduc.rs.*;
 import fr.wseduc.security.ActionType;
 import fr.wseduc.security.SecuredAction;
 import fr.wseduc.webutils.I18n;
+import fr.wseduc.webutils.http.Renders;
 import fr.wseduc.webutils.request.RequestUtils;
+import io.vertx.core.Future;
 import io.vertx.core.Handler;
+import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
+import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.json.JsonObject;
 import net.atos.entng.calendar.core.constants.Actions;
 import net.atos.entng.calendar.core.constants.Field;
 import net.atos.entng.calendar.core.constants.Rights;
+import net.atos.entng.calendar.core.enums.ExternalICalEventBusActions;
+import net.atos.entng.calendar.helpers.CalendarHelper;
 import net.atos.entng.calendar.security.ShareEventConf;
 import net.atos.entng.calendar.services.CalendarService;
 import net.atos.entng.calendar.services.ServiceFactory;
 import org.entcore.common.events.EventHelper;
 import org.entcore.common.events.EventStore;
 import org.entcore.common.events.EventStoreFactory;
-import org.entcore.common.http.filter.AdminFilter;
 import org.entcore.common.http.filter.ResourceFilter;
 import org.entcore.common.http.filter.SuperAdminFilter;
 import org.entcore.common.http.filter.Trace;
@@ -56,6 +61,8 @@ public class CalendarController extends MongoDbControllerHelper {
     // Used for module "statistics"
     private final EventHelper eventHelper;
     private final CalendarService calendarService;
+    private final CalendarHelper calendarHelper;
+
 
     @Override
     public void init(Vertx vertx, JsonObject config, RouteMatcher rm,
@@ -63,11 +70,12 @@ public class CalendarController extends MongoDbControllerHelper {
         super.init(vertx, config, rm, securedActions);
     }
 
-    public CalendarController(String collection, ServiceFactory serviceFactory) {
+    public CalendarController(String collection, ServiceFactory serviceFactory, EventBus eb) {
         super(collection);
         this.calendarService = serviceFactory.calendarService();
         final EventStore eventStore = EventStoreFactory.getFactory().getEventStore(Calendar.class.getSimpleName());
         this.eventHelper = new org.entcore.common.events.EventHelper(eventStore);
+        this.calendarHelper = new CalendarHelper(collection, serviceFactory, eb);
     }
 
     @Get("/config")
@@ -114,7 +122,6 @@ public class CalendarController extends MongoDbControllerHelper {
     @Trace(Actions.CREATE_CALENDAR)
     public void createCalendar(final HttpServerRequest request) {
         RequestUtils.bodyToJson(request, pathPrefix + "calendar", object -> {
-            String url = request.params().get(Field.URL);
             super.create(request, r -> {
                 if (r.succeeded()) {
                     eventHelper.onCreateResource(request, RESOURCE_NAME);
@@ -151,13 +158,76 @@ public class CalendarController extends MongoDbControllerHelper {
                 .onFailure(err -> renderError(request));
     }
 
-    @Put("/:id/url")
+    @Post("/url")
     @SecuredAction(Rights.SYNC)
+    @Trace(Actions.IMPORT_EXTERNAL_CALENDAR)
+    public void importExternalCalendar(final HttpServerRequest request) {
+        UserUtils.getUserInfos(eb, request, user -> {
+            if (user != null) {
+                RequestUtils.bodyToJson(request, pathPrefix + "calendar", body -> {
+                    createFuture(user, body)
+                            .compose(calendarId -> {
+                                String host = getHost(request);
+                                String i18nLang = I18n.acceptLanguage(request);
+                                return calendarHelper.externalCalendarFirstSync(calendarId.getString(Field._ID, null),
+                                        user, host, i18nLang, ExternalICalEventBusActions.POST.method());
+                            })
+                            .onSuccess(result -> {
+                                Renders.ok(request);
+                            })
+                            .onFailure(error -> {
+                                String message = String.format("[Calendar@%s::importExternalCalendar] An error has occured" +
+                                        " during calendar sync: %s", this.getClass().getSimpleName(), error.getMessage());
+                                log.error(message, error.getMessage());
+                                renderError(request);
+                            });
+                });
+            } else {
+                unauthorized(request);
+            }
+        });
+    }
+
+    Future<JsonObject> createFuture(UserInfos user, JsonObject body) {
+        Promise<JsonObject> promise = Promise.promise();
+
+        crudService.create(body, user, r -> {
+            if (r.isLeft()) {
+                String message = String.format("[Calendar@%s::createFuture] An error has occured" +
+                        " during calendar creation: %s", this.getClass().getSimpleName(), r.left().getValue());
+                log.error(message, r.left().getValue());
+                promise.fail(message);
+            } else {
+                promise.complete(r.right().getValue());
+            }
+        });
+
+        return promise.future();
+    }
+
+    @Put("/:id/url")
+    @SecuredAction(Rights.UPDATE)
     @Trace(Actions.SYNC_EXTERNAL_CALENDAR)
     public void syncExternalCalendar(final HttpServerRequest request) {
         String calendar = request.params().get(Field.ID);
         String url = request.params().get(Field.URL);
         //processing method here
+    }
+
+    @Get("/:id/url")
+    @SecuredAction(Rights.CHECKUPDATE)
+    @Trace(Actions.CHECK_EXTERNAL_CALENDAR)
+    public void checkSyncExternalCalendar(final HttpServerRequest request) {
+        String calendarId = request.params().get(Field.ID);
+        calendarService.checkBooleanField(calendarId, Field.ISUPDATING)
+                .onSuccess(result -> {
+                    Renders.renderJson(request, new JsonObject().put(Field.ISUPDATING, result));
+                })
+                .onFailure(err -> {
+                    log.error("[Calendar@CalendarController::checkSyncExternalCalendar]: an error has occurred while checking calendar: ",
+                            err.getMessage());
+                    Renders.renderError(request);
+                });
     }
 
     @Get("/share/json/:id")
