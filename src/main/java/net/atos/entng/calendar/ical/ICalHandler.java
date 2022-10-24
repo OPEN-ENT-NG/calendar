@@ -65,6 +65,8 @@ public class ICalHandler extends AbstractVerticle implements Handler<Message<Jso
     public static final String ACTION_PUT = "put";
     public static final String ACTION_GET = "get";
 
+    public static final String ACTION_SYNC = "sync";
+
     /**
      * Simple Date formatter in moment.ts format
      */
@@ -80,11 +82,16 @@ public class ICalHandler extends AbstractVerticle implements Handler<Message<Jso
     public void handle(Message<JsonObject> message) {
         String action = message.body().getString("action", "");
         switch (action) {
-            case "get":
+            case ACTION_GET:
                 jsonEventsToIcsContent(message);
                 break;
-            case "put":
+            case ACTION_PUT:
                 icsContentToJsonEvents(message);
+                break;
+            case Field.SYNC:
+                icsContentToJsonEvents(message, true);
+                break;
+            default:
                 break;
         }
 
@@ -133,11 +140,14 @@ public class ICalHandler extends AbstractVerticle implements Handler<Message<Jso
      * @param message Contains ICS data
      */
     private void icsContentToJsonEvents(Message<JsonObject> message) {
+        icsContentToJsonEvents(message, null);
+    }
+    private void icsContentToJsonEvents(Message<JsonObject> message, Boolean hasOldestDate) {
         String icsContent = message.body().getString(Field.ICS);
         JsonObject requestInfo = message.body().getJsonObject(Field.REQUESTINFO);
+        String lastUpdate = (hasOldestDate != null) ? message.body().getString(Field.UPDATED) : null;
         InputStream inputStream = new ByteArrayInputStream(icsContent.getBytes());
         JsonObject results = new JsonObject();
-
         try {
             // Reader r = new InputStreamReader(inputStream, "ISO-8859-15");
             CalendarBuilder calendarBuilder = new CalendarBuilder();
@@ -153,7 +163,8 @@ public class ICalHandler extends AbstractVerticle implements Handler<Message<Jso
                         setEventDates(event, jsonEvent);
                         setEventProperties(event, jsonEvent, requestInfo);
                         validateEvent(event);
-                        events.add(jsonEvent);
+                        if((lastUpdate == null) || DateUtils.parseDate(jsonEvent.getString(Field.STARTMOMENT), DateUtils.DATE_FORMAT_UTC)
+                                .after(DateUtils.parseDate(lastUpdate, DateUtils.DATE_FORMAT_UTC))) events.add(jsonEvent);
                     } catch (UnhandledEventException uee) {
                         jsonEvent.put("errorCause", uee.getMessage());
                         invalidEvents.add(jsonEvent);
@@ -329,12 +340,10 @@ public class ICalHandler extends AbstractVerticle implements Handler<Message<Jso
      * Format date depending on format "yyyyMMdd'T'HHmmss'Z'"
      * @param date the date {@link java.util.Date}
      * @return {@link String} the date in the right format "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"
-     * @throws UnhandledEventException
      */
     private static String formatIcsDate (java.util.Date date) {
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat(DateUtils.DATE_FORMAT_UTC);
         simpleDateFormat.setTimeZone(java.util.TimeZone.getTimeZone("UTC"));
         return simpleDateFormat.format(date);
     }
-
 }
