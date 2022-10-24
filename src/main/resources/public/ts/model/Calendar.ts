@@ -3,7 +3,6 @@ import {CalendarEvents} from "./";
 import {Rights, notify, Shareable, Behaviours, _, idiom as lang, moment} from 'entcore';
 import {Mix, Selectable, Selection} from "entcore-toolkit";
 import {CalendarEventService, calendarEventService, calendarService} from "../services";
-import {PLATFORM} from "../core/enum/platform.enum";
 import {extend} from "angular";
 import {DateUtils} from "../utils/date.utils";
 import {FORMAT} from "../core/const/date-format";
@@ -20,7 +19,6 @@ export class Calendar implements Selectable, Shareable {
     icsImport: any;
     isExternal: boolean;
     icsLink: string;
-    icsLinkPlatform: string;
     updated: string;
 
     constructor(calendar?) {
