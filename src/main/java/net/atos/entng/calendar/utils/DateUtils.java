@@ -1,5 +1,6 @@
 package net.atos.entng.calendar.utils;
 
+import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -52,6 +53,13 @@ public final class DateUtils {
         cal.set(Calendar.HOUR_OF_DAY, 0);
 
         return cal.getTime();
+    }
+
+    public static String dateToString(Date date) {
+        DateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT_UTC);
+        String dateString = dateFormat.format(date);
+
+        return dateString;
     }
 
 

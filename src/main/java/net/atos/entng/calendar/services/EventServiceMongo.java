@@ -29,6 +29,8 @@ import io.vertx.core.json.JsonObject;
 
 import fr.wseduc.webutils.Either;
 
+import java.util.Date;
+
 public interface EventServiceMongo {
 
     void list(String calendarId, UserInfos user, Handler<Either<String, JsonArray>> handler);
@@ -45,6 +47,8 @@ public interface EventServiceMongo {
 
     void retrieveByIcsUid(String calendarId, String icsUid, UserInfos user, Handler<Either<String, JsonObject>> handler);
 
+    Future<JsonArray> retrieveByCalendarId(String calendarId);
+
     void update(String calendarId, String eventId, JsonObject body, UserInfos user, Handler<Either<String, JsonObject>> handler);
 
     void update(String eventId, JsonObject body, UserInfos user, Handler<Either<String, JsonObject>> handler);
@@ -53,13 +57,18 @@ public interface EventServiceMongo {
 
     Future<JsonObject> delete(String calendarId, String eventId, UserInfos user);
 
+    Future<Void> deleteDatesAfterComparisonDate(String calendarId, String comparisonDate);
+
     void getIcal(String calendarId, UserInfos user, Handler<Message<JsonObject>> handler);
     
     void importIcal(String calendarId, String ics, UserInfos user, JsonObject requestInfo, Handler<Either<String, JsonObject>> handler);
 
     Future<JsonObject> importIcal(String calendarId, String ics, UserInfos user, JsonObject requestInfo, String collection);
 
-    void importIcal(String calendarId, String ics, UserInfos user, JsonObject requestInfo, String collection, Handler<Either<String, JsonObject>> handler);
+    Future<JsonObject> importIcal(String calendarId, String ics, UserInfos user, JsonObject requestInfo, String collection, String action, String lastUpdate);
+
+
+    void importIcal(String calendarId, String ics, UserInfos user, JsonObject requestInfo, String collection, String action, String lastUpdate, Handler<Either<String, JsonObject>> handler);
 
     void findOne(String Collection, QueryBuilder query, Handler<Either<String, JsonObject>> handler);
 

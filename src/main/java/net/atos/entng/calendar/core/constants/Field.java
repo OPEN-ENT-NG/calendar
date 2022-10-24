@@ -100,6 +100,7 @@ public class Field {
     public static final String OK = "ok";
     public static final String STATUS = "status";
     public static final String RESULT = "result";
+    public static final String RESULTS = "results";
     public static final String MESSAGE = "message";
     public static final String ERROR = "error";
 
@@ -136,8 +137,10 @@ public class Field {
     public static final String URL = "url";
     public static final String ISEXTERNAL = "isExternal";
     public static final String ICSLINK = "icsLink";
+    public static final String SYNC = "sync";
 
     //Http Methods
     public static final String POST = "post";
     public static final String PUT = "put";
+
 }
