@@ -8,9 +8,13 @@ import io.vertx.core.eventbus.Message;;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
+import io.vertx.core.net.ProxyOptions;
+import io.vertx.core.net.ProxyType;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.client.WebClientOptions;
 import net.atos.entng.calendar.core.constants.Field;
+import net.atos.entng.calendar.core.constants.MongoField;
+import net.atos.entng.calendar.core.enums.ExternalICalEventBusActions;
 import net.atos.entng.calendar.services.EventServiceMongo;
 import net.atos.entng.calendar.services.ServiceFactory;
 import net.atos.entng.calendar.services.impl.EventServiceMongoImpl;
@@ -19,6 +23,8 @@ import org.entcore.common.sql.Sql;
 import org.entcore.common.user.UserInfos;
 import org.entcore.common.user.UserUtils;
 import org.vertx.java.busmods.BusModBase;
+
+import java.util.Date;
 
 
 public class ExternalImportICal extends BusModBase implements Handler<Message<JsonObject>> {
@@ -36,6 +42,15 @@ public class ExternalImportICal extends BusModBase implements Handler<Message<Js
         WebClientOptions options = new WebClientOptions();
         options.setSsl(true);
         options.setTrustAll(true);
+        if (System.getProperty("httpclient.proxyHost") != null) {
+            ProxyOptions proxyOptions = new ProxyOptions();
+            proxyOptions.setHost(System.getProperty("httpclient.proxyHost"));
+            proxyOptions.setPort(Integer.parseInt(System.getProperty("httpclient.proxyPort")));
+            proxyOptions.setUsername(System.getProperty("httpclient.proxyUsername"));
+            proxyOptions.setPassword(System.getProperty("httpclient.proxyPassword"));
+            proxyOptions.setType(ProxyType.HTTP);
+            options.setProxyOptions(proxyOptions);
+        }
         ServiceFactory serviceFactory = new ServiceFactory(vertx, Neo4j.getInstance(), Sql.getInstance(),
                 MongoDb.getInstance(), WebClient.create(vertx, options));
         this.eventService = new EventServiceMongoImpl(Field.CALENDAR, eb, serviceFactory);
@@ -53,7 +68,7 @@ public class ExternalImportICal extends BusModBase implements Handler<Message<Js
                     createEventsFromICal(message, user);
                     break;
                 case Field.PUT:
-                    //TODO MC-171
+                    updateEventsFromICal(message, user);
                     break;
                 default:
                     break;
@@ -69,16 +84,39 @@ public class ExternalImportICal extends BusModBase implements Handler<Message<Js
         this.requestInfo = message.body().getJsonObject(Field.REQUEST, new JsonObject());
 
         fetchICalFromUrl(message.body().getJsonObject(Field.CALENDAR, new JsonObject()).getString(Field.ICSLINK, null))
-                .compose(ical -> eventService.importIcal(calendar.getString(Field._ID), ical, user, requestInfo, Field.CALENDAREVENT))
+                .compose(ical -> eventService.importIcal(calendar.getString(Field._ID), ical, user, requestInfo,
+                        Field.CALENDAREVENT))
                 .onSuccess(message::reply)
                 .onFailure(err -> {
-                    String errMessage = String.format("[Calendar@%s::fetchICalFromUrl]:  " +
+                    String errMessage = String.format("[Calendar@%s::createEventsFromICal]:  " +
                                     "an error has occurred while creating external calendar events: %s",
                             this.getClass().getSimpleName(), err.getMessage());
                     log.error(errMessage);
                     message.reply(err);
                 });
     }
+
+    private void updateEventsFromICal(Message<JsonObject> message, UserInfos user) {
+        JsonObject results = new JsonObject();
+        this.user = user;
+        this.calendar = message.body().getJsonObject(Field.CALENDAR, new JsonObject());
+        this.requestInfo = message.body().getJsonObject(Field.REQUEST, new JsonObject());
+        String calendarLastUpdate = new Date(this.calendar.getJsonObject(Field.UPDATED, new JsonObject()).getLong(MongoField.$DATE))
+                .toInstant().toString();
+
+        fetchICalFromUrl(message.body().getJsonObject(Field.CALENDAR, new JsonObject()).getString(Field.ICSLINK, null))
+                .compose(ical -> eventService.importIcal(calendar.getString(Field._ID), ical, user, requestInfo,
+                        Field.CALENDAREVENT, ExternalICalEventBusActions.SYNC.method(), calendarLastUpdate))
+                .onSuccess(message::reply)
+                .onFailure(err -> {
+                    String errMessage = String.format("[Calendar@%s::updateEventsFromICal]:  " +
+                                    "an error has occurred while updating external calendar events: %s",
+                            this.getClass().getSimpleName(), err.getMessage());
+                    log.error(errMessage);
+                    message.reply(err);
+                });
+    }
+
 
     private Future<String> fetchICalFromUrl(String url) {
         Promise<String> promise = Promise.promise();

@@ -5,66 +5,119 @@ import fr.wseduc.webutils.http.Renders;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.core.eventbus.EventBus;
-import io.vertx.core.http.HttpMethod;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import net.atos.entng.calendar.core.constants.Field;
+import net.atos.entng.calendar.core.constants.MongoField;
+import net.atos.entng.calendar.core.enums.ExternalICalEventBusActions;
 import net.atos.entng.calendar.ical.ExternalImportICal;
 import net.atos.entng.calendar.services.CalendarService;
+import net.atos.entng.calendar.services.EventServiceMongo;
 import net.atos.entng.calendar.services.ServiceFactory;
+import net.atos.entng.calendar.services.impl.EventServiceMongoImpl;
+import net.atos.entng.calendar.utils.DateUtils;
 import org.entcore.common.mongodb.MongoDbControllerHelper;
 import org.entcore.common.user.UserInfos;
 
+import java.sql.Timestamp;
 import java.util.Collections;
-
-import static fr.wseduc.webutils.http.Renders.renderError;
+import java.util.Date;
 
 public class CalendarHelper extends MongoDbControllerHelper {
     protected static final Logger log = LoggerFactory.getLogger(Renders.class);
 
     private final CalendarService calendarService;
+    private final EventServiceMongo eventServiceMongo;
     private EventBus eb;
 
     public CalendarHelper(String collection, ServiceFactory serviceFactory, EventBus eb) {
         super(collection, null);
         this.calendarService = serviceFactory.calendarService();
+        this.eventServiceMongo = new EventServiceMongoImpl(Field.CALENDAREVENT, eb, serviceFactory);
         this.mongo = MongoDb.getInstance();
         this.eb = eb;
     }
 
-    public Future<Void> externalCalendarFirstSync(String calendarId, UserInfos user, String host, String i18nLang, String action) {
+    public Future<Void> externalCalendarSync(String calendarId, UserInfos user, String host, String i18nLang, String action) {
         Promise<Void> promise = Promise.promise();
         JsonObject params = new JsonObject();
         calendarService.list(Collections.singletonList(calendarId), true)
-                .compose(calendarList -> {
-                    if(calendarList.size() != 0) {
-                        JsonObject calendar = calendarList.getJsonObject(0).put(Field.ISUPDATING, true);
-                        params.put(Field.CALENDAR, calendar);
-                        return updateExternalCalendar(calendar);
-                    } else {
-                        String message = String.format("[Calendar@%s::externalCalendarFirstSync]:  an error has occurred while " +
-                                        "retrieving external calendar",
-                                this.getClass().getSimpleName());
-                        log.error(message);
-                        return Future.failedFuture(message);
-                    }
-                })
+                .compose(calendarList -> prepareCalendarAndEventsForUpdate(params, calendarList, action, user))
                 .compose(calendarUpdated -> getAndSaveExternalCalendarEvents(user, params.getJsonObject(Field.CALENDAR), host, i18nLang, action))
                 .compose(object -> {
                     JsonObject calendar = params.getJsonObject(Field.CALENDAR);
-                    calendar.put(Field.ISUPDATING, false);
-                    return updateExternalCalendar(calendar);
+                    return updateExternalCalendar(params, calendar, false);
                 })
                 .onSuccess(finalCalendar -> promise.complete())
                 .onFailure(error -> {
-                    if (!params.isEmpty()) { //set the calendar to not updating if ther is a fail
-                        updateExternalCalendar(params.getJsonObject(Field.CALENDAR).put(Field.ISUPDATING, false));
+                    if (!params.isEmpty()) { //set the calendar to not updating if there is a fail
+                        updateCalendar(params.getJsonObject(Field.CALENDAR).put(Field.ISUPDATING, false));
                     }
                     promise.fail(error.getMessage());
                 });
 
         return promise.future();
+    }
+
+    private Future<Void> prepareCalendarAndEventsForUpdate(JsonObject params, JsonArray calendarList, String action, UserInfos user) {
+        Promise<Void> promise = Promise.promise();
+
+        if(calendarList.isEmpty()) {
+            String message = String.format("[Calendar@%s::prepareCalendarAndEventsForUpdate]:  an error has occurred while " +
+                            "retrieving external calendar",
+                    this.getClass().getSimpleName());
+            log.error(message);
+            promise.fail(message);
+        }
+
+        JsonObject calendar = calendarList.getJsonObject(0);
+        switch(action) {
+            case Field.POST:
+                updateExternalCalendar(params, calendar, true)
+                        .onSuccess(promise::complete)
+                        .onFailure(error -> {
+                            String message = String.format("[Calendar@%s::prepareCalendarAndEventsForUpdate]:  an error has occurred while " +
+                                            "preparing calendar for first sync: %s",
+                                    this.getClass().getSimpleName(), error.getMessage());
+                            log.error(message);
+                            promise.fail(message);
+                        });
+                break;
+            case Field.PUT:
+                eventServiceMongo.retrieveByCalendarId(calendar.getString(Field._ID))
+                        .compose(eventList -> {
+                            Timestamp lastUpdateTimestamp = new Timestamp(calendar.getJsonObject(Field.UPDATED).getLong(MongoField.$DATE));
+                            Date lastUpdateDate = new Date(lastUpdateTimestamp.getTime());
+                            return eventServiceMongo.deleteDatesAfterComparisonDate(calendar.getString(Field._ID), DateUtils.dateToString(lastUpdateDate));
+                        })
+                        .compose(result -> updateExternalCalendar(params, calendar, true))
+                        .onSuccess(promise::complete)
+                        .onFailure(error -> {
+                            String message = String.format("[Calendar@%s::prepareCalendarAndEventsForUpdate]:  an error has occurred while " +
+                                            "preparing calendar and event for sync: %s",
+                                    this.getClass().getSimpleName(), error.getMessage());
+                            log.error(message);
+                            promise.fail(message);
+                        });
+                break;
+            default:
+                String message = String.format("[Calendar@%s::prepareCalendarAndEventsForUpdate]:  an error has occurred while " +
+                                "preparing calendar and event for update",
+                        this.getClass().getSimpleName());
+                log.error(message);
+                promise.fail(message);
+                break;
+        }
+        return promise.future();
+    }
+
+    private Future<Void> updateExternalCalendar(JsonObject params, JsonObject calendar, Boolean startOfSync) {
+        calendar.put(Field.ISUPDATING, true);
+        if (Boolean.TRUE.equals(startOfSync)) calendar.put(Field.UPDATED, MongoDb.now());
+        params.put(Field.CALENDAR, calendar);
+        return updateCalendar(calendar);
     }
 
     private Future<Void> getAndSaveExternalCalendarEvents(UserInfos user, JsonObject calendar, String host, String i18nLang, String action) {
@@ -89,10 +142,9 @@ public class CalendarHelper extends MongoDbControllerHelper {
         return promise.future();
     }
 
-    private Future<Void> updateExternalCalendar(JsonObject calendar) {
+    private Future<Void> updateCalendar(JsonObject calendar) {
         Promise<Void> promise = Promise.promise();
 
-        calendar.put(Field.UPDATED, MongoDb.now());
         calendarService.update(calendar.getString(Field._ID),calendar, true)
                 .onSuccess(promise::complete)
                 .onFailure(error -> {
