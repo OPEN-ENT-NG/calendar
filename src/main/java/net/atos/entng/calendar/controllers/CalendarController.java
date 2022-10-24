@@ -163,28 +163,29 @@ public class CalendarController extends MongoDbControllerHelper {
     @Trace(Actions.IMPORT_EXTERNAL_CALENDAR)
     public void importExternalCalendar(final HttpServerRequest request) {
         UserUtils.getUserInfos(eb, request, user -> {
-            if (user != null) {
-                RequestUtils.bodyToJson(request, pathPrefix + "calendar", body -> {
-                    createFuture(user, body)
-                            .compose(calendarId -> {
-                                String host = getHost(request);
-                                String i18nLang = I18n.acceptLanguage(request);
-                                return calendarHelper.externalCalendarFirstSync(calendarId.getString(Field._ID, null),
-                                        user, host, i18nLang, ExternalICalEventBusActions.POST.method());
-                            })
-                            .onSuccess(result -> {
-                                Renders.ok(request);
-                            })
-                            .onFailure(error -> {
-                                String message = String.format("[Calendar@%s::importExternalCalendar] An error has occured" +
-                                        " during calendar sync: %s", this.getClass().getSimpleName(), error.getMessage());
-                                log.error(message, error.getMessage());
-                                renderError(request);
-                            });
-                });
-            } else {
+            if (user == null) {
                 unauthorized(request);
+                return;
             }
+            RequestUtils.bodyToJson(request, pathPrefix + "calendar", body -> {
+                createFuture(user, body)
+                        .compose(calendarId -> {
+                            String host = getHost(request);
+                            String i18nLang = I18n.acceptLanguage(request);
+                            return calendarHelper.externalCalendarSync(calendarId.getString(Field._ID, null),
+                                    user, host, i18nLang, ExternalICalEventBusActions.POST.method());
+                        })
+                        .onSuccess(result -> {
+                            Renders.ok(request);
+                        })
+                        .onFailure(error -> {
+                            String message = String.format("[Calendar@%s::importExternalCalendar] An error has occured" +
+                                    " during calendar sync: %s", this.getClass().getSimpleName(), error.getMessage());
+                            log.error(message, error.getMessage());
+                            renderError(request);
+                        });
+            });
+
         });
     }
 
@@ -209,9 +210,31 @@ public class CalendarController extends MongoDbControllerHelper {
     @SecuredAction(Rights.UPDATE)
     @Trace(Actions.SYNC_EXTERNAL_CALENDAR)
     public void syncExternalCalendar(final HttpServerRequest request) {
-        String calendar = request.params().get(Field.ID);
-        String url = request.params().get(Field.URL);
-        //processing method here
+        String calendarId = request.params().get(Field.ID);
+        if (calendarId == null) {
+            badRequest(request);
+            return;
+        }
+        UserUtils.getUserInfos(eb, request, user -> {
+            if (user == null) {
+                unauthorized(request);
+                return;
+            }
+            String host = getHost(request);
+            String i18nLang = I18n.acceptLanguage(request);
+            calendarHelper.externalCalendarSync(calendarId,
+                            user, host, i18nLang, ExternalICalEventBusActions.PUT.method())
+                    .onSuccess(result -> {
+                        Renders.ok(request);
+                    })
+                    .onFailure(error -> {
+                        String message = String.format("[Calendar@%s::syncExternalCalendar] An error has occured" +
+                                " during calendar sync: %s", this.getClass().getSimpleName(), error.getMessage());
+                        log.error(message, error.getMessage());
+                        renderError(request);
+                    });
+        });
+
     }
 
     @Get("/:id/url")
@@ -219,6 +242,10 @@ public class CalendarController extends MongoDbControllerHelper {
     @Trace(Actions.CHECK_EXTERNAL_CALENDAR)
     public void checkSyncExternalCalendar(final HttpServerRequest request) {
         String calendarId = request.params().get(Field.ID);
+        if (calendarId == null) {
+            badRequest(request);
+            return;
+        }
         calendarService.checkBooleanField(calendarId, Field.ISUPDATING)
                 .onSuccess(result -> {
                     Renders.renderJson(request, new JsonObject().put(Field.ISUPDATING, result));

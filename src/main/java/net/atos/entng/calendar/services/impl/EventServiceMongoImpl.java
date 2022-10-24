@@ -33,6 +33,7 @@ import java.util.*;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import net.atos.entng.calendar.core.constants.Field;
+import net.atos.entng.calendar.core.enums.ExternalICalEventBusActions;
 import net.atos.entng.calendar.helpers.FutureHelper;
 import net.atos.entng.calendar.ical.ICalHandler;
 import net.atos.entng.calendar.services.CalendarService;
@@ -240,6 +241,27 @@ public class EventServiceMongoImpl extends MongoDbCrudService implements EventSe
     }
 
     @Override
+    public Future<JsonArray> retrieveByCalendarId(String calendarId) {
+        Promise<JsonArray> promise = Promise.promise();
+        // Query
+        QueryBuilder query = QueryBuilder.start(Field.CALENDAR).is(calendarId);
+
+        mongo.find(this.collection, MongoQueryBuilder.build(query), result -> {
+            if (result.body().isEmpty()) {
+                String message = String.format("[Calendar@%s::retrieveByCalendarId]:  " +
+                                "could not retrieve external calendar events",
+                        this.getClass().getSimpleName());
+                log.error(message);
+                promise.fail(message);
+            } else {
+                promise.complete(result.body().getJsonArray(Field.RESULTS));
+            }
+        });
+
+        return promise.future();
+    }
+
+    @Override
     public void update(String calendarId, String eventId, JsonObject body, UserInfos user, Handler<Either<String, JsonObject>> handler) {
         // Query
         QueryBuilder query = QueryBuilder.start("_id").is(eventId);
@@ -291,6 +313,29 @@ public class EventServiceMongoImpl extends MongoDbCrudService implements EventSe
     }
 
     @Override
+    public Future<Void> deleteDatesAfterComparisonDate(String calendarId, String comparisonDate) {
+        Promise<Void> promise = Promise.promise();
+
+        // Query
+        QueryBuilder query = QueryBuilder.start(Field.CALENDAR).is(calendarId);
+        query.put(Field.STARTMOMENT).greaterThan(comparisonDate);
+
+        mongo.delete(this.collection, MongoQueryBuilder.build(query), result -> {
+            if (result.body().isEmpty()) {
+                String message = String.format("[Calendar@%s::deleteDatesAfterComparisonDate]:  " +
+                                "could not delete events after date",
+                        this.getClass().getSimpleName());
+                log.error(message);
+                promise.fail(message);
+            } else {
+                promise.complete();
+            }
+        });
+
+        return promise.future();
+    }
+
+    @Override
     public void getIcal(String calendarId, UserInfos user, final Handler<Message<JsonObject>> handler) {
         final JsonObject message = new JsonObject();
         message.put("action", ICalHandler.ACTION_GET);
@@ -306,25 +351,37 @@ public class EventServiceMongoImpl extends MongoDbCrudService implements EventSe
 
     @Override
     public void importIcal(final String calendarId, String ics, final UserInfos user, JsonObject requestInfo, final Handler<Either<String, JsonObject>> handler) {
-        importIcal(calendarId, ics, user, requestInfo, null, handler);
+        importIcal(calendarId, ics, user, requestInfo, this.collection, null, null, handler);
     }
 
     @Override
     public Future<JsonObject> importIcal(final String calendarId, String ics, final UserInfos user, JsonObject requestInfo, String collection) {
         Promise<JsonObject> promise = Promise.promise();
 
-        this.importIcal(calendarId, ics, user, requestInfo, collection, FutureHelper.handlerJsonObject(promise));
+        this.importIcal(calendarId, ics, user, requestInfo, collection, null, null, FutureHelper.handlerJsonObject(promise));
 
         return promise.future();
     }
 
     @Override
-    public void importIcal(final String calendarId, String ics, final UserInfos user, JsonObject requestInfo, String collection, final Handler<Either<String, JsonObject>> handler) {
+    public Future<JsonObject> importIcal(final String calendarId, String ics, final UserInfos user, JsonObject requestInfo,
+                                         String collection, String action, String lastUpdate) {
+        Promise<JsonObject> promise = Promise.promise();
+
+        this.importIcal(calendarId, ics, user, requestInfo, collection, action, lastUpdate, FutureHelper.handlerJsonObject(promise));
+
+        return promise.future();
+    }
+
+    @Override
+    public void importIcal(final String calendarId, String ics, final UserInfos user, JsonObject requestInfo, String collection,
+                           String action, String lastUpdate, final Handler<Either<String, JsonObject>> handler) {
         final JsonObject message = new JsonObject();
-        message.put(Field.ACTION, ICalHandler.ACTION_PUT);
+        message.put(Field.ACTION, (action != null)? action : ICalHandler.ACTION_PUT);
         message.put(Field.CALENDARID, calendarId);
         message.put(Field.ICS, ics);
         message.put(Field.REQUESTINFO, requestInfo);
+        if((action != null) && action.equals(ExternalICalEventBusActions.SYNC.method()) && lastUpdate != null) message.put(Field.UPDATED, lastUpdate);
         final EventServiceMongoImpl eventService = this;
         final MutableInt i = new MutableInt();
 
