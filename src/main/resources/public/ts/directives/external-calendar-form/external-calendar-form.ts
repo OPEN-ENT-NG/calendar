@@ -9,7 +9,6 @@ import {idiom as lang} from "entcore";
 
 interface IExternalCalendarFormProps {
     calendar?: CalendarForm;
-    calendarPlatforms?: Array<string>;
 
     onCreateExternalCalendar?(): (calendar: CalendarForm) => void;
 }
@@ -50,8 +49,7 @@ class Controller implements IViewModel {
     }
 
     isFormComplete(): boolean {
-        return !!this.$scope.vm.calendar && !!this.$scope.vm.calendar.title && !!this.$scope.vm.calendar.icsLink
-            && !!this.$scope.vm.calendar.icsLinkPlatform;
+        return !!this.$scope.vm.calendar && !!this.$scope.vm.calendar.title && !!this.$scope.vm.calendar.icsLink;
     }
 
     translate(text: string): string {
@@ -67,7 +65,6 @@ function directive($parse) {
         controllerAs: 'vm',
         scope: {
             calendar: '=',
-            calendarPlatforms: '=',
             onCreateExternalCalendar: '&'
         },
         bindToController: true,

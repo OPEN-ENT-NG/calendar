@@ -16,19 +16,11 @@ export const calendarService: ICalendarService = {
     },
 
     async addExternalCalendar(calendar: ICalendarPayload): Promise<AxiosResponse> {
-        let urlParam: string = '';
-        if (calendar.icsLink) {
-            urlParam = `?url=${calendar.icsLink}`;
-        }
-        return http.post(`/calendar/calendars${urlParam}`, calendar);
+        return http.post(`/calendar/url`, calendar);
     },
 
     updateExternalCalendar(calendar: Calendar): Promise<AxiosResponse> {
-        let urlParam: string = '';
-        if (calendar.icsLink) {
-            urlParam = `?url=${calendar.icsLink}`;
-        }
-        return http.put(`/calendar/${calendar._id}/ical${urlParam}`, calendar);
+        return http.put(`/calendar/${calendar._id}/url`);
     }
 };
 
