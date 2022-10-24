@@ -7,7 +7,6 @@ export interface ICalendarPayload {
     title: string;
     isExternal?: boolean;
     icsLink?: string;
-    icsLinkPlatform?: string;
 }
 
 export class CalendarForm {
@@ -15,7 +14,6 @@ export class CalendarForm {
     private _title: string;
     private _isExternal?: boolean;
     private _icsLink?: string;
-    private _icsLinkPlatform?: string;
 
 
     constructor() {
@@ -53,14 +51,6 @@ export class CalendarForm {
     set icsLink(value: string) {
         this._icsLink = value;
     }
-
-    get icsLinkPlatform(): string {
-        return this._icsLinkPlatform;
-    }
-
-    set icsLinkPlatform(value: string) {
-        this._icsLinkPlatform = value;
-    }
     
     toJSON(): ICalendarPayload {
         let json: ICalendarPayload = {
@@ -71,13 +61,12 @@ export class CalendarForm {
         if (this.isExternalCalendar) {
             json.isExternal = this._isExternal;
             json.icsLink = this._icsLink;
-            json.icsLinkPlatform = this._icsLinkPlatform;
         }
         return json;
     }
 
     isExternalCalendar(): boolean {
-        return (this._isExternal && !!this._icsLink && !!this._icsLinkPlatform);
+        return (this._isExternal && !!this._icsLink);
     }
 
 }

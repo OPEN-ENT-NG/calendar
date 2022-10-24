@@ -1,4 +1,4 @@
-import {model, moment, ng} from "entcore";
+import {ng} from "entcore";
 import {ROOTS} from "../../core/const/roots";
 import {Calendar} from "../../model";
 import {IScope} from "angular";
