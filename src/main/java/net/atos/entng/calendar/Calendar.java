@@ -79,7 +79,7 @@ public class Calendar extends BaseServer {
         }
         EventBus eb = Server.getEventBus(vertx);
         final TimelineHelper timelineHelper = new TimelineHelper(vertx, eb, config);
-        addController(new CalendarController(CALENDAR_COLLECTION, serviceFactory, eb));
+        addController(new CalendarController(CALENDAR_COLLECTION, serviceFactory, eb, config));
         addController(new EventController(CALENDAR_EVENT_COLLECTION, eventService, serviceFactory, timelineHelper, storage, eb, config));
 
         // External Import Calendar services
