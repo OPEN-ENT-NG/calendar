@@ -3,7 +3,6 @@ import {ROOTS} from "../../core/const/roots";
 import {Calendar} from "../../model";
 import {IScope} from "angular";
 import {Object} from "core-js";
-import {PLATFORM} from "../../core/enum/platform.enum";
 import {safeApply} from "../../model/Utils";
 import {ICalendarService} from "../../services";
 import {defaultColor} from "../../model/constantes";
@@ -12,7 +11,6 @@ import {CalendarForm} from "../../model/calendar-form.model";
 
 interface IViewModel {
     calendar: CalendarForm;
-    calendarPlatforms: Array<string>;
 
     openExternalCalendarForm(): void;
     closeExternalCalendarForm(): void;
@@ -31,7 +29,6 @@ interface IExternalCalendarAdditionScope extends IScope {
 
 class Controller implements ng.IController, IViewModel {
     calendar: CalendarForm;
-    calendarPlatforms: Array<string>;
 
     constructor(private $scope: IExternalCalendarAdditionScope, private calendarService: ICalendarService) {
     }
@@ -46,7 +43,6 @@ class Controller implements ng.IController, IViewModel {
         this.calendar = new  CalendarForm();
         this.calendar.color = defaultColor;
         this.calendar.isExternal = true;
-        this.calendarPlatforms = Object.keys(PLATFORM).filter(key => !isNaN(Number(PLATFORM[key])));
         angular.element(document.getElementsByClassName("color grey")).addClass("selected");
         safeApply(this.$scope);
         this.$scope.vm.display.showPanelExternalCalendar = true;
