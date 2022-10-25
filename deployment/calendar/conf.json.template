@@ -15,6 +15,7 @@
         "mode" : "${mode}",
         "entcore.port" : 8009,
         "enable-rbs": ${enableRbs},
+        "calendarSyncTTL": ${calendarSyncTTL},
         "publicConf": {
           <% if ("true".equals(xitiSwitch)) { %>
             "xiti": {
