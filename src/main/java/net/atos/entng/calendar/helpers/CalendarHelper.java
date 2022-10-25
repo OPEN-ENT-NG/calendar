@@ -11,7 +11,6 @@ import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import net.atos.entng.calendar.core.constants.Field;
 import net.atos.entng.calendar.core.constants.MongoField;
-import net.atos.entng.calendar.core.enums.ExternalICalEventBusActions;
 import net.atos.entng.calendar.ical.ExternalImportICal;
 import net.atos.entng.calendar.services.CalendarService;
 import net.atos.entng.calendar.services.EventServiceMongo;
@@ -32,12 +31,13 @@ public class CalendarHelper extends MongoDbControllerHelper {
     private final EventServiceMongo eventServiceMongo;
     private EventBus eb;
 
-    public CalendarHelper(String collection, ServiceFactory serviceFactory, EventBus eb) {
+    public CalendarHelper(String collection, ServiceFactory serviceFactory, EventBus eb, JsonObject config) {
         super(collection, null);
         this.calendarService = serviceFactory.calendarService();
         this.eventServiceMongo = new EventServiceMongoImpl(Field.CALENDAREVENT, eb, serviceFactory);
         this.mongo = MongoDb.getInstance();
         this.eb = eb;
+        this.config = config;
     }
 
     public Future<Void> externalCalendarSync(String calendarId, UserInfos user, String host, String i18nLang, String action) {
@@ -73,6 +73,7 @@ public class CalendarHelper extends MongoDbControllerHelper {
         }
 
         JsonObject calendar = calendarList.getJsonObject(0);
+        params.put(Field.CALENDAR, calendar);
         switch(action) {
             case Field.POST:
                 updateExternalCalendar(params, calendar, true)
@@ -86,12 +87,17 @@ public class CalendarHelper extends MongoDbControllerHelper {
                         });
                 break;
             case Field.PUT:
-                eventServiceMongo.retrieveByCalendarId(calendar.getString(Field._ID))
-                        .compose(eventList -> {
-                            Timestamp lastUpdateTimestamp = new Timestamp(calendar.getJsonObject(Field.UPDATED).getLong(MongoField.$DATE));
-                            Date lastUpdateDate = new Date(lastUpdateTimestamp.getTime());
-                            return eventServiceMongo.deleteDatesAfterComparisonDate(calendar.getString(Field._ID), DateUtils.dateToString(lastUpdateDate));
-                        })
+                if(Boolean.FALSE.equals(isTimeToLivePast(calendar))) {
+                    String message = String.format("[Calendar@%s::prepareCalendarAndEventsForUpdate]:  last update was too recent",
+                            this.getClass().getSimpleName());
+                    log.error(message);
+                    promise.fail(message);
+                    break;
+                }
+
+                Timestamp lastUpdateTimestamp = new Timestamp(calendar.getJsonObject(Field.UPDATED).getLong(MongoField.$DATE));
+                Date lastUpdateDate = new Date(lastUpdateTimestamp.getTime());
+                eventServiceMongo.deleteDatesAfterComparisonDate(calendar.getString(Field._ID), DateUtils.dateToString(lastUpdateDate))
                         .compose(result -> updateExternalCalendar(params, calendar, true))
                         .onSuccess(promise::complete)
                         .onFailure(error -> {
@@ -163,6 +169,21 @@ public class CalendarHelper extends MongoDbControllerHelper {
                 });
 
         return promise.future();
+    }
+
+    /**
+     * Checks if the time since the last update is longer than the minimum time (value in config) between two updates
+     *
+     * @param calendar the calendar in which we want to check the update {@link JsonObject}
+     * @return {@link Boolean} true if the time since the last update is longer than the minimum time between two updates
+     */
+    public Boolean isTimeToLivePast(JsonObject calendar) {
+        Timestamp lastUpdateTimestamp = new Timestamp(calendar.getJsonObject(Field.UPDATED).getLong(MongoField.$DATE));
+        Date lastUpdateDate = new Date(lastUpdateTimestamp.getTime());
+
+        long secondsSinceLastUpdate = (new Date().getTime()-lastUpdateDate.getTime())/1000;
+
+        return secondsSinceLastUpdate - config.getLong(Field.CALENDARSYNCTTL) > 0;
     }
 
 }
