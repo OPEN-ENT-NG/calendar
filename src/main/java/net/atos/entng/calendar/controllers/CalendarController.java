@@ -70,12 +70,12 @@ public class CalendarController extends MongoDbControllerHelper {
         super.init(vertx, config, rm, securedActions);
     }
 
-    public CalendarController(String collection, ServiceFactory serviceFactory, EventBus eb) {
+    public CalendarController(String collection, ServiceFactory serviceFactory, EventBus eb, JsonObject config) {
         super(collection);
         this.calendarService = serviceFactory.calendarService();
         final EventStore eventStore = EventStoreFactory.getFactory().getEventStore(Calendar.class.getSimpleName());
         this.eventHelper = new org.entcore.common.events.EventHelper(eventStore);
-        this.calendarHelper = new CalendarHelper(collection, serviceFactory, eb);
+        this.calendarHelper = new CalendarHelper(collection, serviceFactory, eb, config);
     }
 
     @Get("/config")
