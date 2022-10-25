@@ -107,6 +107,7 @@ public class Field {
     //Config
     public static final String ENABLERBS = "enableRbs";
     public static final String ENABLE_RBS = "enable-rbs";
+    public static final String CALENDARSYNCTTL = "calendarSyncTTL";
 
     //Miscellaneous
     public static final String ALL = "all";
