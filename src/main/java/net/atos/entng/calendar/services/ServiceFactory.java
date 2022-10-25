@@ -7,6 +7,7 @@ import io.vertx.ext.web.client.WebClient;
 import net.atos.entng.calendar.Calendar;
 import net.atos.entng.calendar.services.impl.CalendarServiceImpl;
 import net.atos.entng.calendar.services.impl.DefaultUserServiceImpl;
+import net.atos.entng.calendar.services.impl.TrustedUrlServiceImpl;
 import org.entcore.common.neo4j.Neo4j;
 import org.entcore.common.sql.Sql;
 
@@ -44,6 +45,10 @@ public class ServiceFactory {
 
     public CalendarService calendarService() {
         return new CalendarServiceImpl(Calendar.CALENDAR_COLLECTION, mongoDb);
+    }
+
+    public TrustedUrlService urlService(){
+        return new TrustedUrlServiceImpl(Calendar.URL_COLLECTION,mongoDb);
     }
 
     public ServiceFactory setWebClient(WebClient webClient) {
