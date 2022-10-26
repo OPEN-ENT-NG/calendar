@@ -120,7 +120,7 @@ public class CalendarHelper extends MongoDbControllerHelper {
     }
 
     private Future<Void> updateExternalCalendar(JsonObject params, JsonObject calendar, Boolean startOfSync) {
-        calendar.put(Field.ISUPDATING, true);
+        calendar.put(Field.ISUPDATING, startOfSync);
         if (Boolean.TRUE.equals(startOfSync)) calendar.put(Field.UPDATED, MongoDb.now());
         params.put(Field.CALENDAR, calendar);
         return updateCalendar(calendar);
