@@ -79,7 +79,8 @@
                                 <li ng-repeat="cl in vm.calendars.all | filter:vm.isExternalCalendar | orderBy: '+title'">
                                     <calendar-item calendar="cl"
                                                    on-open-or-close-clicked-calendar="vm.onOpenOrCloseCalendar"
-                                                   on-uncheck-other-calendar-checkboxes="vm.hideOtherCalendarCheckboxes">
+                                                   on-uncheck-other-calendar-checkboxes="vm.hideOtherCalendarCheckboxes"
+                                                   on-update-external-calendar-view="vm.onUpdateCalendarList">
                                     </calendar-item>
                                 </li>
                             </ul>
