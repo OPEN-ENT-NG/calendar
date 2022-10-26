@@ -10,8 +10,12 @@ i {
   }
 
   &.sync::before {
-    font-family: 'calendar-material-icons';
     content: "\F04E6";
+    font-family: 'calendar-material-icons';
   }
 
+  &.loading::before {
+    content: '\e85a';
+    font-family: 'generic-icons';
+  }
 }
