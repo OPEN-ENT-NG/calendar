@@ -6,7 +6,8 @@
            ng-model="vm.calendar.showButtons"
            ng-checked="vm.calendar.showButtons"
            ng-change="vm.hideOtherCalendarCheckboxes(vm.calendar)"/>
-    <i class="sync sidebar-title-calendar-display-sync top-spacing-small" ng-click="vm.updateExternalCalendar($event)"></i>
+    <i class="sync sidebar-title-calendar-display-sync top-spacing-small" ng-click="vm.updateExternalCalendar($event)" ng-if="!vm.loading"></i>
+    <i class="loading sidebar-title-calendar-display-sync-in-progress" ng-if="vm.loading"></i>
     <span class="tooltip-top sidebar-title-calendar-display-center-text">
         <i18n>calendar.last.update</i18n>
         </br>
