@@ -7,6 +7,7 @@ export interface ICalendarService {
     fetchCalendars(): Promise<Array<Calendar>>;
     addExternalCalendar(calendar: Calendar): Promise<AxiosResponse>;
     updateExternalCalendar(calendar: Calendar): Promise<AxiosResponse>;
+    checkExternalCalendarSync(calendar: Calendar): Promise<AxiosResponse>;
 }
 
 export const calendarService: ICalendarService = {
@@ -21,6 +22,10 @@ export const calendarService: ICalendarService = {
 
     updateExternalCalendar(calendar: Calendar): Promise<AxiosResponse> {
         return http.put(`/calendar/${calendar._id}/url`);
+    },
+
+    checkExternalCalendarSync(calendar: Calendar): Promise<AxiosResponse> {
+        return http.get(`/calendar/${calendar._id}/url`);
     }
 };
 
