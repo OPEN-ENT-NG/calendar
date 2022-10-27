@@ -119,9 +119,16 @@ public class CalendarHelper extends MongoDbControllerHelper {
         return promise.future();
     }
 
+    /**
+     * Updates the external calendar
+     * @param params the variable containing the calendar {@link JsonObject}
+     * @param calendar the calendar fetched from the database {@link JsonObject}
+     * @param startOfSync whether the updates takes place at the start or the end of the sync {@link Boolean}
+     * @return {@link Future<Void>} the update of a calendar
+     */
     private Future<Void> updateExternalCalendar(JsonObject params, JsonObject calendar, Boolean startOfSync) {
         calendar.put(Field.ISUPDATING, startOfSync);
-        if (Boolean.TRUE.equals(startOfSync)) calendar.put(Field.UPDATED, MongoDb.now());
+        if (Boolean.FALSE.equals(startOfSync)) calendar.put(Field.UPDATED, MongoDb.now());
         params.put(Field.CALENDAR, calendar);
         return updateCalendar(calendar);
     }
@@ -154,7 +161,7 @@ public class CalendarHelper extends MongoDbControllerHelper {
         calendarService.update(calendar.getString(Field._ID),calendar, true)
                 .onSuccess(promise::complete)
                 .onFailure(error -> {
-                    String message = String.format("[Calendar@%s::updateExternalCalendar]:  an error has occurred while " +
+                    String message = String.format("[Calendar@%s::updateCalendar]:  an error has occurred while " +
                                     "updating external calendar: %s",
                             this.getClass().getSimpleName(), error.getMessage());
                     log.error(message);
