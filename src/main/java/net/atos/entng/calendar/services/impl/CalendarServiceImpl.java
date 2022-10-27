@@ -80,12 +80,16 @@ public class CalendarServiceImpl implements CalendarService {
     }
 
     public Future<JsonArray> list(List<String> calendarIds, Boolean isExternal) {
+        return list(calendarIds, isExternal, null);
+    }
+    public Future<JsonArray> list(List<String> calendarIds, Boolean isExternal, String userId) {
         Promise<JsonArray> promise = Promise.promise();
 
         List<DBObject> queryList = new ArrayList<>();
 
         // filter by ids
-        QueryBuilder query = QueryBuilder.start("_id").in(calendarIds);
+        QueryBuilder query = QueryBuilder.start(Field._ID).in(calendarIds);
+        if(userId != null) query.put(String.format("%s.%s", Field.OWNER, Field.USERID)).is(userId);
 
 
         // if a calendar is external it contains "isExternal" = true and a string icsUrl
