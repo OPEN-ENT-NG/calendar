@@ -8,6 +8,8 @@ public class Actions {
 
     //Trace actions
     public static final String CREATE_CALENDAR = "CREATE_CALENDAR";
+
+    public static final String GET_CALENDAR = "GET_CALENDAR";
     public static final String UPDATE_CALENDAR = "UPDATE_CALENDAR";
     public static final String DELETE_CALENDAR = "DELETE_CALENDAR";
     public static final String SHARE_CALENDAR_SUBMIT = "SHARE_CALENDAR_SUBMIT";

@@ -117,6 +117,33 @@ public class CalendarController extends MongoDbControllerHelper {
         list(request);
     }
 
+    @Get("/:id")
+    @SecuredAction(Rights.GET)
+    @Trace(Actions.GET_CALENDAR)
+    public void getCalendar(HttpServerRequest request) {
+        UserUtils.getUserInfos(eb, request, user -> {
+            if (user == null) {
+                unauthorized(request);
+                return;
+            }
+            final String id = request.params().get(Field.ID);
+            if (id == null || id.trim().isEmpty()) {
+                badRequest(request);
+                return;
+            }
+            calendarService.list(Collections.singletonList(id), true, user.getUserId())
+                    .onSuccess(result -> {
+                        Renders.renderJson(request, new JsonObject().put(Field.CALENDAR, result));
+                    })
+                    .onFailure(error -> {
+                        String message = String.format("[Calendar@%s::getCalendar] An error has occured" +
+                                " when getting calendar: %s", this.getClass().getSimpleName(), error.getMessage());
+                        log.error(message, error.getMessage());
+                        renderError(request);
+                    });
+        });
+    }
+
     @Post("/calendars")
     @SecuredAction("calendar.create")
     @Trace(Actions.CREATE_CALENDAR)
