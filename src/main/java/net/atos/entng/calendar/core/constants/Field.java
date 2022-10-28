@@ -26,6 +26,7 @@ public class Field {
 
 
     //Event infos
+
     //collection
     public static final String CALENDAREVENT = "calendarevent";
     // event
@@ -98,6 +99,7 @@ public class Field {
 
     //Event Bus
     public static final String OK = "ok";
+    public static final String KO = "ko";
     public static final String STATUS = "status";
     public static final String RESULT = "result";
     public static final String RESULTS = "results";
@@ -139,9 +141,12 @@ public class Field {
     public static final String ISEXTERNAL = "isExternal";
     public static final String ICSLINK = "icsLink";
     public static final String SYNC = "sync";
+    public static final String URLID = "urlId";
 
     //Http Methods
     public static final String POST = "post";
     public static final String PUT = "put";
 
+    //Regex
+    public static final String REGEX = "regex";
 }
