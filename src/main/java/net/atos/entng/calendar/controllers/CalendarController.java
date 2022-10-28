@@ -37,9 +37,11 @@ import net.atos.entng.calendar.core.constants.Field;
 import net.atos.entng.calendar.core.constants.Rights;
 import net.atos.entng.calendar.core.enums.ExternalICalEventBusActions;
 import net.atos.entng.calendar.helpers.CalendarHelper;
+import net.atos.entng.calendar.helpers.PlatformHelper;
 import net.atos.entng.calendar.security.ShareEventConf;
 import net.atos.entng.calendar.services.CalendarService;
 import net.atos.entng.calendar.services.ServiceFactory;
+import net.atos.entng.calendar.services.PlatformService;
 import org.entcore.common.events.EventHelper;
 import org.entcore.common.events.EventStore;
 import org.entcore.common.events.EventStoreFactory;
@@ -61,8 +63,9 @@ public class CalendarController extends MongoDbControllerHelper {
     // Used for module "statistics"
     private final EventHelper eventHelper;
     private final CalendarService calendarService;
-    private final CalendarHelper calendarHelper;
 
+    private final CalendarHelper calendarHelper;
+    private final PlatformService platformService;
 
     @Override
     public void init(Vertx vertx, JsonObject config, RouteMatcher rm,
@@ -76,6 +79,7 @@ public class CalendarController extends MongoDbControllerHelper {
         final EventStore eventStore = EventStoreFactory.getFactory().getEventStore(Calendar.class.getSimpleName());
         this.eventHelper = new org.entcore.common.events.EventHelper(eventStore);
         this.calendarHelper = new CalendarHelper(collection, serviceFactory, eb, config);
+        this.platformService = serviceFactory.platformService();
     }
 
     @Get("/config")
@@ -195,7 +199,15 @@ public class CalendarController extends MongoDbControllerHelper {
                 return;
             }
             RequestUtils.bodyToJson(request, pathPrefix + "calendar", body -> {
-                createFuture(user, body)
+                String url = body.getString(Field.ICSLINK).trim();
+                platformService.retrieveAll()
+                        .compose(platformList -> {
+                            if (PlatformHelper.checkUrlInRegex(url, platformList)) {
+                                return createFuture(user, body);
+                            } else {
+                                return Future.failedFuture("URL not authorized");
+                            }
+                        })
                         .compose(calendarId -> {
                             String host = getHost(request);
                             String i18nLang = I18n.acceptLanguage(request);
@@ -212,7 +224,6 @@ public class CalendarController extends MongoDbControllerHelper {
                             renderError(request);
                         });
             });
-
         });
     }
 
@@ -413,6 +424,4 @@ public class CalendarController extends MongoDbControllerHelper {
             shareResource(request, "calendar.share", false, params, "title");
         }
     }
-
-
 }
