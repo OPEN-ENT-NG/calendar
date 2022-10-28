@@ -3,7 +3,7 @@ import http, {AxiosResponse} from "axios";
 
 export interface ICalendarEventService {
     fetchCalendarEvents(calendarId: string, startDate?: string, endDate?: string): Promise<AxiosResponse>;
-    deleteCalendarEventAndBookings(calendarId: string, eventId: string, deleteAllBookings?: boolean): Promise<AxiosResponse>;
+    deleteCalendarEventAndBookings(calendarId: string, eventId: string, deleteAllBookings?: boolean, isExternal?: boolean): Promise<AxiosResponse>;
 }
 
 export const calendarEventService: ICalendarEventService = {
@@ -15,12 +15,20 @@ export const calendarEventService: ICalendarEventService = {
         return http.get(`/calendar/${calendarId}/events${urlParam}`);
     },
 
-    async deleteCalendarEventAndBookings(calendarId: string, eventId: string, deleteAllBookings?: boolean): Promise<AxiosResponse> {
+    async deleteCalendarEventAndBookings(calendarId: string, eventId: string, deleteAllBookings?: boolean, isExternal?: boolean): Promise<AxiosResponse> {
         let urlParam: string = '';
-        if (deleteAllBookings) {
-            urlParam = `?deleteBookings=${deleteAllBookings}`;
+        let allBookingParam: string = '';
+        let externalCalendarParam: string = '';
+        if (deleteAllBookings || isExternal) {
+            urlParam = `?`;
         }
-        return http.delete(`/calendar/${calendarId}/event/${eventId}${urlParam}`);
+        if (deleteAllBookings) {
+            allBookingParam = `&deleteBookings=${deleteAllBookings}`;
+        }
+        if (isExternal) {
+            externalCalendarParam = `&url=${isExternal}`;
+        }
+        return http.delete(`/calendar/${calendarId}/event/${eventId}${urlParam}${allBookingParam}${externalCalendarParam}`);
     }
 };
 
