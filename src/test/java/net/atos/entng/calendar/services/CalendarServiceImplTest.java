@@ -1,7 +1,9 @@
 package net.atos.entng.calendar.services;
 
 import io.vertx.core.Promise;
+import io.vertx.ext.unit.Async;
 import net.atos.entng.calendar.Calendar;
+import net.atos.entng.calendar.core.constants.Field;
 import net.atos.entng.calendar.services.impl.CalendarServiceImpl;
 import fr.wseduc.mongodb.MongoDb;
 import io.vertx.core.Handler;
@@ -33,7 +35,7 @@ public class CalendarServiceImplTest {
     }
 
     @Test
-    public void testHasDefaultCalendarIfHasNoDefaultCalendar(TestContext context){
+    public void testHasDefaultCalendarIfHasNoDefaultCalendar(TestContext context) {
         // Arguments
         UserInfos user = new UserInfos();
         user.setOtherProperty("owner", new JsonObject());
@@ -57,7 +59,7 @@ public class CalendarServiceImplTest {
     }
 
     @Test
-    public void testCreateDefaultCalendarIfDoesNotExist(TestContext context){
+    public void testCreateDefaultCalendarIfDoesNotExist(TestContext context) {
         JsonObject now = MongoDb.now();
 
         // Arguments
@@ -103,7 +105,7 @@ public class CalendarServiceImplTest {
     }
 
     @Test
-    public void testIsDefaultCalendarIfIsNotDefaultCalendar(TestContext context){
+    public void testIsDefaultCalendarIfIsNotDefaultCalendar(TestContext context) {
 
         // Expected data
         String expectedCollection = "calendar";
@@ -122,4 +124,49 @@ public class CalendarServiceImplTest {
         calendarService.isDefaultCalendar(CALENDAR_ID);
     }
 
+    @Test
+    public void testUpdateCalendar(TestContext context) {
+        Async async = context.async();
+
+        JsonObject now = MongoDb.now();
+
+
+        JsonObject updateCalendar = new JsonObject()
+                .put("title", "Mon agenda")
+                .put("color", "grey")
+                .put("created", now)
+                .put("owner", new JsonObject()
+                        .put("userId", USER_ID)
+                        .put("displayName", (String) null)) //(String) null != null
+                .put("is_default", false);
+
+
+        //Expected data
+        String expectedCollection = "calendar";
+        JsonObject expectedCalendar = new JsonObject()
+                .put("title", "Mon agenda")
+                .put("color", "grey")
+                .put("created", now)
+                .put("owner", new JsonObject()
+                        .put("userId", USER_ID)
+                        .put("displayName", (String) null)) //(String) null != null
+                .put("is_default", false);
+        JsonObject expectedQuery = new JsonObject().put(Field._ID, CALENDAR_ID);
+
+
+        Mockito.doAnswer(invocation -> {
+            String collection = invocation.getArgument(0);
+            JsonObject query = invocation.getArgument(1);
+            JsonObject updatedCalendar = ((JsonObject) invocation.getArgument(2)).getJsonObject("$set");
+            updatedCalendar.remove("modified");
+            context.assertEquals(collection, expectedCollection);
+            context.assertEquals(query, expectedQuery);
+            context.assertEquals(updatedCalendar, expectedCalendar);
+            async.complete();
+            return null;
+        }).when(mongo).update(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any());
+
+        calendarService.update(CALENDAR_ID, updateCalendar, false);
+        async.await(10000);
+    }
 }
