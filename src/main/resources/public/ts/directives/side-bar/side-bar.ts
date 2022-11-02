@@ -1,7 +1,11 @@
-import { $, ng} from "entcore";
+import {$, ng, toasts} from "entcore";
 import {Calendar, Calendars} from "../../model";
 import {ROOTS} from "../../core/const/roots";
 import {Subject} from "rxjs";
+import {calendar} from "entcore/types/src/ts/calendar";
+import {calendarService} from "../../services";
+import {AxiosResponse} from "axios";
+import {safeApply} from "../../model/Utils";
 
 interface IViewModel {
     $onInit(): any;
@@ -28,6 +32,7 @@ interface IViewModel {
     onShowCalendar(): void;
     onShowList(): void;
     onOpenOrCloseCalendar(calendar: Calendar, savePreferences: boolean): void;
+    onUpdateCalendarList(calendar : Calendar) : void;
 
 }
 
@@ -39,7 +44,8 @@ export const sideBar = ng.directive('sideBar', () =>{
             onShowCalendar: '&',
             onShowList: '&',
             onOpenOrCloseCalendar: '&',
-            calendar: '='
+            calendar: '=',
+            onUpdateCalendarList: '&'
         },
 
         restrict: 'E',
@@ -114,6 +120,10 @@ export const sideBar = ng.directive('sideBar', () =>{
                     .forEach((item:any): boolean => item.showButtons = false);
                 $scope.$parent.display.showToggleButtons = calendar.showButtons;
             };
+
+            vm.onUpdateCalendarList = (calendar : Calendar) : void => {
+                $scope.$eval($scope.onUpdateCalendarList)(calendar);
+            }
         }
     }
 });

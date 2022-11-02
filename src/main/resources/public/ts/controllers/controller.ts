@@ -35,6 +35,7 @@ import {IScope} from "angular";
 import {RBS_EVENTER} from "../core/enum/rbs/rbs-eventer.enum";
 import {RBS_SNIPLET} from "../core/const/rbs-sniplet.const";
 import {externalCalendarUtils} from "../utils/externalCalendarUtils";
+import {calendarService} from "../services";
 
 declare var ENABLE_RBS: boolean;
 declare let window: any;
@@ -557,6 +558,19 @@ export const calendarController = ng.controller('CalendarController',
                 safeApply($scope);
             };
 
+            $scope.updateExternalCalendar = async (calendar: Calendar) : Promise<void> => {
+                $scope.display.showToggleButtons = false;
+
+                let updatedCalendar: Calendar = await calendarService.fetchCalendarById(calendar);
+                if (updatedCalendar._id) {
+                    $scope.calendars.all.find((cl: Calendar) => (cl._id == updatedCalendar._id)).updated = updatedCalendar.updated;
+                    await $scope.calendars.syncSelectedCalendarEvents($scope.calendarEvents.filters.startMoment.format(FORMAT.formattedDate),
+                        $scope.calendarEvents.filters.endMoment.format(FORMAT.formattedDate));
+                    $scope.loadCalendarEvents();
+                    safeApply($scope);
+                }
+            };
+
             /**
              * Get all selected calendars and the events from these selected calendars
              **/
@@ -1061,6 +1075,7 @@ export const calendarController = ng.controller('CalendarController',
                 $scope.loadCalendarEvents();
                 template.close('lightbox');
                 $scope.display.confirmDeleteCalendar = undefined;
+                $scope.eventSidebar$.next();
                 $scope.$apply();
             };
 

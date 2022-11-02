@@ -1,4 +1,4 @@
-import {angular, model, ng} from "entcore";
+import {angular, model, ng, toasts} from "entcore";
 import {ROOTS} from "../../core/const/roots";
 import {Calendar} from "../../model";
 import {IScope} from "angular";
@@ -54,8 +54,10 @@ class Controller implements ng.IController, IViewModel {
     }
 
     createExternalCalendar = async (calendar): Promise<void> => {
-        await this.calendarService.addExternalCalendar(calendar);
         this.closeExternalCalendarForm();
+        safeApply(this.$scope);
+        //toasts.info("Ajout du calendrier en cours");
+        await this.calendarService.addExternalCalendar(calendar);
         this.$scope.$parent.$eval(this.$scope.vm.onUpdateCalendars)();
     }
 }
