@@ -130,7 +130,7 @@ public class EventController extends MongoDbControllerHelper {
                             return;
                         }
 
-                        eventHelper.isEventFromExternalCalendar(id)
+                        eventHelper.isExternalCalendarEventImmutable(id)
                                 .onSuccess(isExternal -> {
                                     if(Boolean.FALSE.equals(isExternal)) {
                                         JsonObject params = new JsonObject();
