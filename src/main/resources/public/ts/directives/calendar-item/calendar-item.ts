@@ -2,11 +2,10 @@ import {ng, toasts} from "entcore";
 import {ROOTS} from "../../core/const/roots";
 import {Calendar} from "../../model";
 import {IIntervalService, IPromise, IScope, ITimeoutService} from "angular";
-import {ICalendarService} from "../../services";
+import {calendarService, ICalendarService} from "../../services";
 import {DateUtils} from "../../utils/date.utils";
 import {AxiosResponse} from "axios";
 import {safeApply} from "../../model/Utils";
-import {idiom as lang} from "entcore/types/src/ts/idiom";
 
 interface IViewModel {
     loading: boolean;
@@ -15,6 +14,7 @@ interface IViewModel {
     hideOtherCalendarCheckboxes(calendar: Calendar) : void;
     updateExternalCalendar($event?: MouseEvent) : Promise<void>;
     handleUpdateInterval() : Promise<void>;
+    updateExternalCalendarView() : void;
     getLastUpdate(format: string) : string;
 }
 
@@ -23,6 +23,8 @@ interface ICalendarItemProps {
 
     onOpenOrCloseClickedCalendar(): (calendar: Calendar, savePreferences: boolean) => void;
     onUncheckOtherCalendarCheckboxes(): (calendar: Calendar) => void;
+    onUpdateExternalCalendarView() : void;
+
 }
 
 interface ICalendarItemScope extends IScope {
@@ -63,7 +65,7 @@ class Controller implements ng.IController, IViewModel {
                 .then((r:AxiosResponse) => {
                     if(r.data['isUpdating'] == false) {
                         this.loading = false;
-                        safeApply(this.$scope);
+                        this.updateExternalCalendarView();
                         return;
                     }
                     return this.handleUpdateInterval();
@@ -84,7 +86,7 @@ class Controller implements ng.IController, IViewModel {
                 .then((r: AxiosResponse) => {
                     if(r.data['isUpdating'] == false) {
                         this.loading = false;
-                        safeApply(this.$scope);
+                        this.updateExternalCalendarView();
                         return;
                     }
                 })
@@ -97,6 +99,11 @@ class Controller implements ng.IController, IViewModel {
                 });
             return;
             }, 60000, 0, false);
+    }
+
+    updateExternalCalendarView() : void {
+        this.$scope.$parent.$eval(this.$scope.vm.onUpdateExternalCalendarView)(this.$scope.vm.calendar);
+
     }
 
     getLastUpdate = (format: string): string => {
@@ -113,6 +120,7 @@ function directive() {
             calendar: '=',
             onOpenOrCloseClickedCalendar: '&',
             onUncheckOtherCalendarCheckboxes: '&',
+            onUpdateExternalCalendarView: '&'
         },
         bindToController: true,
         controller: ['$scope', 'CalendarService', "$timeout", "$interval", Controller]
