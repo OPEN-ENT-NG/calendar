@@ -10,34 +10,34 @@ import java.util.List;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-public class TrustedUrlHelper {
+public class PlatformHelper {
 
-    protected static final Logger log = LoggerFactory.getLogger(TrustedUrlHelper.class);
+    protected static final Logger log = LoggerFactory.getLogger(PlatformHelper.class);
 
-    private TrustedUrlHelper() {
+    private PlatformHelper() {
     }
 
     /**
-     * Create a list of pattern representing the regex of our trusted URLs
+     * Create a list of pattern representing the regex of our platforms
      *
-     * @param trustedUrlList the list of trusted URLs from which we want our regexes
+     * @param platformsList the list of platforms from which we want our regexes
      * @return {@link List<Pattern>} A list containing all the patterns representing our regexes
      */
-    private static List<Pattern> createRegexList(JsonArray trustedUrlList) {
-        return trustedUrlList.stream()
+    private static List<Pattern> createRegexList(JsonArray platformsList) {
+        return platformsList.stream()
                 .map(JsonObject.class::cast)
-                .map(trustedUrl -> Pattern.compile(trustedUrl.getString(Field.REGEX), Pattern.CASE_INSENSITIVE))
+                .map(platform -> Pattern.compile(platform.getString(Field.REGEX), Pattern.CASE_INSENSITIVE))
                 .collect(Collectors.toList());
     }
 
     /**
-     * Check if the given url match one of our regexes obtained from our trusted URLs
+     * Check if the given url match one of our regexes obtained from our platforms
      *
      * @param targetUrl the url to check
      * @return Boolean with the result of the check
      */
-    public static boolean checkUrlInRegex(String targetUrl, JsonArray trustedUrlList) {
-        List<Pattern> regexList = createRegexList(trustedUrlList);
+    public static boolean checkUrlInRegex(String targetUrl, JsonArray platformsList) {
+        List<Pattern> regexList = createRegexList(platformsList);
         return regexList.stream().anyMatch(regex -> regex.matcher(targetUrl).matches());
     }
 }

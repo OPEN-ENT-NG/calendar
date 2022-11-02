@@ -4,38 +4,38 @@ import io.vertx.core.Future;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
-public interface TrustedUrlService {
+public interface PlatformService {
     /**
-     * Return a trusted url by id
-     * @param id The id of the trusted url
-     * @return {@link Future<JsonObject>} Future containing the info of the trusted url (Title, regex)
+     * Return a platform by id
+     * @param id The id of the platform
+     * @return {@link Future<JsonObject>} Future containing the info of the platform (Title, regex)
      */
     Future<JsonObject> retrieve(String id);
 
     /**
-     * Return a list of all the trusted urls
-     * @return {@link Future<JsonArray>} The trusted urls infos (Title, regex)
+     * Return a list of all the platforms
+     * @return {@link Future<JsonArray>} The platforms infos (Title, regex)
      */
     Future<JsonArray> retrieveAll();
 
     /**
-     * Create a trusted url
-     * @param body The fields of the new trusted url
+     * Create a platform
+     * @param body The fields of the new platform
      * @return {@link Future<Void>} Future response
      */
     Future<Void> create(JsonObject body);
 
     /**
-     * Update trusted url
-     * @param id the id of the trusted url to update
+     * Update platform
+     * @param id the id of the platform to update
      * @param body the fields to change
      * @return {@link Future<Void>} Future response
      */
     Future<Void> update(String id, JsonObject body);
 
     /**
-     * Delete trusted url
-     * @param id the id of the trusted url we want to delete
+     * Delete platform
+     * @param id the id of the platform we want to delete
      * @return {@link Future<Void>} Future response
      */
     Future<Void> delete(String id);

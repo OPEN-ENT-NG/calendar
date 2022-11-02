@@ -7,7 +7,7 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 import net.atos.entng.calendar.Calendar;
-import net.atos.entng.calendar.services.impl.TrustedUrlServiceImpl;
+import net.atos.entng.calendar.services.impl.PlatformServiceImpl;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -16,31 +16,31 @@ import org.mockito.Mockito;
 import static org.mockito.Mockito.mock;
 
 @RunWith(VertxUnitRunner.class)
-public class TrustedUrlServiceImplTest {
+public class PlatformServiceImplTest {
 
 
     MongoDb mongo = mock(MongoDb.class);
 
-    private TrustedUrlServiceImpl trustedUrlService;
+    private PlatformServiceImpl platformService;
 
-    private final String TRUSTED_URL_ID = "123";
+    private final String PLATFORM_ID = "123";
 
 
     @Before
     public void setUp(TestContext context) {
-        this.trustedUrlService = new TrustedUrlServiceImpl(Calendar.URL_COLLECTION, mongo);
+        this.platformService = new PlatformServiceImpl(Calendar.PLATFORMS_COLLECTION, mongo);
     }
 
     @Test
-    public void testCreateTrustedUrl(TestContext context){
+    public void testCreatePlatform(TestContext context){
 
-        JsonObject trustedUrl = new JsonObject()
+        JsonObject platform = new JsonObject()
                 .put("title", "moodle")
                 .put("regex", "^https?:\\/\\/.*moodle.*\\/calendar\\/.*");
 
         //Expected data
-        String expectedCollection = "trustedurl";
-        JsonObject expectedTrustedUrl = new JsonObject()
+        String expectedCollection = "calendar.platforms";
+        JsonObject expectedPlatform = new JsonObject()
                 .put("title", "moodle")
                 .put("regex", "^https?:\\/\\/.*moodle.*\\/calendar\\/.*");
 
@@ -48,26 +48,26 @@ public class TrustedUrlServiceImplTest {
             String collection = invocation.getArgument(0);
             JsonObject newTrustedUrl = invocation.getArgument(1);
             context.assertEquals(collection, expectedCollection);
-            context.assertEquals(newTrustedUrl, expectedTrustedUrl);
+            context.assertEquals(newTrustedUrl, expectedPlatform);
             return null;
         }).when(mongo).insert(Mockito.anyString(), Mockito.any(JsonObject.class), Mockito.any(Handler.class));
 
-        trustedUrlService.create(trustedUrl);
+        platformService.create(platform);
     }
 
     @Test
     public void testUpdate(TestContext context){
 
-        JsonObject trustedUrl = new JsonObject()
+        JsonObject platform = new JsonObject()
                 .put("title", "moodle")
                 .put("regex", "^https?:\\/\\/.*moodle.*\\/calendar\\/.*");
 
         //Expected data
-        String expectedCollection = "trustedurl";
-        JsonObject expectedTrustedUrl = new JsonObject()
+        String expectedCollection = "calendar.platforms";
+        JsonObject expectedPlatform = new JsonObject()
                 .put("title", "moodle")
                 .put("regex", "^https?:\\/\\/.*moodle.*\\/calendar\\/.*");
-        JsonObject expectedQuery = new JsonObject().put("_id", TRUSTED_URL_ID);
+        JsonObject expectedQuery = new JsonObject().put("_id", PLATFORM_ID);
 
         Mockito.doAnswer(invocation -> {
             String collection = invocation.getArgument(0);
@@ -75,19 +75,19 @@ public class TrustedUrlServiceImplTest {
             JsonObject newTrustedUrl = invocation.getArgument(2);
             context.assertEquals(collection, expectedCollection);
             context.assertEquals(query, expectedQuery);
-            context.assertEquals(newTrustedUrl, expectedTrustedUrl);
+            context.assertEquals(newTrustedUrl, expectedPlatform);
             return null;
         }).when(mongo).update(Mockito.anyString(), Mockito.any(JsonObject.class), Mockito.any(JsonObject.class));
 
-        trustedUrlService.update(TRUSTED_URL_ID, trustedUrl);
+        platformService.update(PLATFORM_ID, platform);
     }
 
     @Test
-    public void testDeleteTrustedUrl(TestContext context){
+    public void testDeletePlatform(TestContext context){
 
         //Expected data
-        String expectedCollection = "trustedurl";
-        JsonObject expectedQuery = new JsonObject().put("_id", TRUSTED_URL_ID);
+        String expectedCollection = "calendar.platforms";
+        JsonObject expectedQuery = new JsonObject().put("_id", PLATFORM_ID);
 
         Mockito.doAnswer(invocation -> {
             String collection = invocation.getArgument(0);
@@ -97,7 +97,7 @@ public class TrustedUrlServiceImplTest {
             return null;
         }).when(mongo).delete(Mockito.anyString(), Mockito.any(JsonObject.class), Mockito.any(Handler.class));
 
-        trustedUrlService.delete(TRUSTED_URL_ID);
+        platformService.delete(PLATFORM_ID);
     }
 
 

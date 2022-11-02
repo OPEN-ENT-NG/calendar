@@ -11,18 +11,18 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import net.atos.entng.calendar.core.constants.Field;
-import net.atos.entng.calendar.services.TrustedUrlService;
+import net.atos.entng.calendar.services.PlatformService;
 
 import static org.entcore.common.mongodb.MongoDbResult.validResultHandler;
 import static org.entcore.common.mongodb.MongoDbResult.validResultsHandler;
 
-public class TrustedUrlServiceImpl implements TrustedUrlService {
+public class PlatformServiceImpl implements PlatformService {
 
     private final MongoDb mongo;
     private final String collection;
-    protected static final Logger log = LoggerFactory.getLogger(TrustedUrlServiceImpl.class);
+    protected static final Logger log = LoggerFactory.getLogger(PlatformServiceImpl.class);
 
-    public TrustedUrlServiceImpl(String collection, MongoDb mongo) {
+    public PlatformServiceImpl(String collection, MongoDb mongo) {
         this.mongo = mongo;
         this.collection = collection;
     }
@@ -36,7 +36,7 @@ public class TrustedUrlServiceImpl implements TrustedUrlService {
 
         mongo.findOne(this.collection, MongoQueryBuilder.build(query), validResultHandler(event -> {
             if(event.isLeft()){
-                String errMessage = String.format("[Calendar@%s::retrieve] An error has occurred while retrieving a trusted urls: %s",
+                String errMessage = String.format("[Calendar@%s::retrieve] An error has occurred while retrieving a platform: %s",
                         this.getClass().getSimpleName(), event.left().getValue());
                 log.error(errMessage, event.left().getValue());
                 promise.fail(event.left().getValue());
@@ -53,7 +53,7 @@ public class TrustedUrlServiceImpl implements TrustedUrlService {
         Promise<JsonArray> promise = Promise.promise();
         mongo.find(this.collection, new JsonObject(), validResultsHandler(event -> {
             if(event.isLeft()){
-                String errMessage = String.format("[Calendar@%s::retrieveAll] An error has occurred while retrieving all trusted url: %s",
+                String errMessage = String.format("[Calendar@%s::retrieveAll] An error has occurred while retrieving all platform: %s",
                         this.getClass().getSimpleName(), event.left().getValue());
                 log.error(errMessage, event.left().getValue());
                 promise.fail(event.left().getValue());
@@ -71,7 +71,7 @@ public class TrustedUrlServiceImpl implements TrustedUrlService {
 
         mongo.insert(this.collection, body, validResultHandler(event -> {
             if (event.isLeft()){
-                String errMessage = String.format("[Calendar@%s::create] An error has occurred while creating a new trusted url: %s",
+                String errMessage = String.format("[Calendar@%s::create] An error has occurred while creating a new platform: %s",
                         this.getClass().getSimpleName(), event.left().getValue());
                 log.error(errMessage, event.left().getValue());
                 promise.fail(event.left().getValue());
@@ -96,7 +96,7 @@ public class TrustedUrlServiceImpl implements TrustedUrlService {
 
         mongo.update(this.collection, MongoQueryBuilder.build(query), modifier.build(), validResultHandler(event -> {
             if(event.isLeft()){
-                String errMessage = String.format("[Calendar@%s::update] An error has occurred while deleting a trusted url: %s",
+                String errMessage = String.format("[Calendar@%s::update] An error has occurred while deleting a platform: %s",
                         this.getClass().getSimpleName(), event.left().getValue());
                 log.error(errMessage, event.left().getValue());
                 promise.fail(event.left().getValue());
@@ -117,7 +117,7 @@ public class TrustedUrlServiceImpl implements TrustedUrlService {
 
         mongo.delete(this.collection, MongoQueryBuilder.build(query), validResultHandler(event -> {
             if(event.isLeft()){
-                String errMessage = String.format("[Calendar@%s::delete] An error has occurred while deleting a trusted url: %s",
+                String errMessage = String.format("[Calendar@%s::delete] An error has occurred while deleting a platform: %s",
                         this.getClass().getSimpleName(), event.left().getValue());
                 log.error(errMessage, event.left().getValue());
                 promise.fail(event.left().getValue());

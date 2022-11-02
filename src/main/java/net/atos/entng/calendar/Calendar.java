@@ -26,7 +26,7 @@ import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.client.WebClientOptions;
 import net.atos.entng.calendar.controllers.CalendarController;
 import net.atos.entng.calendar.controllers.EventController;
-import net.atos.entng.calendar.controllers.TrustedUrlController;
+import net.atos.entng.calendar.controllers.PlatformController;
 import net.atos.entng.calendar.event.CalendarRepositoryEvents;
 import net.atos.entng.calendar.event.CalendarSearchingEvents;
 import net.atos.entng.calendar.ical.ExternalImportICal;
@@ -50,7 +50,7 @@ public class Calendar extends BaseServer {
 
     public static final String CALENDAR_COLLECTION = "calendar";
     public static final String CALENDAR_EVENT_COLLECTION = "calendarevent";
-    public static final String URL_COLLECTION = "trustedurl";
+    public static final String PLATFORMS_COLLECTION = "calendar.platforms";
     public static final String DOCUMENTS_COLLECTION = "documents";
 
     public static final String MANAGE_RIGHT_ACTION = "net-atos-entng-calendar-controllers-CalendarController|updateCalendar";
@@ -80,7 +80,7 @@ public class Calendar extends BaseServer {
         final TimelineHelper timelineHelper = new TimelineHelper(vertx, eb, config);
         addController(new CalendarController(CALENDAR_COLLECTION, serviceFactory, eb, config));
         addController(new EventController(CALENDAR_EVENT_COLLECTION, eventService, serviceFactory, timelineHelper, storage, eb, config));
-        addController(new TrustedUrlController(URL_COLLECTION, serviceFactory));
+        addController(new PlatformController(PLATFORMS_COLLECTION, serviceFactory));
 
         // External Import Calendar services
         vertx.deployVerticle(ExternalImportICal.class, new DeploymentOptions().setConfig(config).setWorker(true));

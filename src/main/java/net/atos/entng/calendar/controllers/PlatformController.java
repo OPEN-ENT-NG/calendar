@@ -9,29 +9,29 @@ import io.vertx.core.http.HttpServerRequest;
 import net.atos.entng.calendar.core.constants.Actions;
 import net.atos.entng.calendar.core.constants.Field;
 import net.atos.entng.calendar.services.ServiceFactory;
-import net.atos.entng.calendar.services.TrustedUrlService;
+import net.atos.entng.calendar.services.PlatformService;
 import org.entcore.common.http.filter.ResourceFilter;
 import org.entcore.common.http.filter.SuperAdminFilter;
 import org.entcore.common.http.filter.Trace;
 import org.entcore.common.mongodb.MongoDbControllerHelper;
 
-public class TrustedUrlController extends MongoDbControllerHelper {
+public class PlatformController extends MongoDbControllerHelper {
 
-    private final TrustedUrlService trustedUrlService;
+    private final PlatformService platformService;
 
 
-    public TrustedUrlController(String collection, ServiceFactory serviceFactory) {
+    public PlatformController(String collection, ServiceFactory serviceFactory) {
         super(collection);
-        this.trustedUrlService = serviceFactory.urlService();
+        this.platformService = serviceFactory.platformService();
     }
 
-    @Get("/trusted/:urlId")
-    @ApiDoc("Retrieve a trusted url by id")
+    @Get("/platforms/:platformId")
+    @ApiDoc("Retrieve a platform by id")
     @SecuredAction(value = "", type = ActionType.RESOURCE)
     @ResourceFilter(SuperAdminFilter.class)
-    public void retrieveTrustedUrl(HttpServerRequest request) {
-        final String id = request.params().get(Field.URLID);
-        trustedUrlService.retrieve(id)
+    public void retrievePlatform(HttpServerRequest request) {
+        final String id = request.params().get(Field.PLATFORM_ID);
+        platformService.retrieve(id)
                 .onSuccess(res -> {
                     renderJson(request, res);
                 })
@@ -40,12 +40,12 @@ public class TrustedUrlController extends MongoDbControllerHelper {
                 });
     }
 
-    @Get("/trusted")
-    @ApiDoc("List all trusted url by id")
+    @Get("/platforms")
+    @ApiDoc("List all platform")
     @SecuredAction(value = "", type = ActionType.RESOURCE)
     @ResourceFilter(SuperAdminFilter.class)
-    public void listTrustedUrl(HttpServerRequest request) {
-        trustedUrlService.retrieveAll()
+    public void listPlatforms(HttpServerRequest request) {
+        platformService.retrieveAll()
                 .onSuccess(res -> {
                     renderJson(request, res);
                 })
@@ -54,14 +54,14 @@ public class TrustedUrlController extends MongoDbControllerHelper {
                 });
     }
 
-    @Post("/trusted")
-    @ApiDoc("Add a trusted url")
+    @Post("/platforms")
+    @ApiDoc("Add a platform")
     @SecuredAction(value = "", type = ActionType.RESOURCE)
     @ResourceFilter(SuperAdminFilter.class)
-    @Trace(Actions.CREATE_TRUSTED)
-    public void createTrustedUrl(HttpServerRequest request) {
+    @Trace(Actions.CREATE_PLATFORM)
+    public void createPlatforms(HttpServerRequest request) {
         RequestUtils.bodyToJson(request, body -> {
-            trustedUrlService.create(body)
+            platformService.create(body)
                     .onSuccess(res -> {
                         Renders.ok(request);
                     })
@@ -71,14 +71,14 @@ public class TrustedUrlController extends MongoDbControllerHelper {
         });
     }
 
-    @Delete("/trusted/:urlId")
-    @ApiDoc("Delete a trusted url by id")
+    @Delete("/platforms/:platformId")
+    @ApiDoc("Delete a platform by id")
     @SecuredAction(value = "", type = ActionType.RESOURCE)
     @ResourceFilter(SuperAdminFilter.class)
-    @Trace(Actions.DELETE_TRUSTED)
-    public void deleteTrustedUrl(HttpServerRequest request) {
-        final String id = request.params().get(Field.URLID);
-        trustedUrlService.delete(id)
+    @Trace(Actions.DELETE_PLATFORM)
+    public void deletePlatforms(HttpServerRequest request) {
+        final String id = request.params().get(Field.PLATFORM_ID);
+        platformService.delete(id)
                 .onSuccess(res -> {
                     Renders.ok(request);
                 })
@@ -87,15 +87,15 @@ public class TrustedUrlController extends MongoDbControllerHelper {
                 });
     }
 
-    @Put("/trusted/:urlId")
-    @ApiDoc("Update a trusted url by id")
+    @Put("/platforms/:platformId")
+    @ApiDoc("Update a platform by id")
     @SecuredAction(value = "", type = ActionType.RESOURCE)
     @ResourceFilter(SuperAdminFilter.class)
-    @Trace(Actions.UPDATE_TRUSTED)
-    public void updateTrustedUrl(HttpServerRequest request) {
-        final String id = request.params().get(Field.URLID);
+    @Trace(Actions.UPDATE_PLATFORM)
+    public void updatePlatforms(HttpServerRequest request) {
+        final String id = request.params().get(Field.PLATFORM_ID);
         RequestUtils.bodyToJson(request, body -> {
-            trustedUrlService.update(id, body)
+            platformService.update(id, body)
                     .onSuccess(res -> {
                         Renders.ok(request);
                     })

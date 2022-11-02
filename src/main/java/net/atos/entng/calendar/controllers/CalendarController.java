@@ -37,11 +37,11 @@ import net.atos.entng.calendar.core.constants.Field;
 import net.atos.entng.calendar.core.constants.Rights;
 import net.atos.entng.calendar.core.enums.ExternalICalEventBusActions;
 import net.atos.entng.calendar.helpers.CalendarHelper;
-import net.atos.entng.calendar.helpers.TrustedUrlHelper;
+import net.atos.entng.calendar.helpers.PlatformHelper;
 import net.atos.entng.calendar.security.ShareEventConf;
 import net.atos.entng.calendar.services.CalendarService;
 import net.atos.entng.calendar.services.ServiceFactory;
-import net.atos.entng.calendar.services.TrustedUrlService;
+import net.atos.entng.calendar.services.PlatformService;
 import org.entcore.common.events.EventHelper;
 import org.entcore.common.events.EventStore;
 import org.entcore.common.events.EventStoreFactory;
@@ -65,7 +65,7 @@ public class CalendarController extends MongoDbControllerHelper {
     private final CalendarService calendarService;
 
     private final CalendarHelper calendarHelper;
-    private final TrustedUrlService trustedUrlService;
+    private final PlatformService platformService;
 
     @Override
     public void init(Vertx vertx, JsonObject config, RouteMatcher rm,
@@ -79,7 +79,7 @@ public class CalendarController extends MongoDbControllerHelper {
         final EventStore eventStore = EventStoreFactory.getFactory().getEventStore(Calendar.class.getSimpleName());
         this.eventHelper = new org.entcore.common.events.EventHelper(eventStore);
         this.calendarHelper = new CalendarHelper(collection, serviceFactory, eb, config);
-        this.trustedUrlService = serviceFactory.urlService();
+        this.platformService = serviceFactory.platformService();
     }
 
     @Get("/config")
@@ -200,12 +200,12 @@ public class CalendarController extends MongoDbControllerHelper {
             }
             RequestUtils.bodyToJson(request, pathPrefix + "calendar", body -> {
                 String url = body.getString(Field.ICSLINK).trim();
-                trustedUrlService.retrieveAll()
-                        .compose(urlList -> {
-                            if (TrustedUrlHelper.checkUrlInRegex(url, urlList)) {
+                platformService.retrieveAll()
+                        .compose(platformList -> {
+                            if (PlatformHelper.checkUrlInRegex(url, platformList)) {
                                 return createFuture(user, body);
                             } else {
-                                return Future.failedFuture("URL not registered on the platform");
+                                return Future.failedFuture("URL not authorized");
                             }
                         })
                         .compose(calendarId -> {

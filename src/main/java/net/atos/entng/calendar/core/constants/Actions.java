@@ -24,7 +24,7 @@ public class Actions {
     public static final String IMPORT_EXTERNAL_CALENDAR = "IMPORT_EXTERNAL_CALENDAR";
     public static final String CHECK_EXTERNAL_CALENDAR = "CHECK_EXTERNAL_CALENDAR";
 
-    public static final String CREATE_TRUSTED = "CREATE_TRUSTED";
-    public static final String DELETE_TRUSTED = "DELETE_TRUSTED";
-    public static final String UPDATE_TRUSTED = "UPDATE_TRUSTED";
+    public static final String CREATE_PLATFORM = "CREATE_PLATFORM";
+    public static final String DELETE_PLATFORM = "DELETE_PLATFORM";
+    public static final String UPDATE_PLATFORM = "UPDATE_PLATFORM";
 }

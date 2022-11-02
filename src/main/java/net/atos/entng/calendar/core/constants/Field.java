@@ -141,7 +141,7 @@ public class Field {
     public static final String ISEXTERNAL = "isExternal";
     public static final String ICSLINK = "icsLink";
     public static final String SYNC = "sync";
-    public static final String URLID = "urlId";
+    public static final String PLATFORM_ID = "platformId";
 
     //Http Methods
     public static final String POST = "post";
