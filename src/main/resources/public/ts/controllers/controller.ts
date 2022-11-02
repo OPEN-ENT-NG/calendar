@@ -1040,7 +1040,7 @@ export const calendarController = ng.controller('CalendarController',
             $scope.removeCalendar = async () => {
                 $scope.display.showToggleButtons = false;
                 $scope.calendar.calendarEvents.forEach(function (calendarEvent) {
-                    calendarEvent.delete();
+                    externalCalendarUtils.isCalendarExternal($scope.calendar) ? calendarEvent.delete(true) : calendarEvent.delete();
                 });
 
                 try {
