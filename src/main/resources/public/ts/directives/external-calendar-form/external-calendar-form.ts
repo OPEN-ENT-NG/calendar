@@ -1,7 +1,6 @@
 import {angular, model, ng} from "entcore";
 import {ROOTS} from "../../core/const/roots";
-import {Calendar} from "../../model";
-import {IScope} from "angular";
+import {IParseService, IScope, ITimeoutService} from "angular";
 import {safeApply} from "../../model/Utils";
 import {CalendarForm} from "../../model/calendar-form.model";
 import {idiom as lang} from "entcore";
@@ -26,7 +25,7 @@ interface IExternalCalendarFormScope extends IScope {
 
 class Controller implements IViewModel {
 
-    constructor(private $scope: IExternalCalendarFormScope, private $parse: any) {
+    constructor(private $scope: IExternalCalendarFormScope, private $parse: any, private $timeout: ITimeoutService) {
     }
 
     $onInit() {
@@ -43,7 +42,9 @@ class Controller implements IViewModel {
         extCalendarForm['externalCalendarForm'].$setPristine();
 
         //clear color
-        angular.element(document.getElementsByClassName("color grey")).triggerHandler('click');
+        this.$timeout(() : void => {
+            angular.element(document.getElementsByClassName("color grey")).triggerHandler('click');
+        })
 
         safeApply(this.$scope);
     }
@@ -68,7 +69,7 @@ function directive($parse) {
             onCreateExternalCalendar: '&'
         },
         bindToController: true,
-        controller: ['$scope', '$parse', Controller],
+        controller: ['$scope', '$parse', '$timeout', Controller],
         link: function ($scope: IExternalCalendarFormScope,
                         element: ng.IAugmentedJQuery,
                         attrs: ng.IAttributes,
