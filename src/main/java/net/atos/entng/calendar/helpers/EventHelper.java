@@ -179,7 +179,7 @@ public class EventHelper extends MongoDbControllerHelper {
                         public void handle(JsonObject object) {
                             final String eventId = request.params().get(EVENT_ID_PARAMETER);
                             final String calendarId = request.params().get(CALENDAR_ID_PARAMETER);
-                            isEventFromExternalCalendar(eventId)
+                            isExternalCalendarEventImmutable(eventId)
                                     .onSuccess(isExternal -> {
                                         if(Boolean.FALSE.equals(isExternal)) {
                                             crudService.update(eventId, object, user, new Handler<Either<String, JsonObject>>() {
@@ -245,8 +245,9 @@ public class EventHelper extends MongoDbControllerHelper {
             final String calendarId = request.params().get(CALENDAR_ID_PARAMETER);
             final String eventId = request.params().get(EVENT_ID_PARAMETER);
             final Boolean deleteBookings = Boolean.parseBoolean(request.params().get(Field.DELETEBOOKINGS));
+            final Boolean authorizeExternalCalendarEventsDelete = Boolean.parseBoolean(request.params().get(Field.URL));
 
-            isEventFromExternalCalendar(eventId)
+            isExternalCalendarEventImmutable(eventId, authorizeExternalCalendarEventsDelete)
                     .onSuccess(isExternal -> {
                         if(Boolean.FALSE.equals(isExternal)) {
                             Future<JsonObject> getCalendarEventInfos = Boolean.TRUE.equals(deleteBookings) ? eventService.retrieve(calendarId, eventId, user)
@@ -992,8 +993,17 @@ public class EventHelper extends MongoDbControllerHelper {
     }
 
     @SuppressWarnings("unchecked")
-    public Future<Boolean> isEventFromExternalCalendar(String calendarEventId) {
+    public Future<Boolean> isExternalCalendarEventImmutable(String calendarEventId) {
+        return isExternalCalendarEventImmutable(calendarEventId, null);
+    }
+
+    @SuppressWarnings("unchecked")
+    public Future<Boolean> isExternalCalendarEventImmutable(String calendarEventId, Boolean authorizeExternalCalendarEventChange) {
         Promise<Boolean> promise = Promise.promise();
+
+        if(Boolean.TRUE.equals(authorizeExternalCalendarEventChange)) {
+            promise.complete(false);
+        }
 
         this.eventService.getCalendarEventById(calendarEventId)
                 .compose( calendarEvent ->
