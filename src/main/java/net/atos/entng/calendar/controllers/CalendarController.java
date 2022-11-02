@@ -121,7 +121,7 @@ public class CalendarController extends MongoDbControllerHelper {
         list(request);
     }
 
-    @Get("/:id")
+    @Get("/calendars/:id")
     @SecuredAction(Rights.GET)
     @Trace(Actions.GET_CALENDAR)
     public void getCalendar(HttpServerRequest request) {
