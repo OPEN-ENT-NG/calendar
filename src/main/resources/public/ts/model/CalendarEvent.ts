@@ -94,8 +94,8 @@ export class CalendarEvent implements Selectable, Shareable{
        await http.put('/calendar/' + this.calendar[0]._id + '/event/' + this._id, this.toJSON());
     };
 
-    async delete() {
-        await calendarEventService.deleteCalendarEventAndBookings(this.calendar[0]._id, this._id, this.deleteAllBookings);
+    async delete(isExternal: boolean) {
+        await calendarEventService.deleteCalendarEventAndBookings(this.calendar[0]._id, this._id, this.deleteAllBookings, isExternal);
     };
 
     editDateBeforeSend(isNewEvent){
