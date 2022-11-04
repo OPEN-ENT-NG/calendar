@@ -3,6 +3,7 @@ package net.atos.entng.calendar.services;
 import io.vertx.core.Vertx;
 import io.vertx.ext.unit.Async;
 import net.atos.entng.calendar.Calendar;
+import net.atos.entng.calendar.core.constants.Field;
 import net.atos.entng.calendar.services.impl.EventServiceMongoImpl;
 import fr.wseduc.mongodb.MongoDb;
 import io.vertx.core.json.JsonObject;
@@ -12,25 +13,40 @@ import org.entcore.common.user.UserInfos;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mockito;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
+import org.powermock.modules.junit4.PowerMockRunnerDelegate;
+import org.powermock.reflect.Whitebox;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 
 import static org.mockito.Mockito.mock;
 
-@RunWith(VertxUnitRunner.class)
+@RunWith(PowerMockRunner.class) //Using the PowerMock runner
+@PowerMockRunnerDelegate(VertxUnitRunner.class) //And the Vertx runner
+@PrepareForTest({MongoDb.class}) //Prepare the static class you want to test
 public class EventServiceMongoImplTest {
 
     private Vertx vertx;
-    private final MongoDb mongo = mock(MongoDb.class);
+    private MongoDb mongo = mock(MongoDb.class);
     private EventServiceMongo eventService;
     private ServiceFactory serviceFactory;
+
+    private static final String CALENDAR_ID = "111";
+
 
     @Before
     public void setUp(TestContext context) {
         vertx = Vertx.vertx();
         MongoDb.getInstance().init(vertx.eventBus(), "fr.openent.calendar");
         serviceFactory = new ServiceFactory(vertx, null, null, mongo);
-        this.eventService = new EventServiceMongoImpl(Calendar.CALENDAR_COLLECTION, vertx.eventBus(), serviceFactory);
+        mongo = Mockito.spy(MongoDb.getInstance());
+        PowerMockito.spy(MongoDb.class);
+        PowerMockito.when(MongoDb.getInstance()).thenReturn(mongo);
+        this.eventService = Mockito.spy(new EventServiceMongoImpl(Calendar.CALENDAR_COLLECTION, vertx.eventBus(), serviceFactory));
     }
 
     @Test
@@ -58,4 +74,50 @@ public class EventServiceMongoImplTest {
         this.eventService.list(calendarId, user, startDate, endDate, null);
     }
 
+    @Test
+    public void testDeleteDatesAfterComparisonDate(TestContext context) {
+        Async async = context.async();
+
+        String date = "2022-05-04";
+        //Expected data
+        String expectedCollection = Calendar.CALENDAR_COLLECTION;
+        JsonObject expectedQuery = new JsonObject()
+                .put(Field.CALENDAR, CALENDAR_ID)
+                .put(Field.STARTMOMENT,
+                        new JsonObject()
+                                .put("$gt", date)
+                );
+
+        Mockito.doAnswer(invocation -> {
+            String collection = invocation.getArgument(0);
+            JsonObject query = invocation.getArgument(1);
+            context.assertEquals(collection, expectedCollection);
+            context.assertEquals(query, expectedQuery);
+            async.complete();
+            return null;
+        }).when(mongo).delete(Mockito.any(), Mockito.any(), Mockito.any());
+
+        eventService.deleteDatesAfterComparisonDate(CALENDAR_ID, date);
+        async.await(10000);
+    }
+
+    @Test
+    public void testRetrieveByCalendarId(TestContext context) {
+        Async async = context.async();
+        //Expected data
+        String expectedCollection = Calendar.CALENDAR_COLLECTION;
+        JsonObject expectedQuery = new JsonObject().put(Field.CALENDAR, CALENDAR_ID);
+
+        Mockito.doAnswer(invocation -> {
+            String collection = invocation.getArgument(0);
+            JsonObject query = invocation.getArgument(1);
+            context.assertEquals(collection, expectedCollection);
+            context.assertEquals(query, expectedQuery);
+            async.complete();
+            return null;
+        }).when(mongo).find(Mockito.any(), Mockito.any(), Mockito.any());
+
+        eventService.retrieveByCalendarId(CALENDAR_ID);
+        async.await(10000);
+    }
 }
