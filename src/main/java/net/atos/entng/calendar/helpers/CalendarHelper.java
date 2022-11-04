@@ -55,6 +55,9 @@ public class CalendarHelper extends MongoDbControllerHelper {
                     if (!params.isEmpty()) { //set the calendar to not updating if there is a fail
                         updateCalendar(params.getJsonObject(Field.CALENDAR).put(Field.ISUPDATING, false));
                     }
+                    String message = String.format("[Calendar@%s::externalCalendarSync]:  an error has occurred during " +
+                                    "external calendar sync: %s", this.getClass().getSimpleName(), error.getMessage());;
+                    log.error(message);
                     promise.fail(error.getMessage());
                 });
 
@@ -83,7 +86,7 @@ public class CalendarHelper extends MongoDbControllerHelper {
                                             "preparing calendar for first sync: %s",
                                     this.getClass().getSimpleName(), error.getMessage());
                             log.error(message);
-                            promise.fail(message);
+                            promise.fail(error.getMessage());
                         });
                 break;
             case Field.PUT:
@@ -173,6 +176,7 @@ public class CalendarHelper extends MongoDbControllerHelper {
 
     /**
      * Checks if the time since the last update is longer than the minimum time (value in config) between two updates
+     * Default TTL time : 15 min
      *
      * @param calendar the calendar in which we want to check the update {@link JsonObject}
      * @return {@link Boolean} true if the time since the last update is longer than the minimum time between two updates
@@ -180,10 +184,9 @@ public class CalendarHelper extends MongoDbControllerHelper {
     public Boolean isTimeToLivePast(JsonObject calendar) {
         Timestamp lastUpdateTimestamp = new Timestamp(calendar.getJsonObject(Field.UPDATED).getLong(MongoField.$DATE));
         Date lastUpdateDate = new Date(lastUpdateTimestamp.getTime());
-
         long secondsSinceLastUpdate = (new Date().getTime()-lastUpdateDate.getTime())/1000;
 
-        return secondsSinceLastUpdate - config.getLong(Field.CALENDARSYNCTTL) > 0;
+        return secondsSinceLastUpdate - config.getLong(Field.CALENDARSYNCTTL, 900L) > 0;
     }
 
 }
