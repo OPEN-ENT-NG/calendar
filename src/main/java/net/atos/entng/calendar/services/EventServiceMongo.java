@@ -59,6 +59,14 @@ public interface EventServiceMongo {
 
     Future<Void> deleteDatesAfterComparisonDate(String calendarId, String comparisonDate);
 
+    /**
+     * Delete all event associated to a calendar
+     *
+     * @param calendarId the id of the calendar
+     * @return {@link Future<Void>} Future response
+     */
+    Future<Void> deleteByCalendarId(String calendarId);
+
     void getIcal(String calendarId, UserInfos user, Handler<Message<JsonObject>> handler);
     
     void importIcal(String calendarId, String ics, UserInfos user, JsonObject requestInfo, Handler<Either<String, JsonObject>> handler);
