@@ -137,7 +137,14 @@ public class CalendarController extends MongoDbControllerHelper {
             }
             calendarService.list(Collections.singletonList(id), true, user.getUserId())
                     .onSuccess(result -> {
-                        Renders.renderJson(request, new JsonObject().put(Field.CALENDAR, result));
+                        if (result != null && result.size() == 0) {
+                            String message = String.format("[Calendar@%s::getCalendar] An error has occured :" +
+                                    " could not retrieve calendar", this.getClass().getSimpleName());
+                            log.error(message);
+                            renderError(request);
+                        } else {
+                            Renders.renderJson(request, new JsonObject().put(Field.CALENDAR, result));
+                        }
                     })
                     .onFailure(error -> {
                         String message = String.format("[Calendar@%s::getCalendar] An error has occured" +
@@ -221,7 +228,11 @@ public class CalendarController extends MongoDbControllerHelper {
                             String message = String.format("[Calendar@%s::importExternalCalendar] An error has occured" +
                                     " during calendar sync: %s", this.getClass().getSimpleName(), error.getMessage());
                             log.error(message, error.getMessage());
-                            renderError(request);
+                            if (error.getMessage().equals("URL not authorized")) {
+                                renderError(request, new JsonObject().put(Field.MESSAGE, error.getMessage()));
+                            } else {
+                                renderError(request);
+                            }
                         });
             });
         });
@@ -269,7 +280,11 @@ public class CalendarController extends MongoDbControllerHelper {
                         String message = String.format("[Calendar@%s::syncExternalCalendar] An error has occured" +
                                 " during calendar sync: %s", this.getClass().getSimpleName(), error.getMessage());
                         log.error(message, error.getMessage());
-                        renderError(request);
+                        if(error.getMessage().equals("[Calendar@CalendarHelper::prepareCalendarAndEventsForUpdate]:  last update was too recent")) {
+                            renderError(request, new JsonObject().put(Field.MESSAGE, error.getMessage()));
+                        } else {
+                            renderError(request);
+                        }
                     });
         });
 
