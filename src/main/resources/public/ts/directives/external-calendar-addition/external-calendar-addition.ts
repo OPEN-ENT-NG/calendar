@@ -1,8 +1,7 @@
-import {angular, model, ng, toasts} from "entcore";
+import {angular, model, idiom as lang, ng, toasts} from "entcore";
 import {ROOTS} from "../../core/const/roots";
 import {Calendar} from "../../model";
 import {IScope} from "angular";
-import {Object} from "core-js";
 import {safeApply} from "../../model/Utils";
 import {ICalendarService} from "../../services";
 import {defaultColor} from "../../model/constantes";
@@ -56,9 +55,21 @@ class Controller implements ng.IController, IViewModel {
     createExternalCalendar = async (calendar): Promise<void> => {
         this.closeExternalCalendarForm();
         safeApply(this.$scope);
-        //toasts.info("Ajout du calendrier en cours");
-        await this.calendarService.addExternalCalendar(calendar);
-        this.$scope.$parent.$eval(this.$scope.vm.onUpdateCalendars)();
+        try {
+            await this.calendarService.addExternalCalendar(calendar);
+
+            let successMessage : string = lang.translate("calendar.the.calendar") + " " + calendar.title + " " + lang.translate("calendar.has.been.added");
+            toasts.confirm(successMessage);
+            this.$scope.$parent.$eval(this.$scope.vm.onUpdateCalendars)();
+        } catch (e) {
+            if (e.response.data.message) {
+                toasts.info(lang.translate("calendar.external.platform.not.accepted"));
+            } else {
+                let errorMessage : string = lang.translate("calendar.get.events.error") + " " + calendar.title + ".";
+                toasts.warning(errorMessage);
+            }
+
+        }
     }
 }
 

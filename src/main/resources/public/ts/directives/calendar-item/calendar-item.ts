@@ -1,8 +1,8 @@
-import {ng, toasts} from "entcore";
+import {ng, toasts, idiom as lang} from "entcore";
 import {ROOTS} from "../../core/const/roots";
 import {Calendar} from "../../model";
 import {IIntervalService, IPromise, IScope, ITimeoutService} from "angular";
-import {calendarService, ICalendarService} from "../../services";
+import {ICalendarService} from "../../services";
 import {DateUtils} from "../../utils/date.utils";
 import {AxiosResponse} from "axios";
 import {safeApply} from "../../model/Utils";
@@ -59,33 +59,53 @@ class Controller implements ng.IController, IViewModel {
         if($event) $event.stopPropagation();
         this.loading = true;
         safeApply(this.$scope);
-        this.calendarService.updateExternalCalendar(this.$scope.vm.calendar);
-        this.$timeout(() : IPromise<void> => {
-            this.calendarService.checkExternalCalendarSync(this.$scope.vm.calendar)
-                .then((r:AxiosResponse) => {
-                    if(r.data['isUpdating'] == false) {
+        try {
+            await this.calendarService.updateExternalCalendar(this.$scope.vm.calendar);
+            this.$timeout(() : IPromise<void> => {
+                this.calendarService.checkExternalCalendarSync(this.$scope.vm.calendar)
+                    .then((r:AxiosResponse) => {
+                        if(r.data['isUpdating'] == false) {
+                            this.loading = false;
+                            let successMessage : string = lang.translate("calendar.the.calendar") + " " +  this.$scope.vm.calendar.title
+                                + " " + lang.translate("calendar.external.has.been.updated");
+                            toasts.confirm(successMessage);
+                            this.updateExternalCalendarView();
+                            return;
+                        }
+                        return this.handleUpdateInterval();
+                    })
+                    .catch((e) => {
                         this.loading = false;
-                        this.updateExternalCalendarView();
-                        return;
-                    }
-                    return this.handleUpdateInterval();
-                })
-                .catch((e) => {
-                    this.loading = false;
-                    safeApply(this.$scope);
-                    let error: AxiosResponse = e.response;
-                    toasts.warning(error);
-                });
-            return;
-        }, 15000, false)
+                        safeApply(this.$scope);
+                        let errorMessage : string = lang.translate("calendar.get.events.error") + " " +  this.$scope.vm.calendar.title + ".";
+                        toasts.warning(errorMessage);
+                    });
+                return;
+            }, 15000, false)
+
+        } catch (e) {
+            this.loading = false;
+            safeApply(this.$scope);
+            if (e.response.data.message) {
+                let ttlMessage : string = lang.translate("calendar.the.calendar") + " " +  this.$scope.vm.calendar.title
+                    + " " + lang.translate("calendar.external.has.already.been.updated");
+                toasts.info(ttlMessage);
+            } else {
+                let errorMessage : string = lang.translate("calendar.external.sync.error") + " " +  this.$scope.vm.calendar.title + ".";
+                toasts.warning(errorMessage);
+            }
+        }
     };
 
     handleUpdateInterval = async (): Promise<void> => {
         this.$interval(() : IPromise<void> => {
             this.calendarService.checkExternalCalendarSync(this.$scope.vm.calendar)
                 .then((r: AxiosResponse) => {
-                    if(r.data['isUpdating'] == false) {
+                    if(r.data.isUpdating == false) {
                         this.loading = false;
+                        let successMessage : string = lang.translate("calendar.the.calendar") + " " +  this.$scope.vm.calendar.title
+                            + " " + lang.translate("calendar.external.has.been.updated");
+                        toasts.confirm(successMessage);
                         this.updateExternalCalendarView();
                         return;
                     }
@@ -93,8 +113,14 @@ class Controller implements ng.IController, IViewModel {
                 .catch((e) => {
                     this.loading = false;
                     safeApply(this.$scope);
-                    let error: AxiosResponse = e.response;
-                    toasts.warning(error);
+                    if (e.response.message) {
+                        let ttlMessage : string = lang.translate("calendar.the.calendar") + " " +  this.$scope.vm.calendar.title
+                            + " " + lang.translate("calendar.external.has.already.been.updated");
+                        toasts.info(ttlMessage);
+                    } else {
+                        let errorMessage : string = lang.translate("calendar.external.sync.error") + " " +  this.$scope.vm.calendar.title + ".";
+                        toasts.warning(errorMessage);
+                    }
                     return;
                 });
             return;
