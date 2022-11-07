@@ -536,7 +536,7 @@ export const calendarController = ng.controller('CalendarController',
                 });
             };
 
-            $scope.updateCalendars = async () => {
+            $scope.updateCalendars = async (isCreation?: boolean) => {
                 let updatedCalendar = $scope.calendar;
                 let selectedCalendars = $scope.calendars.preference;
                 await Promise.all([
@@ -549,9 +549,8 @@ export const calendarController = ng.controller('CalendarController',
                 $scope.calendar = $scope.calendars.all.find((cl: Calendar) => cl._id == updatedCalendar._id);
                 if ($scope.calendar) {
                     $scope.calendar.selected = true;
-                    $scope.calendar.showButtons = true;
-                    $scope.display.showToggleButtons = true;
                     $scope.eventSidebar$.next();
+                    $scope.display.showToggleButtons = !isCreation;
                 } else {
                     $scope.display.showToggleButtons = false;
                 }
@@ -973,6 +972,7 @@ export const calendarController = ng.controller('CalendarController',
                     await $scope.calendars.sync();
                     $scope.loadSelectedCalendars();
                     $scope.loadCalendarEvents();
+                    $scope.display.showToggleButtons = false;
                 }
                 safeApply($scope);
                 $scope.showCalendar();
@@ -1052,7 +1052,6 @@ export const calendarController = ng.controller('CalendarController',
 
 
             $scope.removeCalendar = async () => {
-                $scope.display.showToggleButtons = false;
                 $scope.calendar.calendarEvents.forEach(function (calendarEvent) {
                     externalCalendarUtils.isCalendarExternal($scope.calendar) ? calendarEvent.delete(true) : calendarEvent.delete();
                 });
@@ -1076,6 +1075,7 @@ export const calendarController = ng.controller('CalendarController',
                 template.close('lightbox');
                 $scope.display.confirmDeleteCalendar = undefined;
                 $scope.eventSidebar$.next();
+                $scope.display.showToggleButtons = false;
                 $scope.$apply();
             };
 
