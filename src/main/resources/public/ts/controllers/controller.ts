@@ -1795,6 +1795,11 @@ export const calendarController = ng.controller('CalendarController',
                 return false;
             };
 
+            $scope.checkExternalCalendarRight = (right: string): boolean => {
+                return externalCalendarUtils.checkExternalCalendarRight(right);
+            };
+
+
             var updateCalendarList = function (start, end) {
                 model.calendarEvents.filters.startMoment.date(start.date());
                 model.calendarEvents.filters.startMoment.month(start.month());
