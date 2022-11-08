@@ -280,7 +280,8 @@ public class CalendarController extends MongoDbControllerHelper {
                         String message = String.format("[Calendar@%s::syncExternalCalendar] An error has occured" +
                                 " during calendar sync: %s", this.getClass().getSimpleName(), error.getMessage());
                         log.error(message, error.getMessage());
-                        if(error.getMessage().equals("[Calendar@CalendarHelper::prepareCalendarAndEventsForUpdate]:  last update was too recent")) {
+                        log.info(error.getMessage().equals("last update was too recent"));
+                        if(error.getMessage().equals("last update was too recent")) {
                             renderError(request, new JsonObject().put(Field.MESSAGE, error.getMessage()));
                         } else {
                             renderError(request);

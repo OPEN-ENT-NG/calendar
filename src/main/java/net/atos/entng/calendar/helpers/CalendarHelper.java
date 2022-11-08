@@ -91,7 +91,7 @@ public class CalendarHelper extends MongoDbControllerHelper {
                 break;
             case Field.PUT:
                 if(Boolean.FALSE.equals(isTimeToLivePast(calendar))) {
-                    String message = String.format("[Calendar@%s::prepareCalendarAndEventsForUpdate]:  last update was too recent",
+                    String message = String.format("last update was too recent",
                             this.getClass().getSimpleName());
                     log.error(message);
                     promise.fail(message);
