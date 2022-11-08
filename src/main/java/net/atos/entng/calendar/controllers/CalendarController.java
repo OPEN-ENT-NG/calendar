@@ -225,11 +225,11 @@ public class CalendarController extends MongoDbControllerHelper {
                             Renders.ok(request);
                         })
                         .onFailure(error -> {
-                            String message = String.format("[Calendar@%s::importExternalCalendar] An error has occured" +
+                            String message = String.format("[Calendar@%s::importExternalCalendar] An error has occurred" +
                                     " during calendar sync: %s", this.getClass().getSimpleName(), error.getMessage());
                             log.error(message, error.getMessage());
                             if (error.getMessage().equals("URL not authorized")) {
-                                renderError(request, new JsonObject().put(Field.MESSAGE, error.getMessage()));
+                                unauthorized(request);
                             } else {
                                 renderError(request);
                             }
@@ -243,7 +243,7 @@ public class CalendarController extends MongoDbControllerHelper {
 
         crudService.create(body, user, r -> {
             if (r.isLeft()) {
-                String message = String.format("[Calendar@%s::createFuture] An error has occured" +
+                String message = String.format("[Calendar@%s::createFuture] An error has occurred" +
                         " during calendar creation: %s", this.getClass().getSimpleName(), r.left().getValue());
                 log.error(message, r.left().getValue());
                 promise.fail(message);
@@ -277,11 +277,11 @@ public class CalendarController extends MongoDbControllerHelper {
                         Renders.ok(request);
                     })
                     .onFailure(error -> {
-                        String message = String.format("[Calendar@%s::syncExternalCalendar] An error has occured" +
+                        String message = String.format("[Calendar@%s::syncExternalCalendar] An error has occurred" +
                                 " during calendar sync: %s", this.getClass().getSimpleName(), error.getMessage());
                         log.error(message, error.getMessage());
                         if(error.getMessage().equals("[Calendar@CalendarHelper::prepareCalendarAndEventsForUpdate]:  last update was too recent")) {
-                            renderError(request, new JsonObject().put(Field.MESSAGE, error.getMessage()));
+                            unauthorized(request);
                         } else {
                             renderError(request);
                         }
