@@ -77,7 +77,7 @@
                             <ul class="colored">
                                 <h3 class="selected"><i18n>calendar.external.calendars</i18n></h3>
                                 <li ng-repeat="cl in vm.calendars.all | filter:vm.isExternalCalendar | orderBy: '+title'"
-                                    ng-if="vm.hasExternalCalendars()">
+                                    ng-if="vm.onCheckExternalCalendarRight('calendar.update') && vm.hasExternalCalendars()">
                                     <calendar-item calendar="cl"
                                                    on-open-or-close-clicked-calendar="vm.onOpenOrCloseCalendar"
                                                    on-uncheck-other-calendar-checkboxes="vm.hideOtherCalendarCheckboxes"
