@@ -88,7 +88,7 @@ class Controller implements ng.IController, IViewModel {
         } catch (e) {
             this.loading = false;
             safeApply(this.$scope);
-            if (e.response.data.message) {
+            if (e.response.status == 401) {
                 let ttlMessage : string = lang.translate("calendar.the.calendar") + " " +  this.$scope.vm.calendar.title
                     + " " + lang.translate("calendar.external.has.already.been.updated");
                 if ($event) toasts.info(ttlMessage);
@@ -115,7 +115,7 @@ class Controller implements ng.IController, IViewModel {
                 .catch((e) => {
                     this.loading = false;
                     safeApply(this.$scope);
-                    if (e.response.message) {
+                    if (e.response.status == 401) {
                         let ttlMessage : string = lang.translate("calendar.the.calendar") + " " +  this.$scope.vm.calendar.title
                             + " " + lang.translate("calendar.external.has.already.been.updated");
                         if (isSyncButton) toasts.info(ttlMessage);
