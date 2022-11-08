@@ -13,7 +13,7 @@ interface IViewModel {
     onOpenOrCloseCalendar(calendar: Calendar, savePreferences: boolean): void;
     hideOtherCalendarCheckboxes(calendar: Calendar) : void;
     updateExternalCalendar($event?: MouseEvent) : Promise<void>;
-    handleUpdateInterval() : Promise<void>;
+    handleUpdateInterval(isSyncButton? : boolean) : Promise<void>;
     updateExternalCalendarView() : void;
     getLastUpdate(format: string) : string;
 }
@@ -70,11 +70,11 @@ class Controller implements ng.IController, IViewModel {
                             this.loading = false;
                             let successMessage : string = lang.translate("calendar.the.calendar") + " " +  this.$scope.vm.calendar.title
                                 + " " + lang.translate("calendar.external.has.been.updated");
-                            toasts.confirm(successMessage);
+                            if ($event) toasts.confirm(successMessage);
                             this.updateExternalCalendarView();
                             return;
                         }
-                        return this.handleUpdateInterval();
+                        return this.handleUpdateInterval(!!$event);
                     })
                     .catch((e) => {
                         this.loading = false;
@@ -88,10 +88,10 @@ class Controller implements ng.IController, IViewModel {
         } catch (e) {
             this.loading = false;
             safeApply(this.$scope);
-            if (e.response.data.message) {
+            if (e.response.status == 401) {
                 let ttlMessage : string = lang.translate("calendar.the.calendar") + " " +  this.$scope.vm.calendar.title
                     + " " + lang.translate("calendar.external.has.already.been.updated");
-                toasts.info(ttlMessage);
+                if ($event) toasts.info(ttlMessage);
             } else {
                 let errorMessage : string = lang.translate("calendar.external.sync.error") + " " +  this.$scope.vm.calendar.title + ".";
                 toasts.warning(errorMessage);
@@ -99,7 +99,7 @@ class Controller implements ng.IController, IViewModel {
         }
     };
 
-    handleUpdateInterval = async (): Promise<void> => {
+    handleUpdateInterval = async (isSyncButton? : boolean): Promise<void> => {
         this.$interval(() : IPromise<void> => {
             this.calendarService.checkExternalCalendarSync(this.$scope.vm.calendar)
                 .then((r: AxiosResponse) => {
@@ -107,7 +107,7 @@ class Controller implements ng.IController, IViewModel {
                         this.loading = false;
                         let successMessage : string = lang.translate("calendar.the.calendar") + " " +  this.$scope.vm.calendar.title
                             + " " + lang.translate("calendar.external.has.been.updated");
-                        toasts.confirm(successMessage);
+                        if (isSyncButton) toasts.confirm(successMessage);
                         this.updateExternalCalendarView();
                         return;
                     }
@@ -115,10 +115,10 @@ class Controller implements ng.IController, IViewModel {
                 .catch((e) => {
                     this.loading = false;
                     safeApply(this.$scope);
-                    if (e.response.message) {
+                    if (e.response.status == 401) {
                         let ttlMessage : string = lang.translate("calendar.the.calendar") + " " +  this.$scope.vm.calendar.title
                             + " " + lang.translate("calendar.external.has.already.been.updated");
-                        toasts.info(ttlMessage);
+                        if (isSyncButton) toasts.info(ttlMessage);
                     } else {
                         let errorMessage : string = lang.translate("calendar.external.sync.error") + " " +  this.$scope.vm.calendar.title + ".";
                         toasts.warning(errorMessage);
