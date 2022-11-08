@@ -33,6 +33,7 @@ interface IViewModel {
     onShowList(): void;
     onOpenOrCloseCalendar(calendar: Calendar, savePreferences: boolean): void;
     onUpdateCalendarList(calendar : Calendar) : void;
+    onCheckExternalCalendarRight(right: string) : boolean;
 
 }
 
@@ -45,7 +46,8 @@ export const sideBar = ng.directive('sideBar', () =>{
             onShowList: '&',
             onOpenOrCloseCalendar: '&',
             calendar: '=',
-            onUpdateCalendarList: '&'
+            onUpdateCalendarList: '&',
+            onCheckExternalCalendarRight: '&'
         },
 
         restrict: 'E',
@@ -83,6 +85,10 @@ export const sideBar = ng.directive('sideBar', () =>{
 
             vm.onOpenOrCloseCalendar = (calendar: Calendar, savePreferences: boolean) : void => {
                 $scope.$eval($scope.onOpenOrCloseCalendar)(calendar, savePreferences);
+            };
+
+            vm.onCheckExternalCalendarRight = (right: string) : boolean => {
+                return $scope.$eval($scope.onCheckExternalCalendarRight)(right);
             };
 
             vm.isEmpty = () : boolean => {
