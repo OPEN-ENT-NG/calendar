@@ -19,19 +19,20 @@
 
 package net.atos.entng.calendar.services.impl;
 
-import static fr.wseduc.webutils.Utils.handlerToAsyncHandler;
-import static net.atos.entng.calendar.Calendar.CALENDAR_COLLECTION;
-import static org.entcore.common.mongodb.MongoDbResult.validActionResultHandler;
-import static org.entcore.common.mongodb.MongoDbResult.validResultHandler;
-import static org.entcore.common.mongodb.MongoDbResult.validResultsHandler;
-
-import java.net.SocketException;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.*;
-
+import com.mongodb.QueryBuilder;
+import fr.wseduc.mongodb.MongoDb;
+import fr.wseduc.mongodb.MongoQueryBuilder;
+import fr.wseduc.mongodb.MongoUpdateBuilder;
+import fr.wseduc.webutils.Either;
 import io.vertx.core.Future;
+import io.vertx.core.Handler;
 import io.vertx.core.Promise;
+import io.vertx.core.eventbus.EventBus;
+import io.vertx.core.eventbus.Message;
+import io.vertx.core.json.JsonArray;
+import io.vertx.core.json.JsonObject;
+import io.vertx.core.logging.Logger;
+import io.vertx.core.logging.LoggerFactory;
 import net.atos.entng.calendar.core.constants.Field;
 import net.atos.entng.calendar.core.enums.ExternalICalEventBusActions;
 import net.atos.entng.calendar.helpers.FutureHelper;
@@ -39,26 +40,20 @@ import net.atos.entng.calendar.ical.ICalHandler;
 import net.atos.entng.calendar.services.CalendarService;
 import net.atos.entng.calendar.services.EventServiceMongo;
 import net.atos.entng.calendar.services.ServiceFactory;
-import net.fortuna.ical4j.util.UidGenerator;
 import net.atos.entng.calendar.services.UserService;
-
+import net.fortuna.ical4j.util.UidGenerator;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.entcore.common.service.impl.MongoDbCrudService;
 import org.entcore.common.user.UserInfos;
-import io.vertx.core.Handler;
-import io.vertx.core.eventbus.EventBus;
-import io.vertx.core.eventbus.Message;
-import io.vertx.core.json.JsonArray;
-import io.vertx.core.json.JsonObject;
-import io.vertx.core.logging.Logger;
-import io.vertx.core.logging.LoggerFactory;
 
-import com.mongodb.QueryBuilder;
+import java.net.SocketException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
-import fr.wseduc.mongodb.MongoDb;
-import fr.wseduc.mongodb.MongoQueryBuilder;
-import fr.wseduc.mongodb.MongoUpdateBuilder;
-import fr.wseduc.webutils.Either;
+import static fr.wseduc.webutils.Utils.handlerToAsyncHandler;
+import static net.atos.entng.calendar.Calendar.CALENDAR_COLLECTION;
+import static org.entcore.common.mongodb.MongoDbResult.*;
 
 public class EventServiceMongoImpl extends MongoDbCrudService implements EventServiceMongo {
 
@@ -332,6 +327,24 @@ public class EventServiceMongoImpl extends MongoDbCrudService implements EventSe
             }
         });
 
+        return promise.future();
+    }
+
+    public Future<Void> deleteByCalendarId(String calendarId) {
+        Promise<Void> promise = Promise.promise();
+
+        QueryBuilder query = QueryBuilder.start(Field.CALENDAR).is(calendarId);
+
+        mongo.delete(this.collection, MongoQueryBuilder.build(query), validResultHandler(event -> {
+            if (event.isLeft()) {
+                String errMessage = String.format("[Calendar@%s::deleteByCalendarId] An error has occurred while deleting events by calendar id: %s",
+                        this.getClass().getSimpleName(), event.left().getValue());
+                log.error(errMessage);
+                promise.fail(event.left().getValue());
+            } else {
+                promise.complete();
+            }
+        }));
         return promise.future();
     }
 
