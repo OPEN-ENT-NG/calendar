@@ -40,8 +40,10 @@ import net.atos.entng.calendar.helpers.CalendarHelper;
 import net.atos.entng.calendar.helpers.PlatformHelper;
 import net.atos.entng.calendar.security.ShareEventConf;
 import net.atos.entng.calendar.services.CalendarService;
+import net.atos.entng.calendar.services.EventServiceMongo;
 import net.atos.entng.calendar.services.ServiceFactory;
 import net.atos.entng.calendar.services.PlatformService;
+import net.atos.entng.calendar.services.impl.EventServiceMongoImpl;
 import org.entcore.common.events.EventHelper;
 import org.entcore.common.events.EventStore;
 import org.entcore.common.events.EventStoreFactory;
@@ -66,6 +68,7 @@ public class CalendarController extends MongoDbControllerHelper {
 
     private final CalendarHelper calendarHelper;
     private final PlatformService platformService;
+    private final EventServiceMongo eventServiceMongo;
 
     @Override
     public void init(Vertx vertx, JsonObject config, RouteMatcher rm,
@@ -80,6 +83,7 @@ public class CalendarController extends MongoDbControllerHelper {
         this.eventHelper = new org.entcore.common.events.EventHelper(eventStore);
         this.calendarHelper = new CalendarHelper(collection, serviceFactory, eb, config);
         this.platformService = serviceFactory.platformService();
+        this.eventServiceMongo = new EventServiceMongoImpl(Field.CALENDAREVENT,eb,serviceFactory);
     }
 
     @Get("/config")
@@ -215,15 +219,17 @@ public class CalendarController extends MongoDbControllerHelper {
                                 return Future.failedFuture("URL not authorized");
                             }
                         })
-                        .compose(calendarId -> {
+                        .compose(calendar -> {
                             String host = getHost(request);
                             String i18nLang = I18n.acceptLanguage(request);
-                            return calendarHelper.externalCalendarSync(calendarId.getString(Field._ID, null),
-                                    user, host, i18nLang, ExternalICalEventBusActions.POST.method());
+                            return calendarHelper.externalCalendarSync(calendar.getString(Field._ID, null),
+                                            user, host, i18nLang, ExternalICalEventBusActions.POST.method())
+                                    .onFailure(error -> {
+                                        calendarService.delete(calendar.getString(Field._ID));
+                                        eventServiceMongo.deleteByCalendarId(calendar.getString(Field._ID));
+                                    });
                         })
-                        .onSuccess(result -> {
-                            Renders.ok(request);
-                        })
+                        .onSuccess(result -> Renders.ok(request))
                         .onFailure(error -> {
                             String message = String.format("[Calendar@%s::importExternalCalendar] An error has occurred" +
                                     " during calendar sync: %s", this.getClass().getSimpleName(), error.getMessage());

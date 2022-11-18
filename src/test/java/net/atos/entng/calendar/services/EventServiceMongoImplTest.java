@@ -1,14 +1,14 @@
 package net.atos.entng.calendar.services;
 
+import fr.wseduc.mongodb.MongoDb;
 import io.vertx.core.Vertx;
+import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.Async;
+import io.vertx.ext.unit.TestContext;
+import io.vertx.ext.unit.junit.VertxUnitRunner;
 import net.atos.entng.calendar.Calendar;
 import net.atos.entng.calendar.core.constants.Field;
 import net.atos.entng.calendar.services.impl.EventServiceMongoImpl;
-import fr.wseduc.mongodb.MongoDb;
-import io.vertx.core.json.JsonObject;
-import io.vertx.ext.unit.TestContext;
-import io.vertx.ext.unit.junit.VertxUnitRunner;
 import org.entcore.common.user.UserInfos;
 import org.junit.Before;
 import org.junit.Test;
@@ -18,7 +18,6 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.modules.junit4.PowerMockRunnerDelegate;
-import org.powermock.reflect.Whitebox;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -46,7 +45,7 @@ public class EventServiceMongoImplTest {
         mongo = Mockito.spy(MongoDb.getInstance());
         PowerMockito.spy(MongoDb.class);
         PowerMockito.when(MongoDb.getInstance()).thenReturn(mongo);
-        this.eventService = Mockito.spy(new EventServiceMongoImpl(Calendar.CALENDAR_COLLECTION, vertx.eventBus(), serviceFactory));
+        this.eventService = Mockito.spy(new EventServiceMongoImpl(Calendar.CALENDAR_EVENT_COLLECTION, vertx.eventBus(), serviceFactory));
     }
 
     @Test
@@ -80,7 +79,7 @@ public class EventServiceMongoImplTest {
 
         String date = "2022-05-04";
         //Expected data
-        String expectedCollection = Calendar.CALENDAR_COLLECTION;
+        String expectedCollection = Calendar.CALENDAR_EVENT_COLLECTION;
         JsonObject expectedQuery = new JsonObject()
                 .put(Field.CALENDAR, CALENDAR_ID)
                 .put(Field.STARTMOMENT,
@@ -105,7 +104,7 @@ public class EventServiceMongoImplTest {
     public void testRetrieveByCalendarId(TestContext context) {
         Async async = context.async();
         //Expected data
-        String expectedCollection = Calendar.CALENDAR_COLLECTION;
+        String expectedCollection = Calendar.CALENDAR_EVENT_COLLECTION;
         JsonObject expectedQuery = new JsonObject().put(Field.CALENDAR, CALENDAR_ID);
 
         Mockito.doAnswer(invocation -> {
@@ -119,5 +118,25 @@ public class EventServiceMongoImplTest {
 
         eventService.retrieveByCalendarId(CALENDAR_ID);
         async.await(10000);
+    }
+
+    @Test
+    public void testDeleteByCalendarId(TestContext context) {
+        Async async = context.async();
+        final String CALENDAR_ID = "111";
+
+        String expectedCollection = Calendar.CALENDAR_EVENT_COLLECTION;
+        JsonObject expectedQuery = new JsonObject().put(Field.CALENDAR, CALENDAR_ID);
+
+        Mockito.doAnswer(invocation -> {
+            String collection = invocation.getArgument(0);
+            JsonObject query = invocation.getArgument(1);
+            context.assertEquals(collection, expectedCollection);
+            context.assertEquals(query, expectedQuery);
+            async.complete();
+            return null;
+        }).when(mongo).delete(Mockito.anyString(), Mockito.any(), Mockito.any());
+
+        eventService.deleteByCalendarId(CALENDAR_ID);
     }
 }

@@ -102,4 +102,11 @@ public interface CalendarService {
      */
     Future<Boolean> checkBooleanField(String calendarId, String field);
 
+    /**
+     * Delete a calendar
+     * @param calendarId the id of the calendar we want to delete
+     * @return {@link Future<Void>} Future response
+     */
+    Future<Void> delete(String calendarId);
+
     }
