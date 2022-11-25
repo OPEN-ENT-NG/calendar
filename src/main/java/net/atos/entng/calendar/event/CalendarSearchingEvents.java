@@ -27,6 +27,7 @@ import fr.wseduc.webutils.Either;
 import fr.wseduc.webutils.Either.Right;
 import fr.wseduc.webutils.I18n;
 import net.atos.entng.calendar.Calendar;
+import net.atos.entng.calendar.core.constants.Field;
 import org.entcore.common.search.SearchingEvents;
 import org.entcore.common.service.VisibilityFilter;
 import org.entcore.common.service.impl.MongoDbSearchService;
@@ -127,13 +128,14 @@ public class CalendarSearchingEvents implements SearchingEvents {
 			final JsonObject j = results.getJsonObject(i);
 			final JsonObject jr = new JsonObject();
 			if (j != null) {
-				final String idCalendar = j.getString("calendar");
+				final String idCalendar = j.getJsonArray(Field.CALENDAR, new JsonArray()).size() != 0 ?
+						j.getJsonArray(Field.CALENDAR, new JsonArray()).getString(0) : null;
 				jr.put(aHeader.get(0), mapIdTitle.get(idCalendar));
-				jr.put(aHeader.get(1), formatDescription(locale, j.getString("title"), j.getString("description", ""),
-						j.getString("location", ""), j.getString("startMoment"), j.getString("endMoment")));
-				jr.put(aHeader.get(2), j.getJsonObject("modified"));
-				jr.put(aHeader.get(3), j.getJsonObject("owner").getString("displayName"));
-				jr.put(aHeader.get(4), j.getJsonObject("owner").getString("userId"));
+				jr.put(aHeader.get(1), formatDescription(locale, j.getString(Field.TITLE), j.getString(Field.DESCRIPTION, ""),
+						j.getString(Field.LOCATION, ""), j.getString(Field.STARTMOMENT), j.getString(Field.ENDMOMENT)));
+				jr.put(aHeader.get(2), j.getJsonObject(Field.MODIFIED));
+				jr.put(aHeader.get(3), j.getJsonObject(Field.OWNER).getString(Field.DISPLAYNAME));
+				jr.put(aHeader.get(4), j.getJsonObject(Field.OWNER).getString(Field.USERID));
 				jr.put(aHeader.get(5), "/calendar#/view/" + idCalendar);
 				traity.add(jr);
 			}
@@ -155,21 +157,21 @@ public class CalendarSearchingEvents implements SearchingEvents {
 			log.error("can't parse date", e);
 		}
 
-		final String dateFormatRes = "EEEEE dd MMMMM yyyy " + i18n.translate("calendar.search.date.to", I18n.DEFAULT_DOMAIN, locale) + " HH:mm";
+		final String dateFormatRes = "dd/MM/YYYY " + i18n.translate("calendar.search.date.to", I18n.DEFAULT_DOMAIN, locale) + " HH:mm";
 		final String sDateRes = new SimpleDateFormat(dateFormatRes).format(sDate);
 		final String eDateRes = new SimpleDateFormat(dateFormatRes).format(eDate);
 
 		if (!description.isEmpty() && !location.isEmpty()) {
-			descriptionRes = i18n.translate("calendar.search.description.full", locale, title, sDateRes,
+			descriptionRes = i18n.translate("calendar.search.description.full", Field.DEFAULT_DOMAIN, locale, title, sDateRes,
 					eDateRes, location, description);
 		} else if (!location.isEmpty()) {
-			descriptionRes = i18n.translate("calendar.search.description.location", locale, title, sDateRes,
+			descriptionRes = i18n.translate("calendar.search.description.location", Field.DEFAULT_DOMAIN, locale, title, sDateRes,
 					eDateRes, location);
 		} else if (!description.isEmpty()){
-			descriptionRes = i18n.translate("calendar.search.description.desc", locale, title, sDateRes,
+			descriptionRes = i18n.translate("calendar.search.description.desc", Field.DEFAULT_DOMAIN, locale, title, sDateRes,
 					eDateRes, description);
 		} else {
-			descriptionRes = i18n.translate("calendar.search.description.min", locale, title, sDateRes,
+			descriptionRes = i18n.translate("calendar.search.description.min", Field.DEFAULT_DOMAIN, locale, title, sDateRes,
 					eDateRes);
 		}
 

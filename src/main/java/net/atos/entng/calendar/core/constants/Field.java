@@ -52,6 +52,10 @@ public class Field {
     public static final String STARTDATE = "startDate";
     // end date from range
     public static final String ENDDATE = "endDate";
+    // location
+    public static final String LOCATION = "location";
+    // description
+    public static final String DESCRIPTION = "description";
 
     // Notification
     public static final String SENDNOTIF = "sendNotif";
@@ -149,4 +153,9 @@ public class Field {
 
     //Regex
     public static final String REGEX = "regex";
+
+    //Domain
+    public static final String DEFAULT_DOMAIN = "default-domain";
+
+
 }
