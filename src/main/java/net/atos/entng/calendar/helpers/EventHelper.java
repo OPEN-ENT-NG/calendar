@@ -340,7 +340,7 @@ public class EventHelper extends MongoDbControllerHelper {
                     public void handle(JsonObject object) {
                         calendarService.hasExternalCalendarId(Collections.singletonList(calendarId))
                                 .onSuccess(isExternal -> {
-                                    if(Boolean.FALSE.equals(isExternal)) {
+                                    if(!isExternal) {
                                         String icsContent = object.getString(Field.ICS);
                                         JsonObject requestInfo = new JsonObject();
                                         requestInfo.put(Field.DOMAIN, getHost(request)).put(Field.ACCEPTLANGUAGE, I18n.acceptLanguage(request));
