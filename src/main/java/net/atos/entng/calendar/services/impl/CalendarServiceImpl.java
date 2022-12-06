@@ -213,7 +213,7 @@ public class CalendarServiceImpl implements CalendarService {
         return promise.future();
     }
 
-    public Future<Void> update(String calendarId, JsonObject body, Boolean isUpdate) {
+    public Future<Void> update(String calendarId, JsonObject body) {
         Promise<Void> promise = Promise.promise();
         // Query
         QueryBuilder query = QueryBuilder.start(Field._ID).is(calendarId);
@@ -225,10 +225,6 @@ public class CalendarServiceImpl implements CalendarService {
         }
         JsonObject now = MongoDb.now();
         modifier.set(Field.MODIFIED, now);
-
-        if(Boolean.TRUE.equals(isUpdate)) {
-            modifier.set(Field.UPDATED, now);
-        }
 
         mongo.update(this.collection, MongoQueryBuilder.build(query), modifier.build(), validResultHandler(result -> {
             if(result.isLeft()) {
