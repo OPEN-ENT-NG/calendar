@@ -56,7 +56,7 @@ public class CalendarHelper extends MongoDbControllerHelper {
                 .onSuccess(finalCalendar -> promise.complete())
                 .onFailure(error -> {
                     if (!params.isEmpty()) { //set the calendar to not updating if there is a fail
-                        updateCalendar(params.getJsonObject(Field.CALENDAR).put(Field.ISUPDATING, false), false);
+                        updateCalendar(params.getJsonObject(Field.CALENDAR).put(Field.ISUPDATING, false));
                     }
                     String message = String.format("[Calendar@%s::externalCalendarSync]:  an error has occurred during " +
                                     "external calendar sync: %s", this.getClass().getSimpleName(), error.getMessage());;
@@ -101,12 +101,13 @@ public class CalendarHelper extends MongoDbControllerHelper {
                     break;
                 }
 
-                Date date = new Date(calendar.getJsonObject(Field.UPDATED).getLong(MongoField.$DATE));
-                SimpleDateFormat simpleDateFormat = new SimpleDateFormat(DateUtils.DATE_FORMAT_UTC_MONGO);
-                simpleDateFormat.setTimeZone(TimeZone.getTimeZone(ZoneId.of("UTC")));
-
-                eventServiceMongo.deleteDatesAfterComparisonDate(calendar.getString(Field._ID), simpleDateFormat.format(date))
-                        .compose(result -> updateExternalCalendar(params, calendar, true))
+                updateExternalCalendar(params, calendar, true)
+                        .compose(result -> {
+                            Date date = new Date(calendar.getJsonObject(Field.UPDATED).getLong(MongoField.$DATE));
+                            SimpleDateFormat simpleDateFormat = new SimpleDateFormat(DateUtils.DATE_FORMAT_UTC);
+                            simpleDateFormat.setTimeZone(TimeZone.getTimeZone(ZoneId.of("UTC")));
+                            return eventServiceMongo.deleteDatesAfterComparisonDate(calendar.getString(Field._ID), simpleDateFormat.format(date));
+                        })
                         .onSuccess(promise::complete)
                         .onFailure(error -> {
                             String message = String.format("[Calendar@%s::prepareCalendarAndEventsForUpdate]:  an error has occurred while " +
@@ -136,8 +137,9 @@ public class CalendarHelper extends MongoDbControllerHelper {
      */
     private Future<Void> updateExternalCalendar(JsonObject params, JsonObject calendar, Boolean startOfSync) {
         calendar.put(Field.ISUPDATING, startOfSync);
+        if (Boolean.FALSE.equals(startOfSync)) calendar.put(Field.UPDATED, MongoDb.now());
         params.put(Field.CALENDAR, calendar);
-        return updateCalendar(calendar, !startOfSync);
+        return updateCalendar(calendar);
     }
 
     private Future<Void> getAndSaveExternalCalendarEvents(UserInfos user, JsonObject calendar, String host, String i18nLang, String action) {
@@ -162,10 +164,10 @@ public class CalendarHelper extends MongoDbControllerHelper {
         return promise.future();
     }
 
-    private Future<Void> updateCalendar(JsonObject calendar, boolean isUpdate) {
+    private Future<Void> updateCalendar(JsonObject calendar) {
         Promise<Void> promise = Promise.promise();
 
-        calendarService.update(calendar.getString(Field._ID),calendar, isUpdate)
+        calendarService.update(calendar.getString(Field._ID),calendar)
                 .onSuccess(promise::complete)
                 .onFailure(error -> {
                     String message = String.format("[Calendar@%s::updateCalendar]:  an error has occurred while " +
