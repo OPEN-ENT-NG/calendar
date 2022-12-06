@@ -21,8 +21,11 @@ import org.entcore.common.mongodb.MongoDbControllerHelper;
 import org.entcore.common.user.UserInfos;
 
 import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
+import java.time.ZoneId;
 import java.util.Collections;
 import java.util.Date;
+import java.util.TimeZone;
 
 public class CalendarHelper extends MongoDbControllerHelper {
     protected static final Logger log = LoggerFactory.getLogger(Renders.class);
@@ -98,9 +101,11 @@ public class CalendarHelper extends MongoDbControllerHelper {
                     break;
                 }
 
-                Timestamp lastUpdateTimestamp = new Timestamp(calendar.getJsonObject(Field.UPDATED).getLong(MongoField.$DATE));
-                Date lastUpdateDate = new Date(lastUpdateTimestamp.getTime());
-                eventServiceMongo.deleteDatesAfterComparisonDate(calendar.getString(Field._ID), DateUtils.dateToString(lastUpdateDate))
+                Date date = new Date(calendar.getJsonObject(Field.UPDATED).getLong(MongoField.$DATE));
+                SimpleDateFormat simpleDateFormat = new SimpleDateFormat(DateUtils.DATE_FORMAT_UTC_MONGO);
+                simpleDateFormat.setTimeZone(TimeZone.getTimeZone(ZoneId.of("UTC")));
+
+                eventServiceMongo.deleteDatesAfterComparisonDate(calendar.getString(Field._ID), simpleDateFormat.format(date))
                         .compose(result -> updateExternalCalendar(params, calendar, true))
                         .onSuccess(promise::complete)
                         .onFailure(error -> {
