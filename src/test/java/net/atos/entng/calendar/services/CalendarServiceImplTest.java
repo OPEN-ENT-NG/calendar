@@ -166,7 +166,7 @@ public class CalendarServiceImplTest {
             return null;
         }).when(mongo).update(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any());
 
-        calendarService.update(CALENDAR_ID, updateCalendar, false);
+        calendarService.update(CALENDAR_ID, updateCalendar);
         async.await(10000);
     }
 
