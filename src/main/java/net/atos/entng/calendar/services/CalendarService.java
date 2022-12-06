@@ -88,10 +88,10 @@ public interface CalendarService {
      *
      * @param calendarId id of the calendar {@link String}
      * @param body the fields to change {@link JsonObject}
-     * @param isSync whether the update is part of the sync process {@link Boolean}
+     * @param isUpdate whether the sync process update is a success {@link Boolean}
      * @return Future {@link Future<Void>} the updated calendar
      */
-    Future<Void> update(String calendarId, JsonObject body, Boolean isSync);
+    Future<Void> update(String calendarId, JsonObject body, Boolean isUpdate);
 
     /**
      * Checks the value of a boolean field in the calendar

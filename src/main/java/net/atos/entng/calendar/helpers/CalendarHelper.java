@@ -53,7 +53,7 @@ public class CalendarHelper extends MongoDbControllerHelper {
                 .onSuccess(finalCalendar -> promise.complete())
                 .onFailure(error -> {
                     if (!params.isEmpty()) { //set the calendar to not updating if there is a fail
-                        updateCalendar(params.getJsonObject(Field.CALENDAR).put(Field.ISUPDATING, false));
+                        updateCalendar(params.getJsonObject(Field.CALENDAR).put(Field.ISUPDATING, false), false);
                     }
                     String message = String.format("[Calendar@%s::externalCalendarSync]:  an error has occurred during " +
                                     "external calendar sync: %s", this.getClass().getSimpleName(), error.getMessage());;
@@ -131,9 +131,8 @@ public class CalendarHelper extends MongoDbControllerHelper {
      */
     private Future<Void> updateExternalCalendar(JsonObject params, JsonObject calendar, Boolean startOfSync) {
         calendar.put(Field.ISUPDATING, startOfSync);
-        if (Boolean.FALSE.equals(startOfSync)) calendar.put(Field.UPDATED, MongoDb.now());
         params.put(Field.CALENDAR, calendar);
-        return updateCalendar(calendar);
+        return updateCalendar(calendar, !startOfSync);
     }
 
     private Future<Void> getAndSaveExternalCalendarEvents(UserInfos user, JsonObject calendar, String host, String i18nLang, String action) {
@@ -158,10 +157,10 @@ public class CalendarHelper extends MongoDbControllerHelper {
         return promise.future();
     }
 
-    private Future<Void> updateCalendar(JsonObject calendar) {
+    private Future<Void> updateCalendar(JsonObject calendar, boolean isUpdate) {
         Promise<Void> promise = Promise.promise();
 
-        calendarService.update(calendar.getString(Field._ID),calendar, true)
+        calendarService.update(calendar.getString(Field._ID),calendar, isUpdate)
                 .onSuccess(promise::complete)
                 .onFailure(error -> {
                     String message = String.format("[Calendar@%s::updateCalendar]:  an error has occurred while " +
