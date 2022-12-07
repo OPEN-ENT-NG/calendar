@@ -62,7 +62,7 @@ class Controller implements ng.IController, IViewModel {
             toasts.confirm(successMessage);
             this.$scope.$parent.$eval(this.$scope.vm.onUpdateCalendars)(true);
         } catch (e) {
-            if (e.response.data.message) {
+            if (e.response.status == 401) {
                 toasts.info(lang.translate("calendar.external.platform.not.accepted"));
             } else {
                 let errorMessage : string = lang.translate("calendar.get.events.error") + " " + calendar.title + ".";

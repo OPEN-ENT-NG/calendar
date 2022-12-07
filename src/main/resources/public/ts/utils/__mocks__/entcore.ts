@@ -24,3 +24,7 @@ export const Behaviours = {
         rights : rights
     }
 };
+
+export const idiom = {
+    translate: jest.fn((key : string) => key)
+};
