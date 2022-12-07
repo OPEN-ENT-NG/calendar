@@ -12,7 +12,6 @@ public final class DateUtils {
 
     public static final String DATE_FORMAT = "yyyy-MM-dd";
     public static final String DATE_FORMAT_UTC = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
-    public static final String DATE_FORMAT_UTC_MONGO = "yyyy-MM-dd HH:mm:ss.SSS'Z'";
     public static final String FRENCH_DATE_FORMAT ="dd-MM-yyyy";
     public static final String YEAR = "yyyy";
     public static final String DAY_MONTH_YEAR_HOUR_TIME = "dd/MM/yyyy HH:mm:ss";
