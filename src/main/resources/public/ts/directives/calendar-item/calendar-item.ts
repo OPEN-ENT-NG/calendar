@@ -6,6 +6,7 @@ import {ICalendarService} from "../../services";
 import {DateUtils} from "../../utils/date.utils";
 import {AxiosResponse} from "axios";
 import {safeApply} from "../../model/Utils";
+import {FORMAT} from "../../core/const/date-format";
 
 interface IViewModel {
     loading: boolean;
@@ -89,7 +90,12 @@ class Controller implements ng.IController, IViewModel {
             this.loading = false;
             safeApply(this.$scope);
             if (e.response.status == 401) {
-                let ttlMessage : string = lang.translate("calendar.the.calendar") + " " +  this.$scope.vm.calendar.title
+                let ttlMessage : string = this.$scope.vm.calendar.updated ? lang.translate("calendar.already.updated") + " "
+                    + lang.translate("calendar.recurrence.onlc") + " " + this.getLastUpdate(FORMAT.displayFRDate) + " "
+                    + lang.translate("calendar.search.date.to") + " " + this.getLastUpdate(FORMAT.displayTime) + ". "
+                    + lang.translate("calendar.external.sync.min.time") + " "
+                    + DateUtils.secondsToDaysHoursMinutesSeconds(Number(e.response.data.error), true) + "."
+                    : lang.translate("calendar.the.calendar") + " " +  this.$scope.vm.calendar.title
                     + " " + lang.translate("calendar.external.has.already.been.updated");
                 if ($event) toasts.info(ttlMessage);
             } else {
@@ -135,7 +141,7 @@ class Controller implements ng.IController, IViewModel {
     }
 
     getLastUpdate = (format: string): string => {
-        return DateUtils.getFormattedString(this.$scope.vm.calendar.updated, format)
+        return DateUtils.getFormattedString(this.$scope.vm.calendar.updated, format);
     }
 }
 
