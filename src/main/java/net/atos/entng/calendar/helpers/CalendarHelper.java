@@ -192,7 +192,7 @@ public class CalendarHelper extends MongoDbControllerHelper {
         Date lastUpdateDate = new Date(lastUpdateTimestamp.getTime());
         long secondsSinceLastUpdate = (new Date().getTime()-lastUpdateDate.getTime())/1000;
 
-        return secondsSinceLastUpdate - config.getLong(Field.CALENDARSYNCTTL, 900L) > 0;
+        return secondsSinceLastUpdate - config.getLong(Field.CALENDARSYNCTTL, 3600L) > 0;
     }
 
 }

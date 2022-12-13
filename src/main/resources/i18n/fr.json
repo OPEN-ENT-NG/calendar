@@ -150,6 +150,7 @@
     "calendar.event.date": "Date : ",
     "calendar.event.time.from": "De ",
     "calendar.event.time.tolc": "à ",
+    "calendar.and.lc": "et",
     "calendar.event.get.error": "Erreur de récupération de l'évènement",
     "calendar.day.monday.lc":"lundi",
     "calendar.day.tuesday.lc":"mardi",
@@ -158,6 +159,9 @@
     "calendar.day.friday.lc":"vendredi",
     "calendar.day.saturday.lc":"samedi",
     "calendar.day.sunday.lc":"dimanche",
+    "calendar.hours.lc": "heures",
+    "calendar.minutes.lc": "minutes",
+    "calendar.seconds.lc": "secondes",
     "calendar.recurrence.until": "jusqu'au",
     "calendar.tooltip.recurrence.every.day": "Chaque jour",
     "calendar.tooltip.recurrence.every.week":"chaque semaine",
@@ -191,11 +195,13 @@
     "calendar.external.has.already.been.updated": "a déjà été mis à jour.",
     "calendar.external.platform.not.accepted": "Cette source d’agenda n’est pas autorisée. Si vous pensez qu’il s’agit d’une erreur, contactez votre administrateur.",
     "calendar.external.sync.error": "Erreur lors de la mise à jour des évènements de l'agenda",
+    "calendar.external.sync.min.time": "Il est possible de le mettre à jour toutes les",
 
     "calendar.from.url": "A partir d'une URL",
     "calendar.name": "Nom de l'agenda",
     "calendar.add": "Ajouter l'agenda",
     "calendar.last.update": "Dernière mise à jour",
+    "calendar.already.updated": "L'agenda a déjà été mis à jour",
     "calendar.has.been.added": "a été ajouté.",
     "calendar.get.events.error": "Erreur lors de la récupération des évènements de l'agenda"
 }

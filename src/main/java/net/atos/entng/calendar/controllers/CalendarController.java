@@ -287,7 +287,7 @@ public class CalendarController extends MongoDbControllerHelper {
                                 " during calendar sync: %s", this.getClass().getSimpleName(), error.getMessage());
                         log.error(message, error.getMessage());
                         if(error.getMessage().equals("[Calendar@CalendarHelper::prepareCalendarAndEventsForUpdate]:  last update was too recent")) {
-                            unauthorized(request);
+                            unauthorized(request, config.getLong(Field.CALENDARSYNCTTL, 3600L).toString());
                         } else {
                             renderError(request);
                         }
