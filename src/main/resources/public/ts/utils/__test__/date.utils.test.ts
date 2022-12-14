@@ -16,4 +16,24 @@ describe('dateFrFormat', () => {
         let formatDate = dateTest.format("DD/MM/YYYY" + " : " + "HH:mm");
         expect(formatDate).toEqual('05/09/2022 : 00:00');
     });
+
+    test(`Using "[0, 2, 0, 30]" it should return '2 heures et 30 secondes'`, () => {
+        const dateData = [0, 2, 0, 30];
+        expect(DateUtils.daysHoursMinutesSecondsToString(dateData)).toEqual('2 calendar.hours.lc calendar.and.lc 30 calendar.seconds.lc');
+    });
+
+    test(`Using "[0, 2, null, 30]" it should return '2 heures et 30 secondes'`, () => {
+        const dateData = [0, 2, null, 30];
+        expect(DateUtils.daysHoursMinutesSecondsToString(dateData)).toEqual('2 calendar.hours.lc calendar.and.lc 30 calendar.seconds.lc');
+    });
+
+    test(`Using "[0, 2, 0, 30, 1]" it should return ''`, () => {
+        const dateData = [0, 2, 0, 30, 1];
+        expect(DateUtils.daysHoursMinutesSecondsToString(dateData)).toEqual('');
+    });
+
+    test(`Using "[0, 2, 0]" it should return ''`, () => {
+        const dateData = [0, 2, 0];
+        expect(DateUtils.daysHoursMinutesSecondsToString(dateData)).toEqual('');
+    });
 });

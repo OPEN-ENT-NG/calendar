@@ -90,9 +90,11 @@ class Controller implements ng.IController, IViewModel {
             this.loading = false;
             safeApply(this.$scope);
             if (e.response.status == 401) {
-                let ttlMessage : string = this.$scope.vm.calendar.updated ? lang.translate("calendar.last.update") + " "
+                let ttlMessage : string = this.$scope.vm.calendar.updated ? lang.translate("calendar.already.updated") + " "
                     + lang.translate("calendar.recurrence.onlc") + " " + this.getLastUpdate(FORMAT.displayFRDate) + " "
-                    + lang.translate("calendar.search.date.to") + " " + this.getLastUpdate(FORMAT.displayTime) + "."
+                    + lang.translate("calendar.search.date.to") + " " + this.getLastUpdate(FORMAT.displayTime) + ". "
+                    + lang.translate("calendar.external.sync.min.time") + " "
+                    + DateUtils.secondsToDaysHoursMinutesSeconds(Number(e.response.data.error), true) + "."
                     : lang.translate("calendar.the.calendar") + " " +  this.$scope.vm.calendar.title
                     + " " + lang.translate("calendar.external.has.already.been.updated");
                 if ($event) toasts.info(ttlMessage);
