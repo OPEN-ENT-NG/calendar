@@ -22,6 +22,11 @@ describe('dateFrFormat', () => {
         expect(DateUtils.daysHoursMinutesSecondsToString(dateData)).toEqual('2 calendar.hours.lc calendar.and.lc 30 calendar.seconds.lc');
     });
 
+    test(`Using "[0, 0, 1, 0]" it should return '1 minutes'`, () => {
+        const dateData = [0, 0, 1, 0];
+        expect(DateUtils.daysHoursMinutesSecondsToString(dateData)).toEqual('1 calendar.minutes.lc');
+    });
+
     test(`Using "[0, 2, null, 30]" it should return '2 heures et 30 secondes'`, () => {
         const dateData = [0, 2, null, 30];
         expect(DateUtils.daysHoursMinutesSecondsToString(dateData)).toEqual('2 calendar.hours.lc calendar.and.lc 30 calendar.seconds.lc');

@@ -54,12 +54,12 @@ export class DateUtils {
         if (timeArray.length == 4) {
             let days = (!timeArray[0] || timeArray[0] == 0) ? "" : timeArray[0] + " " + lang.translate("calendar.recurrence.days")
                 + (!!timeArray[1] && timeArray[1] != 0 || !!timeArray[2] && timeArray[2] != 0 ? ", "
-                    : (!!timeArray[3] && timeArray[3] != 0 ? " " + lang.translate("calendar.and.lc") + " " : "" ));
+                    : (!!timeArray[3] || timeArray[3] != 0 ? " " + lang.translate("calendar.and.lc") + " " : "" ));
             let hours = (!timeArray[1] || timeArray[1] == 0) ? "" : timeArray[1] + " " + lang.translate("calendar.hours.lc")
                 + (!!timeArray[2] && timeArray[2] != 0 ? ", "
-                    : (!!timeArray[3] && timeArray[3] != 0 ? " " + lang.translate("calendar.and.lc") + " " : "" ));
+                    : (!!timeArray[3] || timeArray[3] != 0 ? " " + lang.translate("calendar.and.lc") + " " : "" ));
             let minutes = (!timeArray[2] || timeArray[2] == 0) ? "" : timeArray[2] + " " + lang.translate("calendar.minutes.lc")
-                + (!!timeArray[3] && timeArray[3] == 0 ? "" : " " + lang.translate("calendar.and.lc") + " ");
+                + (!!timeArray[3] || timeArray[3] == 0 ? "" : " " + lang.translate("calendar.and.lc") + " ");
             let seconds = (!timeArray[3] || timeArray[3] == 0) ? "" : timeArray[3] + " " + lang.translate("calendar.seconds.lc");
 
             return days + hours + minutes + seconds;
