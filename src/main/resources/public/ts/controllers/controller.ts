@@ -1307,6 +1307,7 @@ export const calendarController = ng.controller('CalendarController',
             };
             $scope.importIcsFile = async (calendar, event) => {
                 event.currentTarget.disabled = true;
+                $scope.calendar = calendar;
                 await $scope.calendar.importIcal($scope.jsonData);
                 $scope.icsImport = $scope.calendar.icsImport;
                 $scope.display.showImportPanel = undefined;

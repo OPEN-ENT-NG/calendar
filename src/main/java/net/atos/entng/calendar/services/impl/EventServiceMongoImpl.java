@@ -402,7 +402,7 @@ public class EventServiceMongoImpl extends MongoDbCrudService implements EventSe
             @Override
             public void handle(Message<JsonObject> reply) {
                 final JsonObject result = new JsonObject();
-                if ("ko".equals(reply.body().getString("status"))) {
+                if ("ko".equals(reply.body().getString(Field.STATUS)) || Field.ERROR.equals(reply.body().getString(Field.STATUS))) {
                     handler.handle(new Either.Left<String, JsonObject>(new String("Error")));
                 } else {
                     JsonObject body = reply.body();
