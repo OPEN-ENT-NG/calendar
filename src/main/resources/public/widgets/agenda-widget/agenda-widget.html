@@ -1,35 +1,29 @@
-<div class="calendar widget" style="height: auto;">
-    <div class="row">
-        <h1>
-            <i18n>calendar.widget.title</i18n>
-        </h1>
-    </div>
+<!--Widget Agenda-->
+<div class="widget agenda">
+	<h1>
+		<i18n>agenda-widget.widget.title</i18n>
+	</h1>
 
-    <div class="row">
-        <div class="three cell current-day">
-            <h1>[[widget.today('dddd')]]</h1>
-            <h2>[[widget.today('D')]]</h2>
-            <h3>[[widget.today('MMM')]]</h3>
-        </div>
+	<div class="widget-body">
+		<div class="widget-empty-message" ng-if="widget.userEvents === undefined || widget.userEvents.length === 0">
+			<p>
+				<i18n>agenda-widget.widget.empty</i18n>
+			</p>
+		</div>
 
-        <div class="nine cell widget-list">
-            <span>
-                <i18n>calendar.next.events</i18n> :
-            </span>
-            <ul>
-                <li ng-repeat="event in widget.userEvents" ng-class="{ 'border': $last === false }">
-                    <span tooltip="[[widget.dateToString(event.startMoment)]] : [[event.title]]" class="last-events-widget">
-                        [[widget.dateToString(event.startMoment)]] : [[event.title]]
-                    </span>
-                </li>
-
-                <li ng-if="widget.userEvents === undefined || widget.userEvents.length === 0"><i18n>calendar.widget.empty</i18n></li>
-            </ul>
-        </div>
-    </div>
-    <div class="row">
-        <a href="/calendar" class="horizontal-spacing right-magnet">
-            <i18n>calendar.access.module</i18n>
-        </a>
-    </div>
+		<ul class="day-list" ng-if="widget.userEvents !== undefined && widget.userEvents.length >= 0">
+			<li class="day-item" ng-repeat="group in widget.dayGroups">
+				<div class="day-item-title">
+					[[group]]
+				</div>
+				<ul class="moment-list">
+					<li class="moment-item" ng-repeat="event in widget.userEvents | filter:{displayedGroup: group}">
+						<span class="icon"><i class="calendar"></i></span>
+						<span class="hour" ng-if="!event.allday">[[event.displayedDate]]</span>
+						<span class="link"><a href="/calendar">[[event.title]]</a></span>
+					</li>
+				</ul>
+			</li>
+		</ul>
+	</div>
 </div>
