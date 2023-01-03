@@ -67,7 +67,7 @@ public class CalendarController extends MongoDbControllerHelper {
     private final CalendarService calendarService;
 
     private final CalendarHelper calendarHelper;
-    private final PlatformService platformService;
+    private final PlatformHelper platformHelper;
     private final EventServiceMongo eventServiceMongo;
 
     @Override
@@ -82,7 +82,7 @@ public class CalendarController extends MongoDbControllerHelper {
         final EventStore eventStore = EventStoreFactory.getFactory().getEventStore(Calendar.class.getSimpleName());
         this.eventHelper = new org.entcore.common.events.EventHelper(eventStore);
         this.calendarHelper = new CalendarHelper(collection, serviceFactory, eb, config);
-        this.platformService = serviceFactory.platformService();
+        this.platformHelper = new PlatformHelper(collection, serviceFactory);
         this.eventServiceMongo = new EventServiceMongoImpl(Field.CALENDAREVENT,eb,serviceFactory);
     }
 
@@ -210,10 +210,9 @@ public class CalendarController extends MongoDbControllerHelper {
                 return;
             }
             RequestUtils.bodyToJson(request, pathPrefix + "calendar", body -> {
-                String url = body.getString(Field.ICSLINK).trim();
-                platformService.retrieveAll()
-                        .compose(platformList -> {
-                            if (PlatformHelper.checkUrlInRegex(url, platformList)) {
+                platformHelper.checkCalendarPlatform(user, body)
+                        .compose(isPlatformAccepted -> {
+                            if (isPlatformAccepted) {
                                 return createFuture(user, body);
                             } else {
                                 return Future.failedFuture("URL not authorized");
