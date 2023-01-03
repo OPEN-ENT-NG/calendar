@@ -15,8 +15,9 @@
         "app-registry.port": 8012,
         "mode": "prod",
         "entcore.port": 8009,
-	"enable-rbs": {{ calendarEnableRbs | default('false') }},
-	"calendarSyncTTL": {{ calendarSyncTTL | default('3600') }},
+        "enable-rbs": {{ calendarEnableRbs | default('false') }},
+        "enable-zimbra": {{ calendarEnableZimbra | default('false') }},
+        "calendarSyncTTL": {{ calendarSyncTTL | default('3600') }},
         "publicConf": {
             "xiti": {
                 "ID_SERVICE": {
