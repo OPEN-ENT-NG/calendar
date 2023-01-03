@@ -80,6 +80,16 @@ public class FutureHelper {
         };
     }
 
+    public static Handler<AsyncResult<Message<JsonObject>>> messageJsonObjectHandler(Handler<AsyncResult<JsonObject>> handler) {
+        return event -> {
+            if (event.succeeded()) {
+                handler.handle(Future.succeededFuture(event.result().body().getJsonObject(Field.RESULT)));
+            } else {
+                handler.handle(Future.failedFuture(event.cause().getMessage()));
+            }
+        };
+    }
+
     public static Handler<AsyncResult<Message<List<JsonObject>>>> messageListJsonObjectHandler(Handler<Either<String, List<JsonObject>>> handler) {
         return event -> {
             if (event.succeeded()) {

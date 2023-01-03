@@ -114,6 +114,8 @@ public class Field {
     public static final String ENABLERBS = "enableRbs";
     public static final String ENABLE_RBS = "enable-rbs";
     public static final String CALENDARSYNCTTL = "calendarSyncTTL";
+    public static final String ENABLEZIMBRA = "enableZimbra";
+    public static final String ENABLE_ZIMBRA = "enable-zimbra";
 
     //Miscellaneous
     public static final String ALL = "all";
@@ -146,6 +148,13 @@ public class Field {
     public static final String ICSLINK = "icsLink";
     public static final String SYNC = "sync";
     public static final String PLATFORM_ID = "platformId";
+
+    //Platforms
+    public static final String PLATFORM = "platform";
+    public static final String ZIMBRA = "Zimbra";
+    public static final String HAS_PLATFORM_ICS = "hasPlatformIcs";
+    public static final String PLATFORM_ICS = "platformIcs";
+
 
     //Http Methods
     public static final String POST = "post";
