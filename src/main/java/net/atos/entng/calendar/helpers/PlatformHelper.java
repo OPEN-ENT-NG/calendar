@@ -6,6 +6,7 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
+import net.atos.entng.calendar.helpers.UserHelper;
 import net.atos.entng.calendar.core.constants.Field;
 import net.atos.entng.calendar.core.enums.ExternalICalEventBusActions;
 import net.atos.entng.calendar.ical.ExternalImportICal;
@@ -74,7 +75,7 @@ public class PlatformHelper extends MongoDbControllerHelper {
         } else if (StringsHelper.isNullOrEmpty(url) && !StringsHelper.isNullOrEmpty(platform)) {
             switch (platform) {
                 case Field.ZIMBRA:
-                    promise.complete(config.getBoolean(Field.ENABLE_ZIMBRA, false));
+                    promise.complete(UserHelper.userHasApp(user, Field.ZIMBRA) && config.getBoolean(Field.ENABLE_ZIMBRA, false));
                     break;
                 default:
                     String message = String.format("[Calendar@%s::checkCalendarPlatform]:  an error has occurred during " +
