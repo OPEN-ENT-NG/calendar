@@ -4,7 +4,8 @@ public enum ExternalICalEventBusActions {
     POST("post"),
     PUT("put"),
     SYNC("sync"),
-    GET("get");
+    GET("get"),
+    CHECK_PLATFORM("check-platform");
 
     private final String eventBusAction;
 
