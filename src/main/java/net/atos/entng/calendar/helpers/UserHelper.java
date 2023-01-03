@@ -2,6 +2,7 @@ package net.atos.entng.calendar.helpers;
 
 import io.vertx.core.json.JsonArray;
 import net.atos.entng.calendar.models.User;
+import org.entcore.common.user.UserInfos;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,6 +27,10 @@ public class UserHelper {
             usersList.add(user);
         }
         return usersList;
+    }
+
+    public static Boolean userHasApp(UserInfos user, String targetApp) {
+        return user.getApps().stream().anyMatch(app -> app.getName().equalsIgnoreCase(targetApp));
     }
 
 }
