@@ -11,6 +11,8 @@ import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import net.atos.entng.calendar.core.constants.Field;
 import net.atos.entng.calendar.core.constants.MongoField;
+import net.atos.entng.calendar.core.enums.ExternalICalEventBusActions;
+import net.atos.entng.calendar.core.enums.ExternalPlatformEnum;
 import net.atos.entng.calendar.ical.ExternalImportICal;
 import net.atos.entng.calendar.services.CalendarService;
 import net.atos.entng.calendar.services.EventServiceMongo;
@@ -144,23 +146,85 @@ public class CalendarHelper extends MongoDbControllerHelper {
 
     private Future<Void> getAndSaveExternalCalendarEvents(UserInfos user, JsonObject calendar, String host, String i18nLang, String action) {
         Promise<Void> promise = Promise.promise();
+        Future<Void> future = Future.failedFuture("calendar.error.missing.data");
+
+        String url = calendar.getString(Field.ICSLINK, null);
+        String platform = calendar.getString(Field.PLATFORM, null);
+
+        if (!StringsHelper.isNullOrEmpty(url) && StringsHelper.isNullOrEmpty(platform)) { //case ics link
+            future = callLinkImportEventBus(user, calendar, host, i18nLang, action);
+        } else if (StringsHelper.isNullOrEmpty(url) && !StringsHelper.isNullOrEmpty(platform)) { //case external platform
+            future = getICalFromExternalPlatform(user, platform);
+        }
+
+        future
+                .onSuccess(promise::complete)
+                .onFailure(err -> {
+                    String errMessage = String.format("[Calendar@%s::getAndSaveExternalCalendarEvents]: an error has occurred during " +
+                            "ics retrieval : %s", this.getClass().getSimpleName(), err.getMessage());
+                    log.error(errMessage);
+                    promise.fail(err.getMessage());
+                });
+
+        return promise.future();
+    }
+
+    private Future<Void> callLinkImportEventBus(UserInfos user, JsonObject calendar, String host, String i18nLang, String action) {
+        Promise<Void> promise = Promise.promise();
+
         JsonObject requestInfo = new JsonObject().put(Field.DOMAIN, host).put(Field.ACCEPTLANGUAGE, i18nLang);
         JsonObject message = new JsonObject()
                 .put(Field.CALENDAR, calendar)
                 .put(Field.REQUEST, requestInfo)
                 .put(Field.ACTION, action)
                 .put(Field.USERID, user.getUserId());
+
         eb.request(ExternalImportICal.class.getName(), message, event -> {
             if(event.failed()) {
-                String errMessage = String.format("[Calendar@%s::getAndSaveExternalCalendarEvents]:  " +
+                String errMessage = String.format("[Calendar@%s::callLinkImportEventBus]:  " +
                         "an error has occurred while creating external calendar events: %s",
-                        this.getClass().getSimpleName(), event.cause());
+                        this.getClass().getSimpleName(), event.cause().getMessage());
                 log.error(errMessage);
-                promise.fail(errMessage);
+                promise.fail(event.cause().getMessage());
             } else {
                 promise.complete();
             }
         });
+
+        return promise.future();
+    }
+
+    private Future<Void> getICalFromExternalPlatform(UserInfos user, String platform) {
+        Promise<Void> promise = Promise.promise();
+
+        JsonObject message = new JsonObject()
+                .put(Field.ACTION, ExternalICalEventBusActions.GET_PLATFORM_ICS.method())
+                .put(Field.userId, user.getUserId());
+
+        String ebAddress = "";
+        switch (platform) {
+            case Field.ZIMBRA:
+                ebAddress = ExternalPlatformEnum.ZIMBRA_ADDRESS.getEventBusAddress();
+                break;
+            default:
+                String errMessage = String.format("[Calendar@%s::getAndSaveExternalCalendarEvents]:  an error has occurred during " +
+                        "platform check: platform is not accepted", this.getClass().getSimpleName());
+                log.error(errMessage);
+                promise.fail("calendar.error.platform.not.accepted");
+                return promise.future();
+        }
+
+        eb.request(ebAddress, message, FutureHelper.messageJsonObjectHandler(event -> {
+            if(event.failed()) {
+                String errMessage = String.format("[Calendar@%s::getAndSaveExternalCalendarEvents]:  an error has occurred during " +
+                        "ics retrieval: %s", this.getClass().getSimpleName(), event.cause().getMessage());
+                log.error(errMessage);
+                promise.fail(event.cause().getMessage());
+            } else {
+                promise.complete();
+            }
+        }));
+
         return promise.future();
     }
 
