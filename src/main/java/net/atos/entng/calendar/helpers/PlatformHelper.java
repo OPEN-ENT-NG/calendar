@@ -70,7 +70,7 @@ public class PlatformHelper extends MongoDbControllerHelper {
                         String message = String.format("[Calendar@%s::checkCalendarPlatform]:  an error has occurred during " +
                                 "platform check: %s", this.getClass().getSimpleName(), error.getMessage());
                         log.error(message);
-                        promise.fail(error.getMessage());
+                        promise.fail("calendar.error.during.platform.check");
                     });
         } else if (StringsHelper.isNullOrEmpty(url) && !StringsHelper.isNullOrEmpty(platform)) {
             switch (platform) {
@@ -81,13 +81,13 @@ public class PlatformHelper extends MongoDbControllerHelper {
                     String message = String.format("[Calendar@%s::checkCalendarPlatform]:  an error has occurred during " +
                             "platform check : platform is not valid", this.getClass().getSimpleName());
                     log.error(message);
-                    Future.failedFuture(message);
+                    promise.fail("calendar.error.platform.not.valid");
                     break;
             }
         } else {
             String message = String.format("[Calendar@%s::checkCalendarPlatform]: an error has occurred during " +
                     "platform check : object is missing data", this.getClass().getSimpleName());
-            Future.failedFuture(message);
+            promise.fail(message);
         }
 
         return promise.future();
