@@ -14,6 +14,7 @@ import net.atos.entng.calendar.core.constants.MongoField;
 import net.atos.entng.calendar.core.enums.ExternalICalEventBusActions;
 import net.atos.entng.calendar.core.enums.ExternalPlatformEnum;
 import net.atos.entng.calendar.ical.ExternalImportICal;
+import net.atos.entng.calendar.models.CalendarModel;
 import net.atos.entng.calendar.services.CalendarService;
 import net.atos.entng.calendar.services.EventServiceMongo;
 import net.atos.entng.calendar.services.ServiceFactory;
@@ -154,7 +155,7 @@ public class CalendarHelper extends MongoDbControllerHelper {
         if (!StringsHelper.isNullOrEmpty(url) && StringsHelper.isNullOrEmpty(platform)) { //case ics link
             future = callLinkImportEventBus(user, calendar, host, i18nLang, action);
         } else if (StringsHelper.isNullOrEmpty(url) && !StringsHelper.isNullOrEmpty(platform)) { //case external platform
-            future = getICalFromExternalPlatform(user, platform);
+            future = getICalFromExternalPlatform(user, platform, new CalendarModel(calendar), host, i18nLang);
         }
 
         future
@@ -194,7 +195,7 @@ public class CalendarHelper extends MongoDbControllerHelper {
         return promise.future();
     }
 
-    private Future<Void> getICalFromExternalPlatform(UserInfos user, String platform) {
+    private Future<Void> getICalFromExternalPlatform(UserInfos user, String platform, CalendarModel calendar, String host, String i18nLang) {
         Promise<Void> promise = Promise.promise();
 
         JsonObject message = new JsonObject()
@@ -222,9 +223,18 @@ public class CalendarHelper extends MongoDbControllerHelper {
                 promise.fail(event.cause().getMessage());
             } else {
                 String ical = event.result().getString(Field.ICS);
-//                eventServiceMongo.importIcal(calendar.getString(Field._ID), ical, user, requestInfo,
-//                        Field.CALENDAREVENT, ExternalICalEventBusActions.SYNC.method(), calendarLastUpdate);
-                promise.complete();
+                JsonObject requestInfo = new JsonObject().put(Field.DOMAIN, host).put(Field.ACCEPTLANGUAGE, i18nLang);
+
+                eventServiceMongo.importIcal(calendar.id(), ical, user, requestInfo,
+                        Field.CALENDAREVENT, ExternalICalEventBusActions.SYNC.method(), calendar.updated())
+                        .onSuccess(result -> promise.complete())
+                        .onFailure(err -> {
+                            String errMessage = String.format("[Calendar@%s::getICalFromExternalPlatform]:  " +
+                                            "an error has occurred while creating external calendar events: %s",
+                                    this.getClass().getSimpleName(), err.getMessage());
+                            log.error(errMessage);
+                            promise.fail("calendar.platform.ical.error");
+                        });
             }
         }));
 
