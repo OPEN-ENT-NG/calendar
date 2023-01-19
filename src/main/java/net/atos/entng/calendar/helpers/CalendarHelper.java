@@ -221,6 +221,9 @@ public class CalendarHelper extends MongoDbControllerHelper {
                 log.error(errMessage);
                 promise.fail(event.cause().getMessage());
             } else {
+                String ical = event.result().getString(Field.ICS);
+//                eventServiceMongo.importIcal(calendar.getString(Field._ID), ical, user, requestInfo,
+//                        Field.CALENDAREVENT, ExternalICalEventBusActions.SYNC.method(), calendarLastUpdate);
                 promise.complete();
             }
         }));
