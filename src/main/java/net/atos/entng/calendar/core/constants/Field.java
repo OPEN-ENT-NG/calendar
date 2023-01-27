@@ -23,6 +23,7 @@ public class Field {
     public static final String IS_DEFAULT = "is_default";
     public static final String UPDATED = "updated";
     public static final String ISUPDATING = "isUpdating";
+    public static final String COLOR = "color";
 
 
     //Event infos
