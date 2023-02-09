@@ -3,6 +3,7 @@ package net.atos.entng.calendar.services;
 import fr.wseduc.mongodb.MongoDb;
 import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.EventBus;
+import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.client.WebClient;
 import net.atos.entng.calendar.Calendar;
 import net.atos.entng.calendar.services.impl.CalendarServiceImpl;
@@ -58,5 +59,9 @@ public class ServiceFactory {
 
     public WebClient webClient() {
         return this.webClient;
+    }
+
+    public JsonObject getConfig() {
+        return this.vertx.getOrCreateContext().config();
     }
 }

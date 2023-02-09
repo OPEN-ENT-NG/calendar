@@ -1,7 +1,11 @@
 package net.atos.entng.calendar.helper;
 
+import com.redis.M;
+import com.redis.S;
+import com.redis.U;
 import fr.wseduc.webutils.I18n;
 import fr.wseduc.webutils.eventbus.ResultMessage;
+import io.advantageous.boon.core.Str;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
@@ -13,6 +17,7 @@ import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 import net.atos.entng.calendar.Calendar;
+import net.atos.entng.calendar.core.constants.Field;
 import net.atos.entng.calendar.event.CalendarSearchingEvents;
 import net.atos.entng.calendar.helpers.CalendarHelper;
 import net.atos.entng.calendar.models.CalendarModel;
@@ -44,14 +49,17 @@ public class CalendarHelperTest {
 
     private EventServiceMongoImpl eventServiceMongoImpl;
     private CalendarHelper calendarHelper;
+    private CalendarModel calendarModel;
 
     @Before
     public void setUp(TestContext context) throws Exception {
         PowerMockito.spy(EventServiceMongoImpl.class);
         PowerMockito.spy(CalendarHelper.class);
+        PowerMockito.spy(CalendarModel.class);
         this.eventServiceMongoImpl = mock(EventServiceMongoImpl.class);
         PowerMockito.whenNew(EventServiceMongoImpl.class).withArguments(Mockito.anyString(), Mockito.any(), Mockito.any()).thenReturn(this.eventServiceMongoImpl);
-        this.calendarHelper = Mockito.spy(new CalendarHelper(Calendar.CALENDAR_COLLECTION, serviceFactory, eventBus, new JsonObject()));
+        this.calendarHelper = PowerMockito.spy(new CalendarHelper(Calendar.CALENDAR_COLLECTION, serviceFactory, eventBus, new JsonObject()));
+        this.calendarModel = mock(CalendarModel.class);
     }
 
     @Test
@@ -96,6 +104,66 @@ public class CalendarHelperTest {
         Whitebox.invokeMethod(calendarHelper, "getICalFromExternalPlatform", user, ZIMBRA,
                 new CalendarModel(calendar), host, i18nLang);
         async.await(10000);
+    }
+
+    @Test
+    public void testGetAndSaveExternalCalendarEvents_platformCase(TestContext context) throws Exception {
+        Async async = context.async();
+
+        //Arguments
+        UserInfos user = new UserInfos();
+        JsonObject calendar = new JsonObject().put(Field.PLATFORM, Field.ZIMBRA);
+        String host = "";
+        String i18nLang = "";
+        String action = "";
+
+        //Expected arguments
+        String expectedPlatform = Field.ZIMBRA;
+
+        PowerMockito.doAnswer(event -> {
+            String platform = event.getArgument(1);
+            context.assertEquals(platform, expectedPlatform);
+            async.complete();
+
+            return Future.succeededFuture();
+        }).when(calendarHelper, "getICalFromExternalPlatform", Mockito.any(),
+                Mockito.anyString(), Mockito.any(), Mockito.anyString(), Mockito.anyString());
+
+        PowerMockito.whenNew(CalendarModel.class).withAnyArguments().thenReturn(calendarModel);
+
+        Whitebox.invokeMethod(calendarHelper, "getAndSaveExternalCalendarEvents", user, calendar,
+                host, i18nLang, action);
+        async.await(10000);
+
+    }
+
+    @Test
+    public void testGetAndSaveExternalCalendarEvents_urlCase(TestContext context) throws Exception {
+        Async async = context.async();
+
+        //Arguments
+        UserInfos user = new UserInfos();
+        JsonObject calendar = new JsonObject().put(Field.ICSLINK, "aaa");
+        String host = "";
+        String i18nLang = "";
+        String action = "";
+
+        //Expected arguments
+        JsonObject expectedCalendar = new JsonObject().put(Field.ICSLINK, "aaa");
+
+        PowerMockito.doAnswer(event -> {
+            String argumentCalendar = event.getArgument(1).toString();
+            context.assertEquals(argumentCalendar, expectedCalendar.toString());
+            async.complete();
+
+            return Future.succeededFuture();
+        }).when(calendarHelper, "callLinkImportEventBus", Mockito.any(),
+                Mockito.any(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
+
+        Whitebox.invokeMethod(calendarHelper, "getAndSaveExternalCalendarEvents", user, calendar,
+                host, i18nLang, action);
+        async.await(10000);
+
     }
 
 }
