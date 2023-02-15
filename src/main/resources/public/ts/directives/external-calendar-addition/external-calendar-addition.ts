@@ -18,6 +18,7 @@ interface IViewModel {
 
 interface IExternalCalendarAdditionProps {
     display: any;
+    enableZimbra: boolean;
 
     onUpdateCalendars(): void;
 }
@@ -80,7 +81,8 @@ function directive() {
         controllerAs: 'vm',
         scope: {
             display: '=',
-            onUpdateCalendars: '&'
+            onUpdateCalendars: '&',
+            enableZimbra: "="
         },
         bindToController: true,
         controller: ['$scope', 'CalendarService', Controller]

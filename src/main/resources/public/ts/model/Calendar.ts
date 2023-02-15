@@ -19,6 +19,7 @@ export class Calendar implements Selectable, Shareable {
     icsImport: any;
     isExternal: boolean;
     icsLink: string;
+    platform: string;
     updated: string;
 
     constructor(calendar?) {
