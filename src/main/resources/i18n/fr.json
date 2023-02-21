@@ -171,6 +171,8 @@
     "calendar.event.timeslot": "Créneau",
     "calendar.ical.event.slot.problem": "Problème de gestion des horaires de l'évènement.",
     "calendar.ical.event.no.title": "(Sans titre)",
+    "calendar.addition.choice" : "Vous souhaitez ajouter",
+    "calendar.your.calendar": "Votre calendrier {0}",
 
     "calendar.rbs.sniplet.booking.warning" : "Une réservation de ressources a été effectuée pour le(s) créneau(x) suivant(s) :",
     "calendar.rbs.sniplet.booking.owner.is": "Des ressources ont été réservées par",
@@ -183,8 +185,10 @@
     "calendar.rbs.sniplet.event.only": "Cet évènement seulement",
     "calendar.rbs.sniplet.event.and.booking": "Cet évènement et ses réservations de ressources",
     "calendar.rbs.sniplet.error.booking.deletion": "Une erreur est survenue : toutes les réservations de ressources de l'évènement n'ont pas pu être supprimées.",
+    "calendar.display.in.ent": "Affichage dans l'ENT",
 
     "calendar.external.calendars": "Agendas externes",
+    "calendar.external.calendar": "Agenda externe",
     "calendar.add.external.calendar": "Ajouter un agenda externe",
     "calendar.external.enter.url": "Entrer l'URL de l'agenda",
     "calendar.external.in.new.calendar": "Cet agenda sera ajouté dans un nouvel agenda externe.",
@@ -196,6 +200,7 @@
     "calendar.external.platform.not.accepted": "Cette source d’agenda n’est pas autorisée. Si vous pensez qu’il s’agit d’une erreur, contactez votre administrateur.",
     "calendar.external.sync.error": "Erreur lors de la mise à jour des évènements de l'agenda",
     "calendar.external.sync.min.time": "Il est possible de le mettre à jour toutes les",
+    "calendar.external.from.url": "Un calendrier à partir d'une URL",
 
     "calendar.from.url": "A partir d'une URL",
     "calendar.name": "Nom de l'agenda",

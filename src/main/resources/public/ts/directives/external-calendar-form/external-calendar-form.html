@@ -3,43 +3,79 @@
 
         <h3 class="row drop-down-block"><i18n>calendar.add.external.calendar</i18n></h3>
 
-        <h2 class="row"><i18n>calendar.from.url</i18n></h2>
+<!--        <h2 class="row"><i18n>calendar.from.url</i18n></h2>-->
 
-        <!--Calendar URL-->
-        <div>
-            <div class="twelve cell">
-                <i18n>calendar.external.enter.url</i18n>
+        <!--PLATFORMS-->
+        <article>
+            <h2 class="backgroundBlueTitle">
+                <i18n>calendar.external.calendar</i18n>
+            </h2>
+            <!--Calendar URL-->
+            <div class="toggle">
+                <div class="content">
+                    <div class="twelve cell vertical-spacing-four">
+                        <i18n>calendar.addition.choice</i18n> :
+                    </div>
+
+
+                    <div class="">
+                        <div class="row" >
+                            <input class="cell right-spacing-small top-spacing" ng-if="vm.enableZimbra" type="radio"
+                                   ng-click="vm.changeSelection('icsLink')" name="calendarOrigin" checked/>
+                            <label class="cell"><i18n>calendar.external.from.url</i18n> &colon; </label>
+                            <input class="six cell left-spacing" id="external-calendar-url-input"
+                                   required ng-model="vm.calendar.icsLink"
+                                   type="text" ng-pattern="/^(http[s]?:\/\/){0,1}(www\.){0,1}[a-zA-Z0-9\.\-]+\.[a-zA-Z]{2,5}[\.]{0,1}/"/>
+                        </div>
+                        <div class="row" ng-if="vm.enableZimbra">
+                            <input class="cell right-spacing-small top-spacing" type="radio"
+                                   ng-click="vm.changeSelection('platform', 'Zimbra')" name="calendarOrigin"
+                                   ng-model="vm.calendar.platform" value="Zimbra"/>
+                            <div>[[vm.i18nUtils.getWithParam('calendar.your.calendar', 'Zimbra')]]</div>
+                        </div>
+                    </div>
+
+
+                    <div class="top-spacing-three">
+                        <i18n class="twelve cell">calendar.external.in.new.calendar</i18n>
+                        <i18n class="twelve cell ">calendar.external.sync.information</i18n>
+                    </div>
+                </div>
             </div>
-            <div class="twelve cell" >
-                <input class="seven cell top-spacing-twice right-spacing-twice" id="external-calendar-url-input" required ng-model="vm.calendar.icsLink"
-                       type="text" ng-pattern="/^(http[s]?:\/\/){0,1}(www\.){0,1}[a-zA-Z0-9\.\-]+\.[a-zA-Z]{2,5}[\.]{0,1}/"/>
+        </article>
+
+
+        <!--CALENDAR INFOS-->
+        <article>
+            <h2 class="backgroundBlueTitle">
+                <i18n>calendar.display.in.ent</i18n>
+            </h2>
+            <div class="toggle">
+                <div class="content">
+                    <!--Calendar title-->
+                    <div>
+                        <label class="twelve cell">
+                            <i18n>calendar.name</i18n>
+                        </label>
+                        <div class="twelve cell bottom-spacing-three" >
+                            <input class="five cell top-spacing-twice" required ng-model="vm.calendar.title"
+                                   type="text"/>
+                        </div>
+                    </div>
+
+                    <!--Calendar color-->
+                    <div class="row">
+                        <label class="twelve cell"><i18n>calendar.color</i18n></label>
+                        <color-selector ng-model='vm.calendar.color'></color-selector>
+                    </div>
+                </div>
             </div>
-            <div>
-                <i18n class="twelve cell">calendar.external.in.new.calendar</i18n>
-                <i18n class="twelve cell drop-down-block">calendar.external.sync.information</i18n>
-            </div>
-        </div>
+        </article>
 
-
-        <!--Calendar title-->
-        <div>
-            <label class="twelve cell">
-                <i18n>calendar.name</i18n>
-            </label>
-            <div class="twelve cell drop-down-block" >
-                <input class="five cell top-spacing-twice" required ng-model="vm.calendar.title"
-                       type="text"/>
-            </div>
-        </div>
-
-
-        <!--Calendar color-->
-        <div class="row drop-down-block">
-            <label class="twelve cell"><i18n>calendar.color</i18n></label>
-            <color-selector ng-model='vm.calendar.color'></color-selector>
-        </div>
 
         <button class="right-magnet" ng-disabled="!vm.isFormComplete()"
                 ng-click="vm.onCreateExternalCalendarAction()"><i18n>calendar.add</i18n></button>
+        <button class="cancel right-magnet" ng-click="vm.onCloseExternalCalendarFormAction()"><i18n>cancel</i18n></button>
+
     </form>
 </div>

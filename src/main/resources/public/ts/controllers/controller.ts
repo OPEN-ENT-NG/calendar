@@ -38,6 +38,7 @@ import {externalCalendarUtils} from "../utils/externalCalendarUtils";
 import {calendarService} from "../services";
 
 declare var ENABLE_RBS: boolean;
+declare var ENABLE_ZIMBRA: boolean;
 declare let window: any;
 
 export const calendarController = ng.controller('CalendarController',
@@ -83,6 +84,7 @@ export const calendarController = ng.controller('CalendarController',
             $scope.eventSidebar$ = new Subject<void>();
             $scope.ENABLE_RBS = ENABLE_RBS;
             $scope.rbsEmitter = new RbsEmitter($scope, !!$scope.ENABLE_RBS);
+            $scope.ENABLE_ZIMBRA = ENABLE_ZIMBRA;
 
                 template.open('main', 'main-view');
                 template.open('top-menu', 'top-menu');

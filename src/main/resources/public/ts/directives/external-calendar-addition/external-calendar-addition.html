@@ -6,7 +6,9 @@
     <lightbox show="vm.display.showPanelExternalCalendar" on-close="vm.closeExternalCalendarForm()">
         <external-calendar-form
                 calendar="vm.calendar"
-                on-create-external-calendar="vm.createExternalCalendar">
+                on-create-external-calendar="vm.createExternalCalendar"
+                enable-zimbra="vm.enableZimbra"
+                on-close-external-calendar-form="vm.closeExternalCalendarForm">
         </external-calendar-form>
     </lightbox>
 </div>

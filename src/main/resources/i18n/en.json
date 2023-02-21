@@ -171,6 +171,9 @@
     "calendar.event.timeslot": "Timeslot",
     "calendar.ical.event.slot.problem": "Error when handling event timeslots.",
     "calendar.ical.event.no.title": "(No title)",
+    "calendar.addition.choice" : "You wish to add",
+    "calendar.your.calendar": "Your {0} calendar",
+    "calendar.display.in.ent": "Display in learning platform",
 
     "calendar.rbs.sniplet.booking.warning" : "A booking was carried out for the following slot(s):",
     "calendar.rbs.sniplet.booking.owner.is": "Resources were booked by",
@@ -185,6 +188,7 @@
     "calendar.rbs.sniplet.error.booking.deletion": "Error: some of this event's bookings could not be deleted.",
 
     "calendar.external.calendars" : "External calendars",
+    "calendar.external.calendar" : "External calendar",
     "calendar.add.external.calendar": "Add external calendar",
     "calendar.external.enter.url": "Enter calendar URL",
     "calendar.external.in.new.calendar": "This calendar will be added to a new external calendar.",
@@ -196,6 +200,7 @@
     "calendar.external.platform.not.accepted": "This calendar source is not authorized. If you think there has been an error, contact your administrator.",
     "calendar.external.sync.error": "Error while updating events from calendar",
     "calendar.external.sync.min.time": "It can be updated every",
+    "calendar.external.from.url": "A calendar from an URL",
 
     "calendar.from.url": "From the URL",
     "calendar.name": "Calendar name",

@@ -4,18 +4,24 @@ import {IParseService, IScope, ITimeoutService} from "angular";
 import {safeApply} from "../../model/Utils";
 import {CalendarForm} from "../../model/calendar-form.model";
 import {idiom as lang} from "entcore";
+import {I18nUtils} from "../../utils/i18n.utils";
 
 
 interface IExternalCalendarFormProps {
     calendar?: CalendarForm;
+    enableZimbra?: boolean;
 
     onCreateExternalCalendar?(): (calendar: CalendarForm) => void;
+    onCloseExternalCalendarForm?(): () => void;
 }
 
 interface IViewModel extends ng.IController, IExternalCalendarFormProps {
+    i18nUtils?: I18nUtils;
+
     // for link method
     resetForm?(calendar: CalendarForm): void;
     isFormComplete?(): boolean;
+    changeSelection?(field: string, platform?: string): void;
     translate?(text: string): string;
 }
 
@@ -29,6 +35,7 @@ class Controller implements IViewModel {
     }
 
     $onInit() {
+        this.$scope.vm.i18nUtils = new I18nUtils();
     }
 
     $onDestroy() {
@@ -50,11 +57,19 @@ class Controller implements IViewModel {
     }
 
     isFormComplete(): boolean {
-        return !!this.$scope.vm.calendar && !!this.$scope.vm.calendar.title && !!this.$scope.vm.calendar.icsLink;
+        return !!this.$scope.vm.calendar && !!this.$scope.vm.calendar.title && (!!this.$scope.vm.calendar.icsLink !== !!this.$scope.vm.calendar.platform);
     }
 
-    translate(text: string): string {
-        return lang.translate(text);
+
+    changeSelection(field: string, platform?: string): void {
+        switch (field) {
+            case "icsLink":
+                this.$scope.vm.calendar.platform = undefined;
+                break;
+            case "platform":
+                this.$scope.vm.calendar.icsLink = undefined;
+                break;
+        }
     }
 
 }
@@ -66,7 +81,9 @@ function directive($parse) {
         controllerAs: 'vm',
         scope: {
             calendar: '=',
-            onCreateExternalCalendar: '&'
+            enableZimbra: "=",
+            onCreateExternalCalendar: '&',
+            onCloseExternalCalendarForm: '&'
         },
         bindToController: true,
         controller: ['$scope', '$parse', '$timeout', Controller],
@@ -76,8 +93,11 @@ function directive($parse) {
                         vm: IViewModel) {
             vm.onCreateExternalCalendarAction = (): void => {
                 $parse($scope.vm.onCreateExternalCalendar())($scope.vm.calendar);
+            },
+            vm.onCloseExternalCalendarFormAction = (): void => {
+                $parse($scope.vm.onCloseExternalCalendarForm())($scope.vm.calendar);
             }
-        }
+    }
     }
 }
 
