@@ -32,6 +32,7 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import net.atos.entng.calendar.core.constants.Field;
+import net.atos.entng.calendar.models.CalendarModel;
 import net.atos.entng.calendar.services.CalendarService;
 import org.entcore.common.user.UserInfos;
 
@@ -272,6 +273,25 @@ public class CalendarServiceImpl implements CalendarService {
             } else {
                 promise.complete();
             }
+        }));
+        return promise.future();
+    }
+
+    @Override
+    public Future<JsonObject> getPlatformCalendar(UserInfos user, String platform) {
+        Promise<JsonObject> promise = Promise.promise();
+        // Query
+        QueryBuilder query = QueryBuilder.start("owner.userId").is(user.getUserId());
+        query.put(Field.PLATFORM).is(platform);
+
+        mongo.findOne(this.collection, MongoQueryBuilder.build(query), validResultHandler(result -> {
+            if(result.isLeft()) {
+                log.error("[Calendar@%s::getPlatformCalendar]: an error has occurred while finding platform calendar: ",
+                        this.getClass().getSimpleName(), result.left().getValue());
+                promise.fail(result.left().getValue());
+                return;
+            }
+            promise.complete(result.right().getValue());
         }));
         return promise.future();
     }

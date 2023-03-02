@@ -6,6 +6,9 @@ import {safeApply} from "../../model/Utils";
 import {ICalendarService} from "../../services";
 import {defaultColor} from "../../model/constantes";
 import {CalendarForm} from "../../model/calendar-form.model";
+import {FORMAT} from "../../core/const/date-format";
+import {DateUtils} from "../../utils/date.utils";
+import {I18nUtils} from "../../utils/i18n.utils";
 
 
 interface IViewModel {
@@ -29,11 +32,13 @@ interface IExternalCalendarAdditionScope extends IScope {
 
 class Controller implements ng.IController, IViewModel {
     calendar: CalendarForm;
+    i18nUtils: I18nUtils;
 
     constructor(private $scope: IExternalCalendarAdditionScope, private calendarService: ICalendarService) {
     }
 
     $onInit() {
+        this.i18nUtils = new I18nUtils();
     }
 
     $onDestroy() {
@@ -63,8 +68,11 @@ class Controller implements ng.IController, IViewModel {
             toasts.confirm(successMessage);
             this.$scope.$parent.$eval(this.$scope.vm.onUpdateCalendars)(true);
         } catch (e) {
-            if (e.response.status == 401) {
+            if (e.response.status == 401 && e.response.data.error == "URL not authorized") {
                 toasts.info(lang.translate("calendar.external.platform.not.accepted"));
+            } else if (e.response.status == 401 && e.response.data.error == "calendar.platform.already.exists") {
+                let platformMessage : string = this.i18nUtils.getWithParam("calendar.external.platform.already.exists", calendar.platform);
+                toasts.info(platformMessage);
             } else {
                 let errorMessage : string = lang.translate("calendar.get.events.error") + " " + calendar.title + ".";
                 toasts.warning(errorMessage);

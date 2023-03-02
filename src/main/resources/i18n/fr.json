@@ -201,6 +201,7 @@
     "calendar.external.sync.error": "Erreur lors de la mise à jour des évènements de l'agenda",
     "calendar.external.sync.min.time": "Il est possible de le mettre à jour toutes les",
     "calendar.external.from.url": "Un calendrier à partir d'une URL",
+    "calendar.external.platform.already.exists": "Votre calendrier {0} a déjà été ajouté aux agendas externes.",
 
     "calendar.from.url": "A partir d'une URL",
     "calendar.name": "Nom de l'agenda",
