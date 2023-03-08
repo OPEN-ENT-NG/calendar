@@ -21,6 +21,7 @@ package net.atos.entng.calendar.services;
 
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonArray;
+import net.atos.entng.calendar.models.CalendarModel;
 import org.entcore.common.user.UserInfos;
 import io.vertx.core.json.JsonObject;
 
@@ -107,5 +108,13 @@ public interface CalendarService {
      * @return {@link Future<Void>} Future response
      */
     Future<Void> delete(String calendarId);
+
+    /**
+     * Find platform calendar of a user
+     * @param user the user {@link UserInfos}
+     * @param platform the platform {@link String}
+     * @return {@link Future<CalendarModel>} The calendar
+     */
+    Future<JsonObject> getPlatformCalendar(UserInfos user, String platform);
 
     }

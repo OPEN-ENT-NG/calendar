@@ -18,6 +18,9 @@ public class CalendarModel {
 
     private final String icsLink;
     private final String platform;
+    private final JsonObject created;
+    private final JsonObject modified;
+    private final Boolean isUpdating;
 
     public CalendarModel(JsonObject calendar) {
         this.id = calendar.getString(Field._ID, "");
@@ -29,6 +32,10 @@ public class CalendarModel {
         this.isExternal = calendar.getBoolean(Field.ISEXTERNAL, false);
         this.icsLink = calendar.getString(Field.ICSLINK);
         this.platform = calendar.getString(Field.PLATFORM, null);
+        this.created = calendar.getJsonObject(Field.CREATED, new JsonObject());
+        this.modified = calendar.getJsonObject(Field.MODIFIED, new JsonObject());
+        this.isUpdating = calendar.getBoolean(Field.ISUPDATING, null);
+
 
     }
 
@@ -62,5 +69,17 @@ public class CalendarModel {
 
     public String getPlatform() {
         return platform;
+    }
+
+    public JsonObject getCreated() {
+        return created;
+    }
+
+    public JsonObject getModified() {
+        return modified;
+    }
+
+    public Boolean getIsUpdating() {
+        return isUpdating;
     }
 }

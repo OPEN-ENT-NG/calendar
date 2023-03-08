@@ -19,6 +19,7 @@
 
 package net.atos.entng.calendar.controllers;
 
+import fr.wseduc.bus.BusAddress;
 import fr.wseduc.rs.*;
 import fr.wseduc.security.ActionType;
 import fr.wseduc.security.SecuredAction;
@@ -30,20 +31,24 @@ import io.vertx.core.Handler;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.EventBus;
+import io.vertx.core.eventbus.Message;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.json.JsonObject;
 import net.atos.entng.calendar.core.constants.Actions;
 import net.atos.entng.calendar.core.constants.Field;
 import net.atos.entng.calendar.core.constants.Rights;
+import net.atos.entng.calendar.core.enums.ErrorEnum;
 import net.atos.entng.calendar.core.enums.ExternalICalEventBusActions;
 import net.atos.entng.calendar.helpers.CalendarHelper;
+import net.atos.entng.calendar.helpers.EventBusHelper;
 import net.atos.entng.calendar.helpers.PlatformHelper;
+import net.atos.entng.calendar.models.CalendarModel;
 import net.atos.entng.calendar.security.ShareEventConf;
 import net.atos.entng.calendar.services.CalendarService;
 import net.atos.entng.calendar.services.EventServiceMongo;
 import net.atos.entng.calendar.services.ServiceFactory;
-import net.atos.entng.calendar.services.PlatformService;
 import net.atos.entng.calendar.services.impl.EventServiceMongoImpl;
+import net.atos.entng.calendar.utils.DateUtils;
 import org.entcore.common.events.EventHelper;
 import org.entcore.common.events.EventStore;
 import org.entcore.common.events.EventStoreFactory;
@@ -56,9 +61,7 @@ import org.entcore.common.user.UserInfos;
 import org.entcore.common.user.UserUtils;
 import org.vertx.java.core.http.RouteMatcher;
 
-import java.util.Calendar;
-import java.util.Collections;
-import java.util.Map;
+import java.util.*;
 
 public class CalendarController extends MongoDbControllerHelper {
     static final String RESOURCE_NAME = "agenda";
@@ -231,13 +234,16 @@ public class CalendarController extends MongoDbControllerHelper {
                         })
                         .onSuccess(result -> Renders.ok(request))
                         .onFailure(error -> {
+                            String errorMessage = error.getMessage();
                             String message = String.format("[Calendar@%s::importExternalCalendar] An error has occurred" +
-                                    " during calendar sync: %s", this.getClass().getSimpleName(), error.getMessage());
-                            log.error(message, error.getMessage());
-                            if (error.getMessage().equals("URL not authorized")) {
-                                unauthorized(request);
+                                    " during calendar sync: %s", this.getClass().getSimpleName(), errorMessage);
+                            log.error(message, errorMessage);
+                            if (errorMessage.equals(ErrorEnum.URL_NOT_AUTHORIZED.method())
+                                    || errorMessage.equals(ErrorEnum.PLATFORM_ALREADY_EXISTS.method())) {
+                                unauthorized(request, errorMessage);
                             } else {
                                 renderError(request);
+
                             }
                         });
             });
@@ -286,7 +292,7 @@ public class CalendarController extends MongoDbControllerHelper {
                         String message = String.format("[Calendar@%s::syncExternalCalendar] An error has occurred" +
                                 " during calendar sync: %s", this.getClass().getSimpleName(), error.getMessage());
                         log.error(message, error.getMessage());
-                        if(error.getMessage().equals("[Calendar@CalendarHelper::prepareCalendarAndEventsForUpdate]:  last update was too recent")) {
+                        if((error.getMessage() != null ) && error.getMessage().equals("[Calendar@CalendarHelper::prepareCalendarAndEventsForUpdate]:  last update was too recent")) {
                             unauthorized(request, config.getLong(Field.CALENDARSYNCTTL, 3600L).toString());
                         } else {
                             renderError(request);
@@ -445,4 +451,64 @@ public class CalendarController extends MongoDbControllerHelper {
             shareResource(request, "calendar.share", false, params, "title");
         }
     }
+
+    @BusAddress("net.atos.entng.calendar")
+    public void calendarEventBusHandler(Message<JsonObject> message) {
+        String action = message.body().getString(Field.ACTION, "");
+        switch (action) {
+            case "zimbra-platform-ics":
+                //with logs
+                JsonObject data = message.body().getJsonObject(Field.RESULT);
+                String ical = data.getString(Field.ICS, "");
+                String userId = data.getString(Field.USERID, "");
+                String platform = data.getString(Field.PLATFORM, "");
+
+                UserUtils.getUserInfos(eb, userId, user -> {
+                    if (user == null) {
+                        String errMessage = String.format("[Calendar@%s::calendarEventBusHandler]: get-platform-ics : error during ical retrieval: " +
+                                "could not find user", this.getClass().getSimpleName());
+                        EventBusHelper.eventBusError(errMessage, ErrorEnum.ZIMBRA_NO_USER.method(), message);
+                    }
+
+                    JsonObject params = new JsonObject();
+                    String local = null;
+                    try {
+                        local = new JsonObject((String) ((LinkedHashMap<?, ?>) user.getAttribute(Field.PREFERENCES)).get(Field.LANGUAGE)).getString(Field.DEFAULT_DOMAIN);
+                    } catch (Exception ignored) {
+                    }
+                    JsonObject requestInfo = new JsonObject().put(Field.DOMAIN, Field.DEFAULT_DOMAIN).put(Field.ACCEPTLANGUAGE, local);
+
+                    calendarService.getPlatformCalendar(user, platform)
+                            .compose(calendar -> {
+                                params.put(Field.CALENDAR, calendar);
+                                CalendarModel calendarInfo = new CalendarModel(calendar);
+                                Date calendarCreationDate = new Date(calendarInfo.getCreated().getLong(Field.DOLLAR_DATE, null));
+                                Boolean isUpdate = DateUtils.isSameDay(calendarCreationDate, new Date());
+                                return isUpdate ? eventServiceMongo.importIcal(calendarInfo.id(), ical, user, requestInfo,
+                                        Field.CALENDAREVENT, ExternalICalEventBusActions.SYNC.method(), calendarInfo.updated())
+                                        : eventServiceMongo.importIcal(calendarInfo.id(), ical, user, requestInfo,
+                                        Field.CALENDAREVENT);
+                            })
+                            .compose(object -> calendarHelper.updateExternalCalendar(params, params.getJsonObject(Field.CALENDAR, new JsonObject()), false))
+                            .onSuccess(result -> message.reply(new JsonObject().put(Field.STATUS, Field.OK).put(Field.RESULT, new JsonObject()
+                                    .put(Field.MESSAGE, ErrorEnum.ICAL_EVENTS_CREATED.method()))))
+                            .onFailure(err -> {
+                                String errMessage = String.format("[Calendar@%s::calendarEventBusHandler]: case 'platform-ics': " +
+                                                "an error has occurred while creating external calendar events: %s",
+                                        this.getClass().getSimpleName(), err.getMessage());
+                                log.error(errMessage);
+                                EventBusHelper.eventBusError(errMessage, ErrorEnum.CALENDAR_ICAL_EVENT_CREATION_ERROR.method(), message);
+                            });
+                });
+                break;
+            default:
+                String errMessage = String.format("[Calendar@%s::calendarEventBusHandler]: " +
+                                "no action defined",
+                        this.getClass().getSimpleName());
+                log.error(errMessage);
+                message.reply(errMessage);
+                break;
+        }
+    }
+
 }

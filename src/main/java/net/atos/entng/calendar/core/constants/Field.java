@@ -16,6 +16,7 @@ public class Field {
     public static final String REQUEST = "request";
     public static final String USERID = "userId";
     public static final String DISPLAYNAME = "displayName";
+    public static final String DOLLAR_DATE = "$date";
 
     //Calendar infos
 
@@ -166,6 +167,9 @@ public class Field {
 
     //Domain
     public static final String DEFAULT_DOMAIN = "default-domain";
+    public static final String PREFERENCES = "preferences";
+    public static final String LANGUAGE = "language";
+
 
 
 }

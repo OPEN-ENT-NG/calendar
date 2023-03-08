@@ -28,6 +28,7 @@ import java.text.SimpleDateFormat;
 import java.time.ZoneId;
 import java.util.Collections;
 import java.util.Date;
+import java.util.Objects;
 import java.util.TimeZone;
 
 public class CalendarHelper extends MongoDbControllerHelper {
@@ -54,6 +55,9 @@ public class CalendarHelper extends MongoDbControllerHelper {
                 .compose(calendarUpdated -> getAndSaveExternalCalendarEvents(user, params.getJsonObject(Field.CALENDAR), host, i18nLang, action))
                 .compose(object -> {
                     JsonObject calendar = params.getJsonObject(Field.CALENDAR);
+                    if (calendar.getString(Field.PLATFORM).equals(Field.ZIMBRA)) {
+                        return Future.succeededFuture();
+                    }
                     return updateExternalCalendar(params, calendar, false);
                 })
                 .onSuccess(finalCalendar -> promise.complete())
@@ -138,7 +142,7 @@ public class CalendarHelper extends MongoDbControllerHelper {
      * @param startOfSync whether the updates takes place at the start or the end of the sync {@link Boolean}
      * @return {@link Future<Void>} the update of a calendar
      */
-    private Future<Void> updateExternalCalendar(JsonObject params, JsonObject calendar, Boolean startOfSync) {
+    public Future<Void> updateExternalCalendar(JsonObject params, JsonObject calendar, Boolean startOfSync) {
         calendar.put(Field.ISUPDATING, startOfSync);
         if (Boolean.FALSE.equals(startOfSync)) calendar.put(Field.UPDATED, MongoDb.now());
         params.put(Field.CALENDAR, calendar);
@@ -222,19 +226,14 @@ public class CalendarHelper extends MongoDbControllerHelper {
                 log.error(errMessage);
                 promise.fail(event.cause().getMessage());
             } else {
-                String ical = event.result().getString(Field.ICS);
-                JsonObject requestInfo = new JsonObject().put(Field.DOMAIN, host).put(Field.ACCEPTLANGUAGE, i18nLang);
-
-                eventServiceMongo.importIcal(calendar.id(), ical, user, requestInfo,
-                        Field.CALENDAREVENT, ExternalICalEventBusActions.SYNC.method(), calendar.updated())
-                        .onSuccess(result -> promise.complete())
-                        .onFailure(err -> {
-                            String errMessage = String.format("[Calendar@%s::getICalFromExternalPlatform]:  " +
-                                            "an error has occurred while creating external calendar events: %s",
-                                    this.getClass().getSimpleName(), err.getMessage());
-                            log.error(errMessage);
-                            promise.fail("calendar.platform.ical.error");
-                        });
+                if (Objects.equals(event.result().getString(Field.MESSAGE), "ical.request.ok")) {
+                    promise.complete();
+                } else {
+                    String errMessage = String.format("[Calendar@%s::getAndSaveExternalCalendarEvents]:  an error has occurred during " +
+                            "ics retrieval: %s", this.getClass().getSimpleName(), event.cause().getMessage());
+                    log.error(errMessage);
+                    promise.fail("calendar.platform.ical.status.not.valid");
+                }
             }
         }));
 
