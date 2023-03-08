@@ -82,7 +82,7 @@ public class CalendarController extends MongoDbControllerHelper {
         final EventStore eventStore = EventStoreFactory.getFactory().getEventStore(Calendar.class.getSimpleName());
         this.eventHelper = new org.entcore.common.events.EventHelper(eventStore);
         this.calendarHelper = new CalendarHelper(collection, serviceFactory, eb, config);
-        this.platformHelper = new PlatformHelper(collection, serviceFactory);
+        this.platformHelper = new PlatformHelper(serviceFactory);
         this.eventServiceMongo = new EventServiceMongoImpl(Field.CALENDAREVENT,eb,serviceFactory);
     }
 

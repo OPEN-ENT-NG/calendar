@@ -21,15 +21,16 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 
-public class PlatformHelper extends MongoDbControllerHelper {
+public class PlatformHelper {
 
     protected static final Logger log = LoggerFactory.getLogger(PlatformHelper.class);
 
     private final PlatformService platformService;
+    private final JsonObject config;
 
-    public PlatformHelper(String collection, ServiceFactory serviceFactory) {
-        super(collection, null);
+    public PlatformHelper(ServiceFactory serviceFactory) {
         this.platformService = serviceFactory.platformService();
+        this.config = serviceFactory.getConfig();
     }
 
     /**
