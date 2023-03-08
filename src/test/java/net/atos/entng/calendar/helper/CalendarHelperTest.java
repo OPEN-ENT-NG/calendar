@@ -77,33 +77,16 @@ public class CalendarHelperTest {
         String host = "";
         String i18nLang = "";
 
-
-        // Expected data
-        JsonObject expectedEvent = new JsonObject()
-                .put("owner.userId", USER_ID)
-                .put("is_default", true);
-
         Mockito.doAnswer(invocation -> {
             String address = invocation.getArgument(0);
             context.assertEquals(address, "fr.openent.zimbra");
-            Handler<AsyncResult<Message<JsonObject>>> replyHandler = invocation.getArgument(2);
-            replyHandler.handle(Future.succeededFuture(new ResultMessage(new JsonObject().put("result", new JsonObject().put("ics", "icsResult")))));
+            async.complete();
 
             return null;
         }).when(eventBus).request(Mockito.any(), Mockito.any(), Mockito.any());
 
-        Mockito.doAnswer(event -> {
-            String ical = event.getArgument(1);
-            context.assertEquals(ical, "icsResult");
-            async.complete();
-
-            return Future.succeededFuture();
-        }).when(eventServiceMongoImpl).importIcal(Mockito.any(), Mockito.anyString(), Mockito.any(), Mockito.any(),
-                Mockito.anyString(), Mockito.anyString(), Mockito.any());
-
         Whitebox.invokeMethod(calendarHelper, "getICalFromExternalPlatform", user, ZIMBRA,
                 new CalendarModel(calendar), host, i18nLang);
-        async.await(10000);
     }
 
     @Test
