@@ -26,10 +26,8 @@ import org.entcore.common.user.UserInfos;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.time.ZoneId;
-import java.util.Collections;
-import java.util.Date;
-import java.util.Objects;
-import java.util.TimeZone;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class CalendarHelper extends MongoDbControllerHelper {
     protected static final Logger log = LoggerFactory.getLogger(Renders.class);
@@ -55,7 +53,7 @@ public class CalendarHelper extends MongoDbControllerHelper {
                 .compose(calendarUpdated -> getAndSaveExternalCalendarEvents(user, params.getJsonObject(Field.CALENDAR), host, i18nLang, action))
                 .compose(object -> {
                     JsonObject calendar = params.getJsonObject(Field.CALENDAR);
-                    if (calendar.getString(Field.PLATFORM).equals(Field.ZIMBRA)) {
+                    if (calendar.getString(Field.PLATFORM, "").equals(Field.ZIMBRA)) {
                         return Future.succeededFuture();
                     }
                     return updateExternalCalendar(params, calendar, false);
@@ -66,7 +64,7 @@ public class CalendarHelper extends MongoDbControllerHelper {
                         updateCalendar(params.getJsonObject(Field.CALENDAR).put(Field.ISUPDATING, false));
                     }
                     String message = String.format("[Calendar@%s::externalCalendarSync]:  an error has occurred during " +
-                                    "external calendar sync: %s", this.getClass().getSimpleName(), error.getMessage());;
+                            "external calendar sync: %s", this.getClass().getSimpleName(), error.getMessage());;
                     log.error(message);
                     promise.fail(error.getMessage());
                 });
@@ -110,10 +108,14 @@ public class CalendarHelper extends MongoDbControllerHelper {
 
                 updateExternalCalendar(params, calendar, true)
                         .compose(result -> {
-                            Date date = new Date(calendar.getJsonObject(Field.UPDATED).getLong(MongoField.$DATE));
-                            SimpleDateFormat simpleDateFormat = new SimpleDateFormat(DateUtils.DATE_FORMAT_UTC);
-                            simpleDateFormat.setTimeZone(TimeZone.getTimeZone(ZoneId.of("UTC")));
-                            return eventServiceMongo.deleteDatesAfterComparisonDate(calendar.getString(Field._ID), simpleDateFormat.format(date));
+                            if (calendar.getJsonObject(Field.UPDATED, null) == null) {
+                                return Future.succeededFuture();
+                            } else {
+                                Date date = new Date(calendar.getJsonObject(Field.UPDATED).getLong(MongoField.$DATE));
+                                SimpleDateFormat simpleDateFormat = new SimpleDateFormat(DateUtils.DATE_FORMAT_UTC);
+                                simpleDateFormat.setTimeZone(TimeZone.getTimeZone(ZoneId.of("UTC")));
+                                return eventServiceMongo.deleteDatesAfterComparisonDate(calendar.getString(Field._ID), simpleDateFormat.format(date));
+                            }
                         })
                         .onSuccess(promise::complete)
                         .onFailure(error -> {
@@ -264,7 +266,12 @@ public class CalendarHelper extends MongoDbControllerHelper {
      * @return {@link Boolean} true if the time since the last update is longer than the minimum time between two updates
      */
     public Boolean isTimeToLivePast(JsonObject calendar) {
-        Timestamp lastUpdateTimestamp = new Timestamp(calendar.getJsonObject(Field.UPDATED).getLong(MongoField.$DATE));
+        Long calendarUpdateTime = calendar.getJsonObject(Field.UPDATED, new JsonObject()).getLong(MongoField.$DATE, null);
+        if (calendarUpdateTime == null) {
+            return false;
+        }
+
+        Timestamp lastUpdateTimestamp = new Timestamp(calendarUpdateTime);
         Date lastUpdateDate = new Date(lastUpdateTimestamp.getTime());
         long secondsSinceLastUpdate = (new Date().getTime()-lastUpdateDate.getTime())/1000;
 

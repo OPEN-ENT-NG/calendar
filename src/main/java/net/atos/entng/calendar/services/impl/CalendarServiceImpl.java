@@ -232,7 +232,6 @@ public class CalendarServiceImpl implements CalendarService {
                 log.error("[Calendar@CalendarService::update]: an error has occurred while updating calendar: ",
                         result.left().getValue());
                 promise.fail(result.left().getValue());
-                return;
             } else {
                 promise.complete();
             }

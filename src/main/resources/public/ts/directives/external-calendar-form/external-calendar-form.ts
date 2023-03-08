@@ -23,6 +23,7 @@ interface IViewModel extends ng.IController, IExternalCalendarFormProps {
     isFormComplete?(): boolean;
     changeSelection?(field: string, platform?: string): void;
     translate?(text: string): string;
+    hasZimbraExpert?(): boolean;
 }
 
 interface IExternalCalendarFormScope extends IScope {
@@ -70,6 +71,10 @@ class Controller implements IViewModel {
                 this.$scope.vm.calendar.icsLink = undefined;
                 break;
         }
+    }
+
+    hasZimbraExpert(): boolean {
+        return !!(model.me.authorizedActions.find(action => action.displayName == "zimbra.expert"));
     }
 
 }

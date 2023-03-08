@@ -63,7 +63,7 @@ class Controller implements ng.IController, IViewModel {
         this.loading = true;
         safeApply(this.$scope);
         try {
-            await this.calendarService.updateExternalCalendar(this.$scope.vm.calendar);
+            if (this.calendarIsNotPlatformCreation()) await this.calendarService.updateExternalCalendar(this.$scope.vm.calendar);
             this.$timeout(() : IPromise<void> => {
                 this.calendarService.checkExternalCalendarSync(this.$scope.vm.calendar)
                     .then((r:AxiosResponse) => {
@@ -104,6 +104,10 @@ class Controller implements ng.IController, IViewModel {
             }
         }
     };
+
+    private calendarIsNotPlatformCreation() {
+        return this.$scope.vm.calendar.icsLink || (this.$scope.vm.calendar.platform && !!this.$scope.vm.calendar.updated);
+    }
 
     handleUpdateInterval = async (isSyncButton? : boolean): Promise<void> => {
         this.$interval(() : IPromise<void> => {

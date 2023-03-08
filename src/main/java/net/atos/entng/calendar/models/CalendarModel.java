@@ -3,10 +3,11 @@ package net.atos.entng.calendar.models;
 import io.vertx.core.json.JsonObject;
 import net.atos.entng.calendar.core.constants.Field;
 import net.atos.entng.calendar.core.constants.MongoField;
+import net.atos.entng.calendar.helpers.IModelHelper;
 
 import java.util.Date;
 
-public class CalendarModel {
+public class CalendarModel implements IModel<CalendarModel> {
 
 
     private final String id;
@@ -25,17 +26,18 @@ public class CalendarModel {
     public CalendarModel(JsonObject calendar) {
         this.id = calendar.getString(Field._ID, "");
         this.title = calendar.getString(Field.TITLE, "");
-        this.updated = new Date(calendar.getJsonObject(Field.UPDATED, new JsonObject()).getLong(MongoField.$DATE, null))
-                .toInstant().toString();
+
+        Long updateDate = calendar.getJsonObject(Field.UPDATED, new JsonObject()).getLong(MongoField.$DATE, null);
+        this.updated = (updateDate != null) ? new Date(updateDate).toInstant().toString() :  null;
+
         this.color = calendar.getString(Field.COLOR, null);
         this.owner = calendar.getJsonObject(Field.OWNER, new JsonObject());
         this.isExternal = calendar.getBoolean(Field.ISEXTERNAL, false);
-        this.icsLink = calendar.getString(Field.ICSLINK);
+        this.icsLink = calendar.getString(Field.ICSLINK, null);
         this.platform = calendar.getString(Field.PLATFORM, null);
         this.created = calendar.getJsonObject(Field.CREATED, new JsonObject());
         this.modified = calendar.getJsonObject(Field.MODIFIED, new JsonObject());
         this.isUpdating = calendar.getBoolean(Field.ISUPDATING, null);
-
 
     }
 
@@ -82,4 +84,14 @@ public class CalendarModel {
     public Boolean getIsUpdating() {
         return isUpdating;
     }
+
+    public JsonObject toJson() {
+        JsonObject calendarObject = IModelHelper.toJson(this, true, false);
+
+        calendarObject.put(Field._ID, this.id);
+        calendarObject.remove(Field.ID);
+
+        return calendarObject;
+    }
+
 }

@@ -59,7 +59,7 @@ dependencies {
   compileOnly "io.vertx:vertx-core:$vertxVersion"
   compile "io.vertx:vertx-web-client:$vertxVersion"
   compile "org.entcore:common:$entCoreVersion"
-  compile "org.mnode.ical4j:ical4j:2.0.2"
+  compile "org.mnode.ical4j:ical4j:3.2.10"
   testCompile "io.vertx:vertx-unit:$vertxVersion"
   testCompile "junit:junit:$junitVersion"
   testCompile "org.entcore:tests:$entCoreVersion"
@@ -70,6 +70,7 @@ dependencies {
   testCompile "org.powermock:powermock-module-testng:$powerMockVersion"
   testCompile 'io.gatling.highcharts:gatling-charts-highcharts:2.2.2'
   testCompile "io.vertx:vertx-codegen:$vertxVersion"
+  testCompile "org.reflections:reflections:$reflectionsVersion"
 }
 
 jar {

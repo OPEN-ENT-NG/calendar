@@ -1,5 +1,10 @@
 package net.atos.entng.calendar.helper;
 
+import com.redis.S;
+import fr.wseduc.mongodb.MongoDb;
+import io.advantageous.boon.core.Str;
+import io.vertx.core.Future;
+import io.vertx.core.Handler;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.Async;
@@ -9,6 +14,7 @@ import net.atos.entng.calendar.Calendar;
 import net.atos.entng.calendar.core.constants.Field;
 import net.atos.entng.calendar.helpers.PlatformHelper;
 import net.atos.entng.calendar.helpers.UserHelper;
+import net.atos.entng.calendar.services.CalendarService;
 import net.atos.entng.calendar.services.ServiceFactory;
 import org.entcore.common.user.UserInfos;
 import org.junit.Before;
@@ -47,9 +53,12 @@ public class PlatformHelperTest {
     private PlatformHelper platformHelper;
     private JsonObject config = new JsonObject().put(Field.ENABLE_ZIMBRA, true);
 
+    private final CalendarService calendarService = Mockito.spy(CalendarService.class);
+
     @Before
     public void setUp(TestContext context) {
         Mockito.doReturn(config).when(this.serviceFactory).getConfig();
+        Mockito.doReturn(calendarService).when(this.serviceFactory).calendarService();
         PowerMockito.spy(PlatformHelper.class);
         this.platformHelper = Mockito.spy(new PlatformHelper(serviceFactory));
 
@@ -90,7 +99,16 @@ public class PlatformHelperTest {
 
         //Arguments
         UserInfos user = new UserInfos();
+        user.setUserId(USER_ID);
         JsonObject calendar = new JsonObject().put(Field.PLATFORM, Field.ZIMBRA);
+
+        Mockito.doAnswer(invocation -> {
+            String userArgument = invocation.getArgument(0).toString();
+            String platformArgument = invocation.getArgument(1);
+            context.assertEquals(userArgument, user.toString());
+            context.assertEquals(platformArgument, Field.ZIMBRA);
+            return Future.succeededFuture(new JsonObject());
+        }).when(calendarService).getPlatformCalendar(Mockito.any(), Mockito.anyString());
 
         PowerMockito.doReturn(true).when(UserHelper.class, "userHasApp", Mockito.any(), Mockito.anyString());
 
