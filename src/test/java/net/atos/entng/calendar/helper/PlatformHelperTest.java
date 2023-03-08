@@ -2,15 +2,33 @@ package net.atos.entng.calendar.helper;
 
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
+import net.atos.entng.calendar.Calendar;
 import net.atos.entng.calendar.core.constants.Field;
 import net.atos.entng.calendar.helpers.PlatformHelper;
+import net.atos.entng.calendar.helpers.UserHelper;
+import net.atos.entng.calendar.services.ServiceFactory;
+import org.entcore.common.user.UserInfos;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mockito;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
+import org.powermock.modules.junit4.PowerMockRunnerDelegate;
+import org.powermock.reflect.Whitebox;
 
-@RunWith(VertxUnitRunner.class)
+import static org.mockito.Mockito.mock;
+
+@RunWith(PowerMockRunner.class) //Using the PowerMock runner
+@PowerMockRunnerDelegate(VertxUnitRunner.class) //And the Vertx runner
+@PrepareForTest({PlatformHelper.class, UserHelper.class})
 public class PlatformHelperTest {
+
+    ServiceFactory serviceFactory = mock(ServiceFactory.class);
 
     private static final String PLATFORM_TITLE = "title";
     private static final String PLATFORM_REGEX_MOODLE = "^https?:\\/\\/.*moodle.*\\/calendar\\/.*";
@@ -24,6 +42,19 @@ public class PlatformHelperTest {
                     .put(Field.TITLE, PLATFORM_TITLE)
                     .put(Field.REGEX, PLATFORM_REGEX_MOODLE)
             );
+
+    private static final String USER_ID = "000";
+    private PlatformHelper platformHelper;
+    private JsonObject config = new JsonObject().put(Field.ENABLE_ZIMBRA, true);
+
+    @Before
+    public void setUp(TestContext context) {
+        Mockito.doReturn(config).when(this.serviceFactory).getConfig();
+        PowerMockito.spy(PlatformHelper.class);
+        this.platformHelper = Mockito.spy(new PlatformHelper(serviceFactory));
+
+        PowerMockito.spy(UserHelper.class);
+    }
 
     @Test
     public void testCheckUrlInRegexWithPlatformUrl(TestContext context){
@@ -52,4 +83,19 @@ public class PlatformHelperTest {
 
         context.assertFalse(PlatformHelper.checkUrlInRegex(url, PLATFORM_LIST));
     }
+
+    @Test
+    public void testCheckCalendarPlatform_platformCase(TestContext context) throws Exception {
+        Async async = context.async();
+
+        //Arguments
+        UserInfos user = new UserInfos();
+        JsonObject calendar = new JsonObject().put(Field.PLATFORM, Field.ZIMBRA);
+
+        PowerMockito.doReturn(true).when(UserHelper.class, "userHasApp", Mockito.any(), Mockito.anyString());
+
+        platformHelper.checkCalendarPlatform(user, calendar)
+                .onSuccess(result -> async.complete());
+    }
+
 }
