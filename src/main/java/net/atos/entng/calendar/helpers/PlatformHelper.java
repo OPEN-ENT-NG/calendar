@@ -6,17 +6,15 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
-import net.atos.entng.calendar.helpers.UserHelper;
 import net.atos.entng.calendar.core.constants.Field;
-import net.atos.entng.calendar.core.enums.ExternalICalEventBusActions;
-import net.atos.entng.calendar.ical.ExternalImportICal;
+import net.atos.entng.calendar.core.enums.ErrorEnum;
+import net.atos.entng.calendar.services.CalendarService;
 import net.atos.entng.calendar.services.PlatformService;
 import net.atos.entng.calendar.services.ServiceFactory;
-import org.entcore.common.mongodb.MongoDbControllerHelper;
 import org.entcore.common.user.UserInfos;
 
+import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -26,10 +24,12 @@ public class PlatformHelper {
     protected static final Logger log = LoggerFactory.getLogger(PlatformHelper.class);
 
     private final PlatformService platformService;
+    private final CalendarService calendarService;
     private final JsonObject config;
 
     public PlatformHelper(ServiceFactory serviceFactory) {
         this.platformService = serviceFactory.platformService();
+        this.calendarService = serviceFactory.calendarService();
         this.config = serviceFactory.getConfig();
     }
 
@@ -76,7 +76,19 @@ public class PlatformHelper {
         } else if (StringsHelper.isNullOrEmpty(url) && !StringsHelper.isNullOrEmpty(platform)) {
             switch (platform) {
                 case Field.ZIMBRA:
-                    promise.complete(UserHelper.userHasApp(user, Field.ZIMBRA) && config.getBoolean(Field.ENABLE_ZIMBRA, false));
+                    calendarService.getPlatformCalendar(user, platform)
+                            .onSuccess(platformCalendar -> {
+                                Boolean userCanCreateZimbraCalendar = (platformCalendar.size() == 0)
+                                        && UserHelper.userHasApp(user, Field.ZIMBRA) && config.getBoolean(Field.ENABLE_ZIMBRA, false);
+                                if (userCanCreateZimbraCalendar) promise.complete(userCanCreateZimbraCalendar);
+                                else promise.fail(ErrorEnum.PLATFORM_ALREADY_EXISTS.method());
+                            })
+                            .onFailure(error -> {
+                                String message = String.format("[Calendar@%s::checkCalendarPlatform]:  an error has occurred during " +
+                                        "platform check : %s", this.getClass().getSimpleName(), error.getMessage());
+                                log.error(message);
+                                promise.fail(ErrorEnum.COULD_NOT_GET_PLATFORM_CALENDAR.method());
+                            });
                     break;
                 default:
                     String message = String.format("[Calendar@%s::checkCalendarPlatform]:  an error has occurred during " +

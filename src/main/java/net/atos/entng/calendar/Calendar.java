@@ -72,6 +72,7 @@ public class Calendar extends BaseServer {
         vertx.deployVerticle(ICalHandler.class.getName(), new DeploymentOptions().setWorker(true).setConfig(config));
 
         setRepositoryEvents(new CalendarRepositoryEvents(vertx));
+        System.setProperty("ical4j.unfolding.relaxed", "true");
 
         if (config.getBoolean("searching-event", true)) {
             setSearchingEvents(new CalendarSearchingEvents());

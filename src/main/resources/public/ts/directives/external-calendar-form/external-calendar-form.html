@@ -20,14 +20,14 @@
 
                     <div class="">
                         <div class="row" >
-                            <input class="cell right-spacing-small top-spacing" ng-if="vm.enableZimbra" type="radio"
+                            <input class="cell right-spacing-small top-spacing" ng-if="vm.enableZimbra && vm.hasZimbraExpert()" type="radio"
                                    ng-click="vm.changeSelection('icsLink')" name="calendarOrigin" checked/>
                             <label class="cell"><i18n>calendar.external.from.url</i18n> &colon; </label>
                             <input class="six cell left-spacing" id="external-calendar-url-input"
                                    required ng-model="vm.calendar.icsLink"
                                    type="text" ng-pattern="/^(http[s]?:\/\/){0,1}(www\.){0,1}[a-zA-Z0-9\.\-]+\.[a-zA-Z]{2,5}[\.]{0,1}/"/>
                         </div>
-                        <div class="row" ng-if="vm.enableZimbra">
+                        <div class="row" ng-if="vm.enableZimbra && vm.hasZimbraExpert()">
                             <input class="cell right-spacing-small top-spacing" type="radio"
                                    ng-click="vm.changeSelection('platform', 'Zimbra')" name="calendarOrigin"
                                    ng-model="vm.calendar.platform" value="Zimbra"/>

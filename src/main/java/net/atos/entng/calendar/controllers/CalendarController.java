@@ -473,8 +473,16 @@ public class CalendarController extends MongoDbControllerHelper {
                     JsonObject params = new JsonObject();
                     String local = null;
                     try {
-                        local = new JsonObject((String) ((LinkedHashMap<?, ?>) user.getAttribute(Field.PREFERENCES)).get(Field.LANGUAGE)).getString(Field.DEFAULT_DOMAIN);
+                        String systemDomainLanguage = (String) ((LinkedHashMap<?, ?>) user.getAttribute(Field.PREFERENCES)).get(Field.LANGUAGE);
+                        String systemDomain = systemDomainLanguage != null ? new JsonObject(systemDomainLanguage).getString(Field.DEFAULT_DOMAIN, null) : null;
+                        local = systemDomain != null ? systemDomain : "fr";
                     } catch (Exception ignored) {
+                        String errMessage = String.format("[Calendar@%s::calendarEventBusHandler]: case 'zimbra-platform-ics': " +
+                                        "an error has occurred while getting system language: %s",
+                                this.getClass().getSimpleName(), ignored.getMessage());
+                        log.error(errMessage);
+                        EventBusHelper.eventBusError(errMessage, ErrorEnum.NO_LOCAL_LANGUAGE.method(), message);
+                        local = "fr";
                     }
                     JsonObject requestInfo = new JsonObject().put(Field.DOMAIN, Field.DEFAULT_DOMAIN).put(Field.ACCEPTLANGUAGE, local);
 
@@ -482,8 +490,7 @@ public class CalendarController extends MongoDbControllerHelper {
                             .compose(calendar -> {
                                 params.put(Field.CALENDAR, calendar);
                                 CalendarModel calendarInfo = new CalendarModel(calendar);
-                                Date calendarCreationDate = new Date(calendarInfo.getCreated().getLong(Field.DOLLAR_DATE, null));
-                                Boolean isUpdate = DateUtils.isSameDay(calendarCreationDate, new Date());
+                                boolean isUpdate = (calendarInfo.updated() != null);
                                 return isUpdate ? eventServiceMongo.importIcal(calendarInfo.id(), ical, user, requestInfo,
                                         Field.CALENDAREVENT, ExternalICalEventBusActions.SYNC.method(), calendarInfo.updated())
                                         : eventServiceMongo.importIcal(calendarInfo.id(), ical, user, requestInfo,
@@ -493,7 +500,7 @@ public class CalendarController extends MongoDbControllerHelper {
                             .onSuccess(result -> message.reply(new JsonObject().put(Field.STATUS, Field.OK).put(Field.RESULT, new JsonObject()
                                     .put(Field.MESSAGE, ErrorEnum.ICAL_EVENTS_CREATED.method()))))
                             .onFailure(err -> {
-                                String errMessage = String.format("[Calendar@%s::calendarEventBusHandler]: case 'platform-ics': " +
+                                String errMessage = String.format("[Calendar@%s::calendarEventBusHandler]: case 'zimbra-platform-ics': " +
                                                 "an error has occurred while creating external calendar events: %s",
                                         this.getClass().getSimpleName(), err.getMessage());
                                 log.error(errMessage);

@@ -149,7 +149,6 @@ public class ICalHandler extends AbstractVerticle implements Handler<Message<Jso
         InputStream inputStream = new ByteArrayInputStream(icsContent.getBytes());
         JsonObject results = new JsonObject();
         try {
-            // Reader r = new InputStreamReader(inputStream, "ISO-8859-15");
             CalendarBuilder calendarBuilder = new CalendarBuilder();
             Calendar calendar = calendarBuilder.build(inputStream);
             JsonArray events = new JsonArray();

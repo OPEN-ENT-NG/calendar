@@ -50,6 +50,7 @@ import java.net.SocketException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.UUID;
 
 import static fr.wseduc.webutils.Utils.handlerToAsyncHandler;
 import static net.atos.entng.calendar.Calendar.CALENDAR_COLLECTION;
@@ -183,14 +184,8 @@ public class EventServiceMongoImpl extends MongoDbCrudService implements EventSe
         body.remove("_id");
 
         // ics Uid generate
-        UidGenerator uidGenerator;
-        String icsUid = "";
-        try {
-            uidGenerator = new UidGenerator("1");
-            icsUid = uidGenerator.generateUid().toString();
-        } catch (SocketException e) {
-            handler.handle(new Either.Left<String, JsonObject>(new String("Error")));
-        }
+        UUID uidGenerator = UUID.randomUUID();
+        String icsUid = uidGenerator.toString();
 
         // Prepare data
         JsonObject now = MongoDb.now();
