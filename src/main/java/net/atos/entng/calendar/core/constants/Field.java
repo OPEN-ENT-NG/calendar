@@ -2,6 +2,8 @@ package net.atos.entng.calendar.core.constants;
 
 public class Field {
 
+    public static final String IDS = "ids";
+
     private Field() {
         throw new IllegalStateException("Utility class");
     }

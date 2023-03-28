@@ -7,6 +7,7 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 import net.atos.entng.calendar.Calendar;
+import net.atos.entng.calendar.core.constants.Field;
 import net.atos.entng.calendar.services.impl.CalendarServiceImpl;
 import net.atos.entng.calendar.services.impl.DefaultUserServiceImpl;
 import org.entcore.common.neo4j.Neo4j;
@@ -42,7 +43,7 @@ public class DefaultUserServiceImplTest {
         List<String> groupIds = Arrays.asList("000");
 
         //Expected data
-        JsonObject expectedUser = new JsonObject().put("userId", USER_ID).put("ids", groupIds);
+        JsonObject expectedUser = new JsonObject().put(Field.USERID, USER_ID).put(Field.IDS, groupIds);
         String expectedQuery = "MATCH (u:User) " +
                 "WHERE u.id IN {ids} AND u.id <> {userId} " +
                 "RETURN distinct u.id as id, u.displayName as displayName"
@@ -91,7 +92,7 @@ public class DefaultUserServiceImplTest {
         List<String> groupIds = Arrays.asList("000");
 
         //Expected data
-        JsonObject expectedUser = new JsonObject().put("userId", USER_ID).put("ids", groupIds);
+        JsonObject expectedUser = new JsonObject().put(Field.USERID, USER_ID).put(Field.IDS, groupIds);
         String expectedQuery = "MATCH (u:User) " +
                 "WHERE u.id IN {ids} " +
                 "RETURN distinct u.id as id, u.displayName as displayName"

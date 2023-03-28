@@ -6,6 +6,7 @@ import io.vertx.core.Promise;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
+import net.atos.entng.calendar.core.constants.Field;
 import net.atos.entng.calendar.helpers.UserHelper;
 import net.atos.entng.calendar.models.User;
 import net.atos.entng.calendar.services.UserService;
@@ -36,7 +37,7 @@ public class DefaultUserServiceImpl implements UserService {
     @Override
     public Future<List<User>> fetchUser(List<String> ids, UserInfos user, boolean keepUserFromSession) {
         Promise<List<User>> promise = Promise.promise();
-        JsonObject params = new JsonObject().put("userId", user.getUserId()).put("ids", ids);
+        JsonObject params = new JsonObject().put(Field.USERID, user.getUserId()).put(Field.IDS, ids);
         neo4j.execute(getShareIdUserGroupInfoQuery(keepUserFromSession), params, Neo4jResult.validResultHandler(res -> {
             if (res.isLeft()) {
                 String message = String.format("[Calendar@%s::fetchUser] An error has occured" +
