@@ -10,6 +10,7 @@ public class Field {
 
     //id
     public static final String ID = "id";
+    public static final String IDS = "ids";
     public static final String CREATED = "created";
     public static final String MODIFIED = "modified";
 

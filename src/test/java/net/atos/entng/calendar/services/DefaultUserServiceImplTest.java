@@ -7,6 +7,7 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 import net.atos.entng.calendar.Calendar;
+import net.atos.entng.calendar.core.constants.Field;
 import net.atos.entng.calendar.services.impl.CalendarServiceImpl;
 import net.atos.entng.calendar.services.impl.DefaultUserServiceImpl;
 import org.entcore.common.neo4j.Neo4j;
@@ -42,40 +43,40 @@ public class DefaultUserServiceImplTest {
         List<String> groupIds = Arrays.asList("000");
 
         //Expected data
-        JsonObject expectedUser = new JsonObject().put("userId", USER_ID);
+        JsonObject expectedUser = new JsonObject().put(Field.USERID, USER_ID).put(Field.IDS, groupIds);
         String expectedQuery = "MATCH (u:User) " +
-                "WHERE u.id IN ['000'] AND u.id <> {userId} " +
+                "WHERE u.id IN {ids} AND u.id <> {userId} " +
                 "RETURN distinct u.id as id, u.displayName as displayName"
 
                 + " UNION " +
 
                 "MATCH (n:ProfileGroup )<-[:IN]-(u:User) " +
-                "WHERE n.id IN ['000'] AND u.id <> {userId} " +
+                "WHERE n.id IN {ids} AND u.id <> {userId} " +
                 "RETURN distinct u.id as id, u.displayName as displayName"
 
                 + " UNION " +
 
                 "MATCH (n:ManualGroup )<-[:IN]-(u:User) " +
-                "WHERE n.id IN ['000'] AND u.id <> {userId} " +
+                "WHERE n.id IN {ids} AND u.id <> {userId} " +
                 "RETURN distinct u.id as id, u.displayName as displayName"
 
                 + " UNION " +
 
                 "MATCH (n:CommunityGroup )<-[:IN]-(u:User) " +
-                "WHERE n.id IN ['000'] AND u.id <> {userId} " +
+                "WHERE n.id IN {ids} AND u.id <> {userId} " +
                 "RETURN distinct u.id as id, u.displayName as displayName"
 
                 + " UNION " +
 
                 "MATCH (n:Group )<-[:IN]-(u:User) " +
-                "WHERE n.id IN ['000'] AND u.id <> {userId} " +
+                "WHERE n.id IN {ids} AND u.id <> {userId} " +
                 "RETURN distinct u.id as id, u.displayName as displayName";
 
         Mockito.doAnswer(invocation -> {
             String shareIdUserGroupInfoQuery = invocation.getArgument(0);
             JsonObject userObject = invocation.getArgument(1);
-            context.assertEquals(shareIdUserGroupInfoQuery, expectedQuery);
             context.assertEquals(userObject, expectedUser);
+            context.assertEquals(shareIdUserGroupInfoQuery, expectedQuery);
             return null;
         }).when(neo4j).execute(Mockito.anyString(), Mockito.any(JsonObject.class), Mockito.any(Handler.class));
 
@@ -91,40 +92,40 @@ public class DefaultUserServiceImplTest {
         List<String> groupIds = Arrays.asList("000");
 
         //Expected data
-        JsonObject expectedUser = new JsonObject().put("userId", USER_ID);
+        JsonObject expectedUser = new JsonObject().put(Field.USERID, USER_ID).put(Field.IDS, groupIds);
         String expectedQuery = "MATCH (u:User) " +
-                "WHERE u.id IN ['000'] " +
+                "WHERE u.id IN {ids} " +
                 "RETURN distinct u.id as id, u.displayName as displayName"
 
                 + " UNION " +
 
                 "MATCH (n:ProfileGroup )<-[:IN]-(u:User) " +
-                "WHERE n.id IN ['000'] " +
+                "WHERE n.id IN {ids} " +
                 "RETURN distinct u.id as id, u.displayName as displayName"
 
                 + " UNION " +
 
                 "MATCH (n:ManualGroup )<-[:IN]-(u:User) " +
-                "WHERE n.id IN ['000'] " +
+                "WHERE n.id IN {ids} " +
                 "RETURN distinct u.id as id, u.displayName as displayName"
 
                 + " UNION " +
 
                 "MATCH (n:CommunityGroup )<-[:IN]-(u:User) " +
-                "WHERE n.id IN ['000'] " +
+                "WHERE n.id IN {ids} " +
                 "RETURN distinct u.id as id, u.displayName as displayName"
 
                 + " UNION " +
 
                 "MATCH (n:Group )<-[:IN]-(u:User) " +
-                "WHERE n.id IN ['000'] " +
+                "WHERE n.id IN {ids} " +
                 "RETURN distinct u.id as id, u.displayName as displayName";
 
         Mockito.doAnswer(invocation -> {
             String shareIdUserGroupInfoQuery = invocation.getArgument(0);
             JsonObject userObject = invocation.getArgument(1);
-            context.assertEquals(shareIdUserGroupInfoQuery, expectedQuery);
             context.assertEquals(userObject, expectedUser);
+            context.assertEquals(shareIdUserGroupInfoQuery, expectedQuery);
             return null;
         }).when(neo4j).execute(Mockito.anyString(), Mockito.any(JsonObject.class), Mockito.any(Handler.class));
 
