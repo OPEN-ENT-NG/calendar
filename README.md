@@ -40,6 +40,17 @@ Déclarer l'application dans la liste :
         "mode" : "${mode}",
         "entcore.port" : 8009,
         "enable-rbs": ${enableRbs}
+        "enable-zimbra": ${enableZimbra},
+        "calendarSyncTTL": ${calendarSyncTTL},
+        "publicConf": {
+          <% if ("true".equals(xitiSwitch)) { %>
+            "xiti": {
+              "ID_SERVICE": {
+                "default": 7
+              }
+            }
+          <% } %>
+        }
      }
 }
 </pre>
@@ -47,6 +58,8 @@ Déclarer l'application dans la liste :
 Dans le conf.properties du springboard, déclarer la variable suivante :
 <pre>
     "enable-rbs": ${enableRbs}, // => remplacer par true si accès à RBS
+    "enable-zimbra": ${enableZimbra}, // => remplacer par true si utilisation de Zimbra
+    "calendarSyncTTL": ${calendarSyncTTL}, // => mettre 3600 (valeur par défaut)
 </pre>
 
 Associer une route d'entée à la configuration du module proxy intégré (`"name": "net.atos~calendar~0.2.0"`) :
