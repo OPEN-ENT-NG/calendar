@@ -9,7 +9,8 @@ public enum ErrorEnum {
     CALENDAR_ICAL_EVENT_CREATION_ERROR("calendar.ical.event.creation.error"),
     CALENDAR_NOT_FOUND("calendar.not.found"),
     COULD_NOT_GET_PLATFORM_CALENDAR("could.not.get.platform.calendar"),
-    NO_LOCAL_LANGUAGE("no.local.language");
+    NO_LOCAL_LANGUAGE("no.local.language"),
+    END_DATE_BEFORE_START_DATE("end.date.before.start.date");
 
     private final String errorEnum;
 

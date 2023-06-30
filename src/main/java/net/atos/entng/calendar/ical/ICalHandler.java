@@ -22,6 +22,7 @@ package net.atos.entng.calendar.ical;
 import fr.wseduc.webutils.I18n;
 import io.vertx.core.AbstractVerticle;
 import net.atos.entng.calendar.core.constants.Field;
+import net.atos.entng.calendar.core.enums.ErrorEnum;
 import net.atos.entng.calendar.exception.CalendarException;
 import net.atos.entng.calendar.exception.UnhandledEventException;
 import net.atos.entng.calendar.helpers.FutureHelper;
@@ -159,7 +160,7 @@ public class ICalHandler extends AbstractVerticle implements Handler<Message<Jso
                     JsonObject jsonEvent = new JsonObject();
                     try {
                         VEvent event = (VEvent) component;
-                        setEventDates(event, jsonEvent);
+                        setEventDates(event, jsonEvent, requestInfo);
                         setEventProperties(event, jsonEvent, requestInfo);
                         validateEvent(event);
                         if((lastUpdate == null) || DateUtils.parseDate(jsonEvent.getString(Field.STARTMOMENT), DateUtils.DATE_FORMAT_UTC)
@@ -230,7 +231,7 @@ public class ICalHandler extends AbstractVerticle implements Handler<Message<Jso
      * @param event ical4j filled event
      * @param jsonEvent JsonObject event to fill
      */
-    private void setEventDates(VEvent event, JsonObject jsonEvent) throws UnhandledEventException {
+    private void setEventDates(VEvent event, JsonObject jsonEvent, JsonObject requestInfo) throws UnhandledEventException {
         // get DTSTART;VALUE parameter
         String dtStartValue = event.getStartDate().getParameter(Parameter.VALUE) != null ? event.getStartDate().getParameter(Parameter.VALUE).getValue() : "";
         // check if DTSTART;VALUE=DATE
@@ -251,13 +252,31 @@ public class ICalHandler extends AbstractVerticle implements Handler<Message<Jso
             // End Date
             calendar.setTime(endDate);
             calendar.set(java.util.Calendar.HOUR_OF_DAY, 18);
-            calendar.add(java.util.Calendar.DATE, -1);
             endMoment = MOMENT_FORMAT.format(calendar.getTime());
             jsonEvent.put("allday", allDay);
         }
+
+        checkStartAndEndDatesOrder(startMoment, endMoment, requestInfo);
+
         // Put dates to jsonEvent
         jsonEvent.put("startMoment", startMoment);
         jsonEvent.put("endMoment", endMoment);
+    }
+
+    private void checkStartAndEndDatesOrder(String startMoment, String endMoment, JsonObject requestInfo) throws UnhandledEventException {
+        try {
+            java.util.Date finalStartDate = new SimpleDateFormat(DateUtils.DATE_FORMAT_UTC).parse(startMoment);
+            java.util.Date finalEndDate = new SimpleDateFormat(DateUtils.DATE_FORMAT_UTC).parse(endMoment);
+            if (Boolean.FALSE.equals(DateUtils.isStrictlyBefore(finalStartDate, finalEndDate))) {
+                String message = String.format("[Calendar@%s::setEventDates] End date cannot be before start date",
+                        this.getClass().getSimpleName());
+                log.error(message);
+                throw new UnhandledEventException(I18n.getInstance().translate("calendar.error.date",
+                        requestInfo.getString(Field.DOMAIN, ""), requestInfo.getString(Field.ACCEPTLANGUAGE, "")));
+            }
+        } catch (UnhandledEventException | ParseException e) {
+            throw new UnhandledEventException(e);
+        }
     }
 
     /**
