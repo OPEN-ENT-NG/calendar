@@ -71,7 +71,7 @@ public class ICalHandlerTest {
         JsonObject jsonEvent = new JsonObject();
 
 
-        Whitebox.invokeMethod(new ICalHandler(), "setEventDates", event, jsonEvent);
+        Whitebox.invokeMethod(new ICalHandler(), "setEventDates", event, jsonEvent, new JsonObject());
         ctx.assertEquals(expectedDateString, jsonEvent.getString("startMoment", null));
     }
 
