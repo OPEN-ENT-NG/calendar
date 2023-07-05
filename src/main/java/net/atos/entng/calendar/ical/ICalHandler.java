@@ -252,6 +252,7 @@ public class ICalHandler extends AbstractVerticle implements Handler<Message<Jso
             // End Date
             calendar.setTime(endDate);
             calendar.set(java.util.Calendar.HOUR_OF_DAY, 18);
+            calendar.add(java.util.Calendar.DATE, -1);
             endMoment = MOMENT_FORMAT.format(calendar.getTime());
             jsonEvent.put("allday", allDay);
         }
