@@ -201,8 +201,9 @@ export const calendarController = ng.controller('CalendarController',
             /*
             ** Fetch all events from selected Calendars
              */
-            $scope.loadCalendarEvents = () => {
-                if($scope.calendars && $scope.calendars.all){
+            $scope.loadCalendarEvents = async (calendar?: Calendar) => {
+                if ($scope.calendars && $scope.calendars.all) {
+                    if (calendar) await $scope.syncSelectedCalendars();
                     if ($scope.calendars.all.length > 0) {
                         $scope.calendarEvents.filtered = $scope.calendars.arr.map((element: Calendar) => element.selected ?
                             element.calendarEvents.all : []).flat();
@@ -698,7 +699,8 @@ export const calendarController = ng.controller('CalendarController',
                             $scope.calendars.preference.selectedCalendars = $scope.calendars.preference.selectedCalendars.filter(element => element !== calendar._id)
                         }
                         await $scope.saveCalendarPreferences();
-                        await $scope.loadCalendarEvents();
+                        $scope.calendarEvents.all.some((event: CalendarEvent) => event.calendar.find((cal: Calendar) => cal._id == calendar._id)) ?
+                            await $scope.loadCalendarEvents() : await $scope.loadCalendarEvents(calendar);
                     }
                 }
             };
