@@ -681,7 +681,7 @@ export const calendarController = ng.controller('CalendarController',
             $scope.openOrCloseCalendar = async function (calendar, savePreferences) {
                 if ($scope.calendars.selected.length > 1 || !calendar.selected) {
                     calendar.selected = !calendar.selected;
-                    if (calendar.selected) {
+                    if (!!calendar) {
                         $scope.calendar = calendar;
                     }
                     $scope.display.editEventRight = $scope.hasContribRight();
