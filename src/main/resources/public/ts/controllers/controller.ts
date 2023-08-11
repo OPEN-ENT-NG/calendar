@@ -3,7 +3,7 @@ import {
     Calendar,
     Calendars,
     CalendarEvent,
-    CalendarEvents, CalendarEventRecurrence, SavedBooking,
+    CalendarEvents, CalendarEventRecurrence, SavedBooking, Preference,
 } from "../model/index";
 import {
     defaultColor,
@@ -541,13 +541,12 @@ export const calendarController = ng.controller('CalendarController',
 
             $scope.updateCalendars = async (isCreation?: boolean) => {
                 let updatedCalendar = $scope.calendar;
-                let selectedCalendars = $scope.calendars.preference;
                 await Promise.all([
                     $scope.calendars.sync(),
                     $scope.calendars.preference.sync()
                 ]);
-                $scope.calendars.preference = selectedCalendars;
-                $scope.loadSelectedCalendars();
+                $scope.calendars.selectedElements = $scope.calendars.preference.selectedCalendars;
+                $scope.resolveSelectedCalendars();
                 $scope.showCalendar();
                 $scope.calendar = $scope.calendars.all.find((cl: Calendar) => cl._id == updatedCalendar._id);
                 if ($scope.calendar) {
@@ -576,8 +575,8 @@ export const calendarController = ng.controller('CalendarController',
             /**
              * Get all selected calendars and the events from these selected calendars
              **/
-            $scope.loadSelectedCalendars = () => {
-                if ($scope.calendars.preference) {
+            $scope.loadSelectedCalendars = (noSelectionUpdate?: boolean): void => {
+                if ($scope.calendars.preference && !noSelectionUpdate) {
                     let toSelectCalendars: Calendar[] = $scope.calendars.all.filter(calendar => {
                         return _.contains($scope.calendars.preference.selectedCalendars, calendar._id);
                     });
@@ -585,7 +584,7 @@ export const calendarController = ng.controller('CalendarController',
                         $scope.openOrCloseCalendar(cl, false);
                     });
                 }
-                if ($scope.calendars.selected.length === 0 && !$scope.calendars) {
+                if ($scope.calendars.selected.length === 0 && !$scope.calendars && !noSelectionUpdate) {
                     var calendarToOpen = $scope.firstOwnedCalendar();
                     if (calendarToOpen === undefined) {
                         calendarToOpen = $scope.calendars.all[0];
@@ -613,8 +612,8 @@ export const calendarController = ng.controller('CalendarController',
             };
 
 
-            $scope.saveCalendarPreferences = () => {
-                $scope.calendars.preference.update();
+            $scope.saveCalendarPreferences = async (): Promise<void> => {
+                await $scope.calendars.preference.update();
             };
 
             /**
@@ -678,29 +677,37 @@ export const calendarController = ng.controller('CalendarController',
                 }
             };
 
+            function handleCalendarDisplay(calendar: Calendar): void {
+                calendar.selected = !calendar.selected;
+                if (!!calendar) {
+                    $scope.calendar = calendar;
+                }
+                $scope.display.editEventRight = $scope.hasContribRight();
+                $scope.calendarEvents.applyFilters();
+                if (!$scope.display.list && !$scope.display.calendar) {
+                    $scope.showCalendar();
+                } else {
+                    $scope.loadCalendarEvents();
+                }
+            }
+
+            async function setPreferences(calendar: Calendar): Promise<void> {
+                $scope.calendars.preference.selectedCalendars = $scope.calendars.selectedElements.map(element => element._id);
+                if ($scope.calendar && $scope.calendar.selected) {
+                    $scope.calendars.preference.selectedCalendars = [...$scope.calendars.preference.selectedCalendars, calendar._id];
+                } else {
+                    $scope.calendars.preference.selectedCalendars = $scope.calendars.preference.selectedCalendars.filter(element => element !== calendar._id)
+                }
+                await $scope.saveCalendarPreferences();
+                $scope.calendarEvents.all.some((event: CalendarEvent) => event.calendar.find((cal: Calendar) => cal._id == calendar._id)) ?
+                    await $scope.loadCalendarEvents() : await $scope.loadCalendarEvents(calendar);
+            }
+
             $scope.openOrCloseCalendar = async function (calendar, savePreferences) {
                 if ($scope.calendars.selected.length > 1 || !calendar.selected) {
-                    calendar.selected = !calendar.selected;
-                    if (!!calendar) {
-                        $scope.calendar = calendar;
-                    }
-                    $scope.display.editEventRight = $scope.hasContribRight();
-                    $scope.calendarEvents.applyFilters();
-                    if (!$scope.display.list && !$scope.display.calendar) {
-                        $scope.showCalendar();
-                    } else {
-                        $scope.loadCalendarEvents();
-                    }
+                    handleCalendarDisplay(calendar);
                     if (savePreferences) {
-                        $scope.calendars.preference.selectedCalendars = $scope.calendars.selectedElements.map(element => element._id);
-                        if ($scope.calendar && $scope.calendar.selected) {
-                            $scope.calendars.preference.selectedCalendars = [...$scope.calendars.preference.selectedCalendars, calendar._id];
-                        } else {
-                            $scope.calendars.preference.selectedCalendars = $scope.calendars.preference.selectedCalendars.filter(element => element !== calendar._id)
-                        }
-                        await $scope.saveCalendarPreferences();
-                        $scope.calendarEvents.all.some((event: CalendarEvent) => event.calendar.find((cal: Calendar) => cal._id == calendar._id)) ?
-                            await $scope.loadCalendarEvents() : await $scope.loadCalendarEvents(calendar);
+                        await setPreferences(calendar);
                     }
                 }
             };
@@ -964,17 +971,23 @@ export const calendarController = ng.controller('CalendarController',
                 }
             };
 
+            async function restoreCalendarPreferences(selectedCalendars: string[]): void { //restores preferences in scope but needs sync to be applied
+                $scope.calendars.preference.selectedCalendars = selectedCalendars.filter((value: string, index: number) => selectedCalendars.indexOf(value) === index);
+                await $scope.saveCalendarPreferences();
+            }
+
             $scope.saveCalendarEdit = async () => {
+                let selectedCalendars :string[] = $scope.calendars.preference.selectedCalendars;
                 if ($scope.calendar._id) {
                     await $scope.calendar.save();
-                    $scope.updateCalendars();
+                    await restoreCalendarPreferences(selectedCalendars);
                     await $scope.calendar.calendarEvents.sync($scope.calendar, $scope.calendars);
                     $scope.calendarEvents.applyFilters();
+
                 } else {
                     await $scope.calendar.save();
-                    $scope.openOrCloseCalendar($scope.calendar, true);
-                    await $scope.calendars.sync();
-                    $scope.loadSelectedCalendars();
+                    handleCalendarDisplay($scope.calendar);
+                    await $scope.updateCalendars();
                     $scope.loadCalendarEvents();
                     $scope.display.showToggleButtons = false;
                 }
@@ -1059,7 +1072,7 @@ export const calendarController = ng.controller('CalendarController',
                 $scope.calendar.calendarEvents.forEach(function (calendarEvent) {
                     externalCalendarUtils.isCalendarExternal($scope.calendar) ? calendarEvent.delete(true) : calendarEvent.delete();
                 });
-
+                let selectedCalendars :Preference = $scope.calendars.preference;
                 try {
                     await $scope.calendar.delete();
                 } catch (err) {
@@ -1070,12 +1083,14 @@ export const calendarController = ng.controller('CalendarController',
                         toasts.warning(lang.translate('calendar.delete.error'));
                     }
                 }
+                $scope.calendars.preference = selectedCalendars;
+                $scope.calendars.selectedElements = selectedCalendars.selectedCalendars;
+                await $scope.saveCalendarPreferences();
                 if ($scope.calendars.all.length === 1) {
                     template.close("calendar");
                 }
                 await $scope.calendars.sync();
-                await $scope.loadSelectedCalendars();
-                $scope.loadCalendarEvents();
+                $scope.resolveSelectedCalendars();
                 template.close('lightbox');
                 $scope.display.confirmDeleteCalendar = undefined;
                 $scope.eventSidebar$.next();

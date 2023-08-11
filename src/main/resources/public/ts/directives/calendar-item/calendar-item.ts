@@ -42,9 +42,8 @@ class Controller implements ng.IController, IViewModel {
     }
 
     $onInit() {
-        this.$scope.vm.calendar.selected = false;
         this.updateExternalCalendar();
-        this.onOpenOrCloseCalendar(this.$scope.vm.calendar, true);
+        this.onOpenOrCloseCalendar(this.$scope.vm.calendar, false);
     }
 
     $onDestroy() {
