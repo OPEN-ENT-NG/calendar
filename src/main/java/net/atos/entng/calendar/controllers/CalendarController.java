@@ -395,7 +395,7 @@ public class CalendarController extends MongoDbControllerHelper {
                                                 JsonObject params = new JsonObject();
                                                 params.put(Field.PROFILURI, "/userbook/annuaire#" + user.getUserId() + "#" + user.getType());
                                                 params.put(Field.USERNAME, user.getUsername());
-                                                params.put(Field.CALENDARID, "/calendar#/view/" + id);
+                                                params.put(Field.CALENDARURI, "/calendar#/view/" + id);
                                                 params.put(Field.RESOURCEURI, params.getString(Field.CALENDARID));
 
                                                 JsonObject pushNotif = new JsonObject()
