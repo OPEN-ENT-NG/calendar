@@ -34,6 +34,7 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import net.atos.entng.calendar.core.constants.Field;
+import net.atos.entng.calendar.core.constants.MongoField;
 import net.atos.entng.calendar.core.enums.ExternalICalEventBusActions;
 import net.atos.entng.calendar.helpers.FutureHelper;
 import net.atos.entng.calendar.ical.ICalHandler;
@@ -155,21 +156,31 @@ public class EventServiceMongoImpl extends MongoDbCrudService implements EventSe
         JsonArray eventsFilterByDate = new JsonArray();
 
         if (startDate != null && endDate != null) {
-            //fetch the single-day events
-            JsonObject datesISO = new JsonObject();
-            datesISO.put("$gte", startDate);
-            datesISO.put("$lt", endDate);
-
-            eventsFilterByDate.add(new JsonObject().put(Field.STARTMOMENT, datesISO));
-
-            //fetch the multiday events
+            //fetch normal events and multiday events that have a start/end during the slot
             JsonObject datesISOStart = new JsonObject();
-            JsonObject datesISOEnd = new JsonObject();
-            datesISOStart.put("$lt", startDate);
-            datesISOEnd.put("$gte", startDate);
+            datesISOStart.put(MongoField.$GREATER_OR_EQUAL, startDate);
+            datesISOStart.put(MongoField.$LESSER_THAN, endDate);
 
             eventsFilterByDate.add(new JsonObject().put(Field.STARTMOMENT, datesISOStart));
+
+            JsonObject datesISOEnd = new JsonObject();
+            datesISOEnd.put(MongoField.$GREATER_OR_EQUAL, startDate);
+            datesISOEnd.put(MongoField.$LESSER_THAN, endDate);
+
             eventsFilterByDate.add(new JsonObject().put(Field.ENDMOMENT, datesISOEnd));
+
+            //fetch multiday events that start before slot and end after
+            JsonObject datesISOMultiDay = new JsonObject();
+            JsonObject datesISOMultiDayStart = new JsonObject();
+            JsonObject datesISOMultiDayEnd = new JsonObject();
+            datesISOMultiDayStart.put(MongoField.$LESSER_THAN, startDate);
+            datesISOMultiDayEnd.put(MongoField.$GREATER_OR_EQUAL, endDate);
+
+            datesISOMultiDay.put(MongoField.$AND, new JsonArray()
+                    .add(new JsonObject().put(Field.STARTMOMENT, datesISOMultiDayStart))
+                    .add(new JsonObject().put(Field.ENDMOMENT, datesISOMultiDayEnd)));
+
+            eventsFilterByDate.add(datesISOMultiDay);
         }
 
         return eventsFilterByDate;
