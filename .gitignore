@@ -40,3 +40,6 @@ npm-debug.log
 gradlew*
 gradle/
 /coverage/
+/package-lock.json
+/src/main/resources/public/css/
+/yarn.lock
