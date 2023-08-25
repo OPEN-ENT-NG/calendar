@@ -111,6 +111,11 @@ public class EventServiceMongoImpl extends MongoDbCrudService implements EventSe
                 Boolean userIsCalendarOwner = user.getUserId().equals(currentCalendarOwnerId);
 
                 JsonObject queryEvent = new JsonObject().put("calendar", calendarId);
+                JsonArray calendarConditions = new JsonArray();
+
+                if (startDate != null && endDate != null) {
+                    calendarConditions.add(new JsonObject().put(MongoField.$OR, fetchEventsWithDates(startDate, endDate)));
+                }
 
                 if (Boolean.FALSE.equals(userIsCalendarOwner)) {
                     JsonObject userIsEventOwner = new JsonObject().put("owner.userId", user.getUserId());
@@ -121,7 +126,7 @@ public class EventServiceMongoImpl extends MongoDbCrudService implements EventSe
                     JsonObject sharedContainsUserGroupIds = new JsonObject().put("shared.groupId",
                             new JsonObject().put("$in", user.getGroupsIds()));
 
-                    queryEvent.put("$or",
+                    calendarConditions.add(new JsonObject().put(MongoField.$OR,
                             new JsonArray()
                                     .add(userIsEventOwner)
                                     .add(isNotSharedEvent)
@@ -132,20 +137,14 @@ public class EventServiceMongoImpl extends MongoDbCrudService implements EventSe
                                     //case shared to the user by groupId
                                     .add(sharedContainsUserGroupIds)
 
-                    );
+                    ));
                 }
+
+                if (!calendarConditions.isEmpty()) queryEvent.put(MongoField.$AND, calendarConditions);
+
                 JsonObject sort = new JsonObject().put("modified", -1);
                 // Projection
                 JsonObject projection = new JsonObject();
-                //JsonArray newQuery = new JsonArray();
-
-                if (startDate != null && endDate != null) {
-                    if (queryEvent.containsKey("$or")) {
-                        queryEvent.getJsonArray("$or").addAll(fetchEventsWithDates(startDate, endDate));
-                    } else {
-                        queryEvent.put("$or", fetchEventsWithDates(startDate, endDate));
-                    }
-                }
 
                 mongo.find(this.collection, queryEvent, sort, projection, validResultsHandler(handler));
             }
