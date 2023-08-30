@@ -11,16 +11,7 @@ gulp.task('drop-cache', function(){
         .pipe(clean());
 });
 
-gulp.task('copy-files', ['drop-cache'], () => {
-    var html = gulp.src('./node_modules/entcore/src/template/**/*.html')
-        .pipe(gulp.dest('./src/main/resources/public/template/entcore'));
-var bundle = gulp.src('./node_modules/entcore/bundle/*')
-    .pipe(gulp.dest('./src/main/resources/public/dist/entcore'));
-
-return merge(html, bundle);
-});
-
-gulp.task('copy-mdi-font', ['copy-files'], function () {
+gulp.task('copy-mdi-font', ['drop-cache'], function () {
     return gulp.src('./node_modules/@mdi/font/fonts/*')
         .pipe(gulp.dest('./src/main/resources/public/font/material-design/fonts'));
 });

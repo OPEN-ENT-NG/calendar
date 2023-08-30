@@ -52,32 +52,40 @@ buildNode () {
     echo "[buildNode] Use entcore version from package.json ($BRANCH_NAME)"
     case `uname -s` in
       MINGW*)
-        docker-compose run --rm -u "$USER_UID:$GROUP_GID" node sh -c "npm install --no-bin-links && npm update entcore && node_modules/gulp/bin/gulp.js build"
+        docker-compose run --rm -u "$USER_UID:$GROUP_GID" node sh -c "yarn install --no-bin-links && yarn update entcore && node_modules/gulp/bin/gulp.js build && yarn run build:sass"
          ;;
        *)
-         docker-compose run --rm -u "$USER_UID:$GROUP_GID" node sh -c "npm install && npm update entcore && node_modules/gulp/bin/gulp.js build"
+         docker-compose run --rm -u "$USER_UID:$GROUP_GID" node sh -c "yarn install && yarn update entcore && node_modules/gulp/bin/gulp.js build && yarn run build:sass"
      esac
   else
      echo "[buildNode] Use entcore tag $BRANCH_NAME"
-     entcore_tags=$(npm dist-tags ls entcore)
+     entcore_tags=$(yarn dist-tags ls entcore)
      if [[ $entcore_tags == *"$BRANCH_NAME"* ]]; then
        case `uname -s` in
          MINGW*)
-           docker-compose run --rm -u "$USER_UID:$GROUP_GID" node sh -c "npm install --no-bin-links && npm rm --no-save entcore && npm install --no-save entcore@$BRANCH_NAME && node_modules/gulp/bin/gulp.js build"
+           docker-compose run --rm -u "$USER_UID:$GROUP_GID" node sh -c "yarn install --no-bin-links && yarn rm --no-save entcore && yarn install --no-save entcore@$BRANCH_NAME && node_modules/gulp/bin/gulp.js build && yarn run build:sass"
                        ;;
          *)
-           docker-compose run --rm -u "$USER_UID:$GROUP_GID" node sh -c "npm install && npm rm --no-save entcore && npm install --no-save entcore@$BRANCH_NAME && node_modules/gulp/bin/gulp.js build"
+           docker-compose run --rm -u "$USER_UID:$GROUP_GID" node sh -c "yarn install && yarn rm --no-save entcore && yarn install --no-save entcore@$BRANCH_NAME && node_modules/gulp/bin/gulp.js build && yarn run build:sass"
        esac
      else
        case `uname -s` in
           MINGW*)
-            docker-compose run --rm -u "$USER_UID:$GROUP_GID" node sh -c "npm install --no-bin-links && node_modules/gulp/bin/gulp.js build"
+            docker-compose run --rm -u "$USER_UID:$GROUP_GID" node sh -c "yarn install --no-bin-links && node_modules/gulp/bin/gulp.js build && yarn run build:sass"
                ;;
           *)
-            docker-compose run --rm -u "$USER_UID:$GROUP_GID" node sh -c "npm install && node_modules/gulp/bin/gulp.js build"
+            docker-compose run --rm -u "$USER_UID:$GROUP_GID" node sh -c "yarn install && node_modules/gulp/bin/gulp.js build && yarn run build:sass"
        esac
      fi
   fi
+}
+
+buildGulp() {
+    docker-compose run --rm -u "$USER_UID:$GROUP_GID" node sh -c "node_modules/gulp/bin/gulp.js build"
+}
+
+buildCss() {
+    docker-compose run --rm -u "$USER_UID:$GROUP_GID" node sh -c "yarn run build:sass"
 }
 
 buildGradle () {
@@ -100,10 +108,10 @@ testNode () {
   rm -rf */build
   case `uname -s` in
     MINGW*)
-      docker-compose run --rm -u "$USER_UID:$GROUP_GID" node sh -c "npm install --no-bin-links && node_modules/gulp/bin/gulp.js drop-cache &&  npm test"
+      docker-compose run --rm -u "$USER_UID:$GROUP_GID" node sh -c "yarn install --no-bin-links && node_modules/gulp/bin/gulp.js drop-cache &&  yarn test"
       ;;
     *)
-      docker-compose run --rm -u "$USER_UID:$GROUP_GID" node sh -c "npm install && node_modules/gulp/bin/gulp.js drop-cache && npm test"
+      docker-compose run --rm -u "$USER_UID:$GROUP_GID" node sh -c "yarn install && node_modules/gulp/bin/gulp.js drop-cache && yarn test"
   esac
 }
 
@@ -123,6 +131,12 @@ do
       ;;
     buildNode)
       buildNode
+      ;;
+    buildGulp)
+      buildGulp
+      ;;
+    buildCss)
+      buildCss
       ;;
     buildGradle)
       buildGradle
