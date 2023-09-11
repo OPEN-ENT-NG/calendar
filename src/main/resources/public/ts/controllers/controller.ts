@@ -924,7 +924,7 @@ export const calendarController = ng.controller('CalendarController',
                 template.close('lightbox');
                 await $scope.calendars.syncCalendarEvents();
                 await $scope.loadCalendarEvents();
-                addCssOnHtmlElement("body > portal > div > section", "z-index", "9000");
+                addCssOnHtmlElement("body > portal > div > section", "z-index", "1000");
                 $scope.$apply();
             };
 
