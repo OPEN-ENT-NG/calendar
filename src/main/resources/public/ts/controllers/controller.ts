@@ -565,8 +565,8 @@ export const calendarController = ng.controller('CalendarController',
                 let updatedCalendar: Calendar = await calendarService.fetchCalendarById(calendar);
                 if (updatedCalendar._id) {
                     $scope.calendars.all.find((cl: Calendar) => (cl._id == updatedCalendar._id)).updated = updatedCalendar.updated;
-                    await $scope.calendars.syncSelectedCalendarEvents($scope.calendarEvents.filters.startMoment.format(FORMAT.formattedDate),
-                        $scope.calendarEvents.filters.endMoment.format(FORMAT.formattedDate));
+                    await $scope.syncSelectedCalendars();
+
                     $scope.loadCalendarEvents();
                     safeApply($scope);
                 }
