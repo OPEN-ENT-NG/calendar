@@ -52,10 +52,10 @@ buildNode () {
     echo "[buildNode] Use entcore version from package.json ($BRANCH_NAME)"
     case `uname -s` in
       MINGW*)
-        docker-compose run --rm -u "$USER_UID:$GROUP_GID" node sh -c "yarn install --no-bin-links && yarn update entcore && node_modules/gulp/bin/gulp.js build && yarn run build:sass"
+        docker-compose run --rm -u "$USER_UID:$GROUP_GID" node sh -c "yarn install --no-bin-links && yarn upgrade entcore && node_modules/gulp/bin/gulp.js build && yarn run build:sass"
          ;;
        *)
-         docker-compose run --rm -u "$USER_UID:$GROUP_GID" node sh -c "yarn install && yarn update entcore && node_modules/gulp/bin/gulp.js build && yarn run build:sass"
+         docker-compose run --rm -u "$USER_UID:$GROUP_GID" node sh -c "yarn install && yarn upgrade entcore && node_modules/gulp/bin/gulp.js build && yarn run build:sass"
      esac
   else
      echo "[buildNode] Use entcore tag $BRANCH_NAME"
