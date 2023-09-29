@@ -236,32 +236,61 @@ export const calendarController = ng.controller('CalendarController',
                 $scope.calendarEvents.all = $scope.calendarEvents.filtered;
             };
 
+            const getHashWithDate = (a: CalendarEvent) => `${a._id}-${a.startMoment ?? ''}-${a.endMoment ?? ''}`;
+            const getHashWithoutDate = (a: CalendarEvent) => `${a._id}`;
+
             /**
              * Remove events which are duplicated
              */
-            $scope.removeDuplicateCalendarEvent = (events: Array<CalendarEvent>): Array<CalendarEvent> => {
-                if ($scope.display.list) { //list view
-                    events = events.reduce((filteredEvents: CalendarEvent[], item: CalendarEvent) => {
+            $scope.removeDuplicateCalendarEvent = (
+            events: Array<CalendarEvent>
+            ): Array<CalendarEvent> => {
+            if ($scope.display.list) {
+                //list view
+                events = Array.from(
+                events
+                    .reduce(
+                    (
+                        filteredEvents: Map<string, CalendarEvent>,
+                        item: CalendarEvent
+                    ) => {
                         //case where all elements must have a unique _id
-                        if (!(filteredEvents.find((t: CalendarEvent) => (t._id == item._id)))) {
-                            filteredEvents.push(item);
+                        const hash = getHashWithoutDate(item);
+                        if (!filteredEvents.has(hash)) {
+                        filteredEvents.set(hash, item);
                         }
                         return filteredEvents;
-                    }, []);
-                } else { //calendar view
-                    if(events){
-                        events = events.reduce((filteredEvents: CalendarEvent[], item: CalendarEvent) => {
-                            //ensures that all events are unique:
-                            //a normal event has a unique id
-                            //a multi days event part is the only one with this id/startMoment/endMoment combo
-                            if (!(filteredEvents.find((t: CalendarEvent) => (!(t.isMultiDayPart && !isSameMultiDayEventPart(t, item)) && (t._id == item._id))))) {
-                                filteredEvents.push(item);
-                            }
-                            return filteredEvents;
-                        }, []);
-                    }
+                    },
+                    new Map<string, CalendarEvent>()
+                    )
+                    .values()
+                );
+            } else {
+                //calendar view
+                if (events) {
+                events = Array.from(
+                    events
+                    .reduce(
+                        (
+                        filteredEvents: Map<string, CalendarEvent>,
+                        item: CalendarEvent
+                        ) => {
+                        //ensures that all events are unique:
+                        //a normal event has a unique id
+                        //a multi days event part is the only one with this id/startMoment/endMoment combo
+                        const hash = getHashWithDate(item);
+                        if (!filteredEvents.has(hash)) {
+                            filteredEvents.set(hash, item);
+                        }
+                        return filteredEvents;
+                        },
+                        new Map<string, CalendarEvent>()
+                    )
+                    .values()
+                );
                 }
-                return events;
+            }
+            return events;
             };
 
             /** Returns true if the two events represent the same part of a multi-day event (same id, start and end moments)
