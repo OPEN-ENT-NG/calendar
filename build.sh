@@ -18,26 +18,37 @@ case `uname -s` in
     fi
 esac
 
-# options
+# Options
+NO_DOCKER=""
 SPRINGBOARD="recette"
 for i in "$@"
 do
 case $i in
-    -s=*|--springboard=*)
-    SPRINGBOARD="${i#*=}"
-    shift
-    ;;
-    *)
-    ;;
+  -s=*|--springboard=*)
+  SPRINGBOARD="${i#*=}"
+  shift
+  ;;
+  --no-docker*)
+  NO_DOCKER="true"
+  shift
+  ;;
+  *)
+  ;;
 esac
 done
 
 clean () {
-  docker-compose run --rm -u "$USER_UID:$GROUP_GID" gradle gradle clean
+  if [ "$NO_DOCKER" = "true" ] ; then
+    rm -rf node_modules
+    rm -f yarn.lock
+    gradle clean
+  else
+    docker-compose run --rm -u "$USER_UID:$GROUP_GID" gradle gradle clean
+  fi
 }
 
 buildNode () {
-#jenkins
+  #jenkins
   echo "[buildNode] Get branch name from jenkins env..."
   BRANCH_NAME=`echo $GIT_BRANCH | sed -e "s|origin/||g"`
   if [ "$BRANCH_NAME" = "" ]; then
@@ -48,48 +59,50 @@ buildNode () {
     echo "[buildNode] Branch name should not be empty!"
     exit -1
   fi
+
   if [ "$BRANCH_NAME" = 'master' ]; then
-    echo "[buildNode] Use entcore version from package.json ($BRANCH_NAME)"
-    case `uname -s` in
-      MINGW*)
-        docker-compose run --rm -u "$USER_UID:$GROUP_GID" node sh -c "yarn install --no-bin-links && yarn upgrade entcore && node_modules/gulp/bin/gulp.js build && yarn run build:sass"
-         ;;
-       *)
-         docker-compose run --rm -u "$USER_UID:$GROUP_GID" node sh -c "yarn install && yarn upgrade entcore && node_modules/gulp/bin/gulp.js build && yarn run build:sass"
-     esac
+      echo "[buildNode] Use entcore version from package.json ($BRANCH_NAME)"
+      case `uname -s` in
+        MINGW*)
+          if [ "$NO_DOCKER" = "true" ] ; then
+            yarn install --no-bin-links && yarn upgrade entcore && node_modules/gulp/bin/gulp.js build
+          else
+            docker-compose run --rm -u "$USER_UID:$GROUP_GID" node sh -c "yarn install --no-bin-links --legacy-peer-deps --force && yarn upgrade entcore && node_modules/gulp/bin/gulp.js build"
+          fi
+          ;;
+        *)
+          if [ "$NO_DOCKER" = "true" ] ; then
+            yarn install && yarn upgrade entcore && node_modules/gulp/bin/gulp.js build
+          else
+            docker-compose run --rm -u "$USER_UID:$GROUP_GID" node sh -c "yarn install --legacy-peer-deps --force && yarn upgrade entcore && node_modules/gulp/bin/gulp.js build"
+          fi
+      esac
   else
-     echo "[buildNode] Use entcore tag $BRANCH_NAME"
-     entcore_tags=$(yarn dist-tags ls entcore)
-     if [[ $entcore_tags == *"$BRANCH_NAME"* ]]; then
-       case `uname -s` in
-         MINGW*)
-           docker-compose run --rm -u "$USER_UID:$GROUP_GID" node sh -c "yarn install --no-bin-links && yarn rm --no-save entcore && yarn install --no-save entcore@$BRANCH_NAME && node_modules/gulp/bin/gulp.js build && yarn run build:sass"
-                       ;;
-         *)
-           docker-compose run --rm -u "$USER_UID:$GROUP_GID" node sh -c "yarn install && yarn rm --no-save entcore && yarn install --no-save entcore@$BRANCH_NAME && node_modules/gulp/bin/gulp.js build && yarn run build:sass"
-       esac
-     else
-       case `uname -s` in
-          MINGW*)
-            docker-compose run --rm -u "$USER_UID:$GROUP_GID" node sh -c "yarn install --no-bin-links && node_modules/gulp/bin/gulp.js build && yarn run build:sass"
-               ;;
-          *)
-            docker-compose run --rm -u "$USER_UID:$GROUP_GID" node sh -c "yarn install && node_modules/gulp/bin/gulp.js build && yarn run build:sass"
-       esac
-     fi
+      echo "[buildNode] Use entcore tag $BRANCH_NAME"
+      case `uname -s` in
+        MINGW*)
+          if [ "$NO_DOCKER" = "true" ] ; then
+            yarn install && yarn upgrade entcore && node_modules/gulp/bin/gulp.js build
+          else
+            docker-compose run --rm -u "$USER_UID:$GROUP_GID" node sh -c "yarn install --no-bin-links --legacy-peer-deps --force && npm rm --no-save entcore && yarn install --no-save entcore@dev && node_modules/gulp/bin/gulp.js build"
+          fi
+          ;;
+        *)
+          if [ "$NO_DOCKER" = "true" ] ; then
+            yarn install --no-bin-links && yarn upgrade entcore && node_modules/gulp/bin/gulp.js build
+          else
+            docker-compose run --rm -u "$USER_UID:$GROUP_GID" node sh -c "yarn install --legacy-peer-deps --force && npm rm --no-save entcore && yarn install --no-save entcore@dev && node_modules/gulp/bin/gulp.js build"
+          fi
+      esac
   fi
 }
 
-buildGulp() {
-    docker-compose run --rm -u "$USER_UID:$GROUP_GID" node sh -c "node_modules/gulp/bin/gulp.js build"
-}
-
-buildCss() {
-    docker-compose run --rm -u "$USER_UID:$GROUP_GID" node sh -c "yarn run build:sass"
-}
-
 buildGradle () {
-  docker-compose run --rm -u "$USER_UID:$GROUP_GID" gradle gradle shadowJar install publishToMavenLocal
+  if [ "$NO_DOCKER" = "true" ] ; then
+    gradle shadowJar install publishToMavenLocal
+  else
+    docker-compose run --rm -u "$USER_UID:$GROUP_GID" gradle gradle shadowJar install publishToMavenLocal
+  fi
 }
 
 publish () {
@@ -100,27 +113,19 @@ publish () {
     echo "sonatypeUsername=$NEXUS_SONATYPE_USERNAME" >> "?/.gradle/gradle.properties"
     echo "sonatypePassword=$NEXUS_SONATYPE_PASSWORD" >> "?/.gradle/gradle.properties"
   fi
-  docker-compose run --rm -u "$USER_UID:$GROUP_GID" gradle gradle publish
-}
-
-testNode () {
-  rm -rf coverage
-  rm -rf */build
-  case `uname -s` in
-    MINGW*)
-      docker-compose run --rm -u "$USER_UID:$GROUP_GID" node sh -c "yarn install --no-bin-links && node_modules/gulp/bin/gulp.js drop-cache &&  yarn test"
-      ;;
-    *)
-      docker-compose run --rm -u "$USER_UID:$GROUP_GID" node sh -c "yarn install && node_modules/gulp/bin/gulp.js drop-cache && yarn test"
-  esac
-}
-
-testGradle() {
-  docker-compose run --rm -u "$USER_UID:$GROUP_GID" gradle gradle test --no-build-cache --rerun-tasks
+  if [ "$NO_DOCKER" = "true" ] ; then
+    gradle publish
+  else
+    docker-compose run --rm -u "$USER_UID:$GROUP_GID" gradle gradle publish
+  fi
 }
 
 watch () {
-  docker-compose run --rm -u "$USER_UID:$GROUP_GID" node sh -c "node_modules/gulp/bin/gulp.js watch --springboard=/home/node/$SPRINGBOARD"
+  if [ "$NO_DOCKER" = "true" ] ; then
+    node_modules/gulp/bin/gulp.js watch --springboard=../recette
+  else
+    docker-compose run --rm -u "$USER_UID:$GROUP_GID" node sh -c "node_modules/gulp/bin/gulp.js watch --springboard=/home/node/$SPRINGBOARD"
+  fi
 }
 
 for param in "$@"
@@ -131,12 +136,6 @@ do
       ;;
     buildNode)
       buildNode
-      ;;
-    buildGulp)
-      buildGulp
-      ;;
-    buildCss)
-      buildCss
       ;;
     buildGradle)
       buildGradle
@@ -150,15 +149,6 @@ do
     publish)
       publish
       ;;
-    test)
-      testNode ; testGradle
-      ;;
-    testNode)
-      testNode
-      ;;
-    testGradle)
-      testGradle
-      ;;
     *)
       echo "Invalid argument : $param"
   esac
@@ -166,3 +156,4 @@ do
     exit 1
   fi
 done
+
