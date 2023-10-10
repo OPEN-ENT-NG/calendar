@@ -85,6 +85,7 @@ export const calendarController = ng.controller('CalendarController',
             $scope.ENABLE_RBS = ENABLE_RBS;
             $scope.rbsEmitter = new RbsEmitter($scope, !!$scope.ENABLE_RBS);
             $scope.ENABLE_ZIMBRA = ENABLE_ZIMBRA;
+            $scope.minDate = moment().clone().subtract(2, 'years');
 
                 template.open('main', 'main-view');
                 template.open('top-menu', 'top-menu');
@@ -282,7 +283,11 @@ export const calendarController = ng.controller('CalendarController',
                 });
             };
 
+
         $scope.changeStartMoment = () => {
+            if($scope.calendarEvent.startMoment < $scope.minDate){
+                $scope.calendarEvent.startMoment = $scope.minDate;
+            }
             if (!$scope.isDateValid()) {
                 $scope.calendarEvent.endMoment = moment($scope.calendarEvent.startMoment);
             } else {
