@@ -121,6 +121,8 @@
     "calendar.error.booking.saving": "Problème d'enregistrement de la ou des réservations",
     "calendar.error.time": "L'heure de fin doit être supérieure à l'heure de début.",
     "calendar.error.date": "La date de fin doit être supérieure ou égale à la date de début.",
+    "calendar.error.date.old": "La date de début doit être supérieure au 1 janvier 2000",
+    "calendar.error.date.far": "La date de fin doit être dans les 80 prochaines années à partir de la date actuelle",
     "calendar.delete.error": "Une erreur est survenue lors de la supression du calendrier",
     "calendar.navigation.guard": "Les modifications que vous avez apportées ne seront peut-être pas enregistrées. Souhaitez vous quitter cette page?",
     "calendar.event.not.all.calendar.rights": "Vous n'avez pas les droits de modification sur cet évènement.",

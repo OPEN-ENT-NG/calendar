@@ -85,7 +85,8 @@ export const calendarController = ng.controller('CalendarController',
             $scope.ENABLE_RBS = ENABLE_RBS;
             $scope.rbsEmitter = new RbsEmitter($scope, !!$scope.ENABLE_RBS);
             $scope.ENABLE_ZIMBRA = ENABLE_ZIMBRA;
-            $scope.minDate = moment().clone().subtract(2, 'years');
+            $scope.minDate = moment('2000-01-01');
+            $scope.maxDate = moment().add(80, 'years').startOf('day');
 
                 template.open('main', 'main-view');
                 template.open('top-menu', 'top-menu');
@@ -285,9 +286,6 @@ export const calendarController = ng.controller('CalendarController',
 
 
         $scope.changeStartMoment = () => {
-            if($scope.calendarEvent.startMoment < $scope.minDate){
-                $scope.calendarEvent.startMoment = $scope.minDate;
-            }
             if (!$scope.isDateValid()) {
                 $scope.calendarEvent.endMoment = moment($scope.calendarEvent.startMoment);
             } else {
@@ -1667,7 +1665,7 @@ export const calendarController = ng.controller('CalendarController',
                 $scope.eventForm = angular.element(document.getElementById("event-form")).scope();
                 /** Ensures that the fields of the form are correctly filled*/
                 let areFieldsInCommonValid: boolean = ($scope.rbsEmitter.checkBookingValidAndSendInfoToSniplet() && !$scope.eventForm.editEvent.$invalid && $scope.isCalendarSelectedInEvent()
-                    && $scope.isTimeValid() && $scope.isDateValid() &&  $scope.areRecurrenceAndEventLengthsCompatible());
+                    && $scope.isTimeValid() && $scope.isDateValid() &&  $scope.areRecurrenceAndEventLengthsCompatible() && !$scope.isStartDateToOld() && !$scope.isEndDateToFar());
 
                 switch (actionButton) {
                     case ACTIONS.save:
@@ -1703,6 +1701,16 @@ export const calendarController = ng.controller('CalendarController',
             $scope.isDateValid = (): boolean => ($scope.calendarEvent.startMoment && $scope.calendarEvent.endMoment
                 && moment($scope.calendarEvent.startMoment).isValid() && moment($scope.calendarEvent.endMoment).isValid()
                 && moment($scope.calendarEvent.startMoment).isSameOrBefore(moment($scope.calendarEvent.endMoment), 'day'));
+
+            /**
+             * Returns true if startMoment is older than january 1/2000
+             */
+            $scope.isStartDateToOld = (): boolean => ($scope.calendarEvent.startMoment < $scope.minDate);
+
+            /**
+             * Returns true if endMoment is after 80 years further
+             */
+            $scope.isEndDateToFar = (): boolean => ($scope.calendarEvent.endMoment > $scope.maxDate);
 
             /**
              * Returns true if the event length is shorter than the recurrence length
