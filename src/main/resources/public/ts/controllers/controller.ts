@@ -13,7 +13,7 @@ import {
     LANG_CALENDAR,
     rights,
     ACTIONS,
-    ActionButtonType
+    ActionButtonType, minStartMomentDate, maxEndMomentDate
 } from "../model/constantes";
 import {
     isSameAfter,
@@ -85,8 +85,8 @@ export const calendarController = ng.controller('CalendarController',
             $scope.ENABLE_RBS = ENABLE_RBS;
             $scope.rbsEmitter = new RbsEmitter($scope, !!$scope.ENABLE_RBS);
             $scope.ENABLE_ZIMBRA = ENABLE_ZIMBRA;
-            $scope.minDate = moment('2000-01-01');
-            $scope.maxDate = moment().add(80, 'years').startOf('day');
+            $scope.minDate = moment(minStartMomentDate);
+            $scope.maxDate = moment().add(maxEndMomentDate, 'years').startOf('day');
 
                 template.open('main', 'main-view');
                 template.open('top-menu', 'top-menu');

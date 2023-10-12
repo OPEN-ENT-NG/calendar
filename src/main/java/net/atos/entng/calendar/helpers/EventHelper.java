@@ -522,8 +522,12 @@ public class EventHelper extends MongoDbControllerHelper {
     private boolean isEventValid(JsonObject object, HttpServerRequest request) {
         Date startDate = DateUtils.parseDate(object.getString(Field.STARTMOMENT), DateUtils.DATE_FORMAT_UTC);
         Date endDate = DateUtils.parseDate(object.getString(Field.ENDMOMENT), DateUtils.DATE_FORMAT_UTC);
+        Date refStartDate = DateUtils.parseDate(Field.REFSTARTDATE, DateUtils.DATE_FORMAT_UTC);
+        Date refEndDate = DateUtils.getRefEndDate();
 
         boolean areDatesValid = DateUtils.isStrictlyBefore(startDate, endDate);
+        boolean isStartMomentNotToOld = DateUtils.isStrictlyAfter(startDate, refStartDate);
+        boolean isEndMomentNotToFar = DateUtils.isStrictlyAfter(startDate, refEndDate);
         boolean isOneDayEvent = DateUtils.isSameDay(startDate, endDate);
         boolean isNotRecurrentEvent = Boolean.FALSE.equals(object.getBoolean(Field.isRecurrent));
 
@@ -534,7 +538,7 @@ public class EventHelper extends MongoDbControllerHelper {
                 && "every_week".equals(object.getJsonObject(Field.recurrence).getValue(Field.type))
                 && (eventDayLength < (7 * object.getJsonObject(Field.recurrence).getInteger(Field.every)));
 
-        return (areDatesValid && (isOneDayEvent || isNotRecurrentEvent || isWeeklyRecurrenceValid));
+        return (areDatesValid && isStartMomentNotToOld && isEndMomentNotToFar && (isOneDayEvent || isNotRecurrentEvent || isWeeklyRecurrenceValid));
     }
 
     /**

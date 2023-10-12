@@ -66,3 +66,5 @@ export const recurrence = {
 };
 
 export const LANG_CALENDAR = "fr";
+export const minStartMomentDate = "2000-01-01";
+export const maxEndMomentDate = "80";

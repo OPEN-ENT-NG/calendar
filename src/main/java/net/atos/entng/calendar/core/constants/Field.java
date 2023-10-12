@@ -40,6 +40,9 @@ public class Field {
     public static final String STARTMOMENT = "startMoment";
     // event end moment
     public static final String ENDMOMENT = "endMoment";
+
+    public static final String REFSTARTDATE = "2000-01-01T00:00:00.000Z";
+    public static final int REFENDDATE = 80;
     // calendars
     public static final String CALENDARS = "calendars";
     public static final String CALENDAR = "calendar";

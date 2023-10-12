@@ -1,5 +1,7 @@
 package net.atos.entng.calendar.utils;
 
+import net.atos.entng.calendar.core.constants.Field;
+
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -38,6 +40,13 @@ public final class DateUtils {
         return (d1.before(d2));
     }
 
+    public static Boolean isStrictlyAfter(Date d1, Date d2) {
+        if ((d1 == null) || (d2 == null)) {
+            return false;
+        }
+        return (d1.after(d2));
+    }
+
     public static Boolean isSameDay(Date d1, Date d2) {
         if ((d1 == null) || (d2 == null)) {
             return false;
@@ -60,6 +69,14 @@ public final class DateUtils {
         String dateString = dateFormat.format(date);
 
         return dateString;
+    }
+
+    public static Date getRefEndDate() {
+        Date currentDate = new Date();
+        final Calendar cal = new GregorianCalendar();
+        cal.setTime(currentDate);
+        cal.add(Calendar.YEAR, Field.REFENDDATE);
+        return cal.getTime();
     }
 
 
