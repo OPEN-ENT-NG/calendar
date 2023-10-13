@@ -76,6 +76,14 @@ public class Field {
     public static final String recurrence = "recurrence";
     // event recurrence type (every day/every week)
     public static final String type = "type";
+    public static final String end_type = "end_type";
+    public static final String on = "on";
+    public static final String after = "after";
+    public static final String end_on = "end_on";
+    public static final String end_after = "end_after";
+    public static final int end_after_max_value = 365;
+    public static final int end_after_min_value = 1;
+
     // event recurrence type option
     public static final String every_week = "every_week";
     // event recurrence length (1, 2, 3 ... days/week)
