@@ -40,6 +40,9 @@ public class Field {
     public static final String STARTMOMENT = "startMoment";
     // event end moment
     public static final String ENDMOMENT = "endMoment";
+
+    public static final String REFSTARTDATE = "2000-01-01T00:00:00.000Z";
+    public static final int REFENDDATE = 80;
     // calendars
     public static final String CALENDARS = "calendars";
     public static final String CALENDAR = "calendar";
@@ -73,6 +76,14 @@ public class Field {
     public static final String recurrence = "recurrence";
     // event recurrence type (every day/every week)
     public static final String type = "type";
+    public static final String end_type = "end_type";
+    public static final String on = "on";
+    public static final String after = "after";
+    public static final String end_on = "end_on";
+    public static final String end_after = "end_after";
+    public static final int end_after_max_value = 365;
+    public static final int end_after_min_value = 1;
+
     // event recurrence type option
     public static final String every_week = "every_week";
     // event recurrence length (1, 2, 3 ... days/week)

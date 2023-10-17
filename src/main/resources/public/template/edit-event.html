@@ -169,6 +169,12 @@
                             <div class="top-spacing-twice warning form-element" ng-if="!isDateValid()">
                                 <i18n>calendar.error.date</i18n>
                             </div>
+                            <div class="top-spacing-twice info form-element" ng-if="isStartDateTooOld()">
+                                <i18n>calendar.error.date.old</i18n>
+                            </div>
+                            <div class="top-spacing-twice info form-element" ng-if="isEndDateTooFar()">
+                                <i18n>calendar.error.date.far</i18n>
+                            </div>
                         </div>
                     </div>
                 </article>
@@ -346,6 +352,9 @@
                             </div>
                             <div class="top-spacing-twice warning form-element" ng-if="!areRecurrenceAndEventLengthsCompatible()">
                                 <i18n>calendar.event.length.error</i18n>
+                            </div>
+                            <div class="top-spacing-twice warning form-element" ng-if="!isValidRecurrentEndDate()">
+                                <i18n>calendar.error.date.recurrence</i18n>
                             </div>
                         </div>
                     </div>

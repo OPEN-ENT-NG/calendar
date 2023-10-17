@@ -115,55 +115,52 @@ public class EventHelper extends MongoDbControllerHelper {
 
     @Override
     public void create(final HttpServerRequest request) {
-        UserUtils.getUserInfos(eb, request, new Handler<UserInfos>() {
-            @Override
-            public void handle(final UserInfos user) {
-                final String calendarId = request.params().get(CALENDAR_ID_PARAMETER);
-                if (user != null) {
-                    RequestUtils.bodyToJson(request, (Handler<JsonObject>) object -> {
-                        calendarService.hasExternalCalendarId(object.getJsonArray("calendar")
-                                        .stream().map((Object::toString))
-                                        .collect(Collectors.toList()))
-                                .onSuccess(isExternal -> {
-                                    if(Boolean.FALSE.equals(isExternal)) {
-                                        if (isEventValid(object, request)) {
-                                            RbsHelper.saveBookingsInRbs(request, object, user, config, eb).onComplete(e ->
-                                                    eventService.create(calendarId, object, user, event -> {
-                                                        if (event.isRight()) {
-                                                            JsonObject eventId = event.right().getValue();
-                                                            final JsonObject message = new JsonObject();
-                                                            message.put(Field._ID, calendarId);
-                                                            message.put(Field.EVENTID, eventId.getString("_id"));
-                                                            message.put(Field.START_DATE, (String) null);
-                                                            message.put(Field.END_DATE, (String) null);
-                                                            message.put(Field.SENDNOTIF, object.getBoolean(Field.SENDNOTIF, null));
-                                                            notifyEventCreatedOrUpdated(request, user, message, true);
-                                                            renderJson(request, event.right().getValue(), 200);
-                                                            eventHelper.onCreateResource(request, RESOURCE_NAME);
-                                                        } else if (event.isLeft()) {
-                                                            log.error("[Calendar@EventHelper::create] Error when getting notification informations.");
-                                                        }
-                                                    })
-                                            );
+        UserUtils.getUserInfos(eb, request, user -> {
+            final String calendarId = request.params().get(CALENDAR_ID_PARAMETER);
+            if (user != null) {
+                RequestUtils.bodyToJson(request, object -> {
+                    calendarService.hasExternalCalendarId(object.getJsonArray("calendar")
+                                    .stream().map((Object::toString))
+                                    .collect(Collectors.toList()))
+                            .onSuccess(isExternal -> {
+                                if(Boolean.FALSE.equals(isExternal)) {
+                                    if (isEventValid(object)) {
+                                        RbsHelper.saveBookingsInRbs(request, object, user, config, eb).onComplete(e ->
+                                                eventService.create(calendarId, object, user, event -> {
+                                                    if (event.isRight()) {
+                                                        JsonObject eventId = event.right().getValue();
+                                                        final JsonObject message = new JsonObject();
+                                                        message.put(Field._ID, calendarId);
+                                                        message.put(Field.EVENTID, eventId.getString("_id"));
+                                                        message.put(Field.START_DATE, (String) null);
+                                                        message.put(Field.END_DATE, (String) null);
+                                                        message.put(Field.SENDNOTIF, object.getBoolean(Field.SENDNOTIF, null));
+                                                        notifyEventCreatedOrUpdated(request, user, message, true);
+                                                        renderJson(request, event.right().getValue(), 200);
+                                                        eventHelper.onCreateResource(request, RESOURCE_NAME);
+                                                    } else if (event.isLeft()) {
+                                                        log.error("[Calendar@EventHelper::create] Error when getting notification informations.");
+                                                    }
+                                                })
+                                        );
 
-                                        } else {
-                                            log.error(String.format("[Calendar@EventHelper::create] " + "Submitted event is not valid"),
-                                                    I18n.getInstance().translate("calendar.error.date.saving", getHost(request), I18n.acceptLanguage(request)));
-                                            Renders.unauthorized(request);
-                                        }
                                     } else {
-                                        unauthorized(request);
+                                        log.error(String.format("[Calendar@EventHelper::create] " + "Submitted event is not valid"),
+                                                I18n.getInstance().translate("calendar.error.date.saving", getHost(request), I18n.acceptLanguage(request)));
+                                        Renders.unauthorized(request);
                                     }
-                                })
-                                .onFailure(err -> {
-                                    renderError(request);
-                                });
+                                } else {
+                                    unauthorized(request);
+                                }
+                            })
+                            .onFailure(err -> {
+                                renderError(request);
+                            });
 
-                    });
-                } else {
-                    log.debug("User not found in session.");
-                    Renders.unauthorized(request);
-                }
+                });
+            } else {
+                log.debug("User not found in session.");
+                Renders.unauthorized(request);
             }
         });
     }
@@ -182,22 +179,28 @@ public class EventHelper extends MongoDbControllerHelper {
                             isExternalCalendarEventImmutable(eventId)
                                     .onSuccess(isExternal -> {
                                         if(Boolean.FALSE.equals(isExternal)) {
-                                            crudService.update(eventId, object, user, new Handler<Either<String, JsonObject>>() {
-                                                public void handle(Either<String, JsonObject> event) {
-                                                    if (event.isRight()) {
-                                                        final JsonObject message = new JsonObject();
-                                                        message.put("id", calendarId);
-                                                        message.put("eventId", eventId);
-                                                        message.put("start_date", (String) null);
-                                                        message.put("end_date", (String) null);
-                                                        message.put("sendNotif", object.containsKey("sendNotif") ? object.getBoolean("sendNotif") : null);
-                                                        notifyEventCreatedOrUpdated(request, user, message, false);
-                                                        renderJson(request, event.right().getValue(), 200);
-                                                    } else if (event.isLeft()) {
-                                                        log.error("Error when getting notification informations.");
+                                            if (isEventValid(object)) {
+                                                crudService.update(eventId, object, user, new Handler<Either<String, JsonObject>>() {
+                                                    public void handle(Either<String, JsonObject> event) {
+                                                        if (event.isRight()) {
+                                                            final JsonObject message = new JsonObject();
+                                                            message.put("id", calendarId);
+                                                            message.put("eventId", eventId);
+                                                            message.put("start_date", (String) null);
+                                                            message.put("end_date", (String) null);
+                                                            message.put("sendNotif", object.containsKey("sendNotif") ? object.getBoolean("sendNotif") : null);
+                                                            notifyEventCreatedOrUpdated(request, user, message, false);
+                                                            renderJson(request, event.right().getValue(), 200);
+                                                        } else if (event.isLeft()) {
+                                                            log.error("Error when getting notification informations.");
+                                                        }
                                                     }
-                                                }
-                                            });
+                                                });
+                                            } else {
+                                                log.error(String.format("[Calendar@EventHelper::update] " + "Submitted event is not valid"),
+                                                        I18n.getInstance().translate("calendar.error.date.saving", getHost(request), I18n.acceptLanguage(request)));
+                                                Renders.unauthorized(request);
+                                            }
                                         } else {
                                             unauthorized(request);
                                         }
@@ -516,25 +519,61 @@ public class EventHelper extends MongoDbControllerHelper {
      * and the recurrence must be at least weekly
      *
      * @param object  JsonObject, the event to save
-     * @param request HttpServerRequest, the saving request
      * @return true if the event meets the requirements mentionned before
      */
-    private boolean isEventValid(JsonObject object, HttpServerRequest request) {
+    private boolean isEventValid(JsonObject object) {
+        if(!object.containsKey(Field.STARTMOMENT) || !object.containsKey(Field.ENDMOMENT)) return false;
+
         Date startDate = DateUtils.parseDate(object.getString(Field.STARTMOMENT), DateUtils.DATE_FORMAT_UTC);
         Date endDate = DateUtils.parseDate(object.getString(Field.ENDMOMENT), DateUtils.DATE_FORMAT_UTC);
 
-        boolean areDatesValid = DateUtils.isStrictlyBefore(startDate, endDate);
+        if(startDate == null || endDate == null)return false;
+
+        Date refStartDate = DateUtils.parseDate(Field.REFSTARTDATE, DateUtils.DATE_FORMAT_UTC);
+        Date refEndDate = DateUtils.getRefEndDate();
+
+        boolean isStartMomentNotTooOld = DateUtils.isStrictlyAfter(startDate, refStartDate);
+        boolean isEndMomentNotTooFar = DateUtils.isStrictlyBefore(endDate, refEndDate);
         boolean isOneDayEvent = DateUtils.isSameDay(startDate, endDate);
         boolean isNotRecurrentEvent = Boolean.FALSE.equals(object.getBoolean(Field.isRecurrent));
+        boolean areDatesValid = DateUtils.isStrictlyBefore(startDate, endDate) && isStartMomentNotTooOld && isEndMomentNotTooFar && isRecurrentEndDateValid(object);
 
         long dayInMilliseconds = 1000 * 60 * 60 * 24;
         int eventDayLength = (int) ((endDate.getTime() - startDate.getTime()) / dayInMilliseconds);
 
         boolean isWeeklyRecurrenceValid = object.getValue(Field.recurrence) instanceof JsonObject
-                && "every_week".equals(object.getJsonObject(Field.recurrence).getValue(Field.type))
+                && Field.every_week.equals(object.getJsonObject(Field.recurrence).getValue(Field.type))
                 && (eventDayLength < (7 * object.getJsonObject(Field.recurrence).getInteger(Field.every)));
 
+
         return (areDatesValid && (isOneDayEvent || isNotRecurrentEvent || isWeeklyRecurrenceValid));
+    }
+
+
+    /**
+     * Check if a recurrent event has valid end date.
+     * If it has an end date, it must be earlier than the current date + 80 years
+     * If it's a number of recureence type of event : this number should be less than 100
+     * @param object  JsonObject, the event to save
+     * @return true if the recurrence meets the requirements mentionned before
+     */
+    private boolean isRecurrentEndDateValid (JsonObject object) {
+        Date refEndDate = DateUtils.getRefEndDate();
+        if (Boolean.FALSE.equals(object.getBoolean(Field.isRecurrent))) {
+            return true;
+        } else {
+            boolean result = false;
+            String endType = (String) object.getJsonObject(Field.recurrence).getValue(Field.end_type);
+            if (Field.on.equals(endType)) {
+                String endOnString = (String) object.getJsonObject(Field.recurrence).getValue(Field.end_on);
+                Date endOnDate = DateUtils.parseDate(endOnString, DateUtils.DATE_FORMAT_UTC);
+                result = DateUtils.isStrictlyBefore(endOnDate, refEndDate);
+            } else if (Field.after.equals(endType)) {
+                int endAfterValue = (int) object.getJsonObject(Field.recurrence).getValue(Field.end_after);
+                result =  endAfterValue >= Field.end_after_min_value && endAfterValue <= Field.end_after_max_value;
+            }
+            return result;
+        }
     }
 
     /**

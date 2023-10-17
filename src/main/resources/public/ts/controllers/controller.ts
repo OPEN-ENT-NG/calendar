@@ -1,10 +1,10 @@
-import {$, _, moment, ng, template, idiom as lang, notify, toasts, angular, Document, Behaviours} from "entcore";
+import {$, _, moment, ng, template, idiom as lang, notify, toasts, angular, Document} from "entcore";
 import {
     Calendar,
     Calendars,
     CalendarEvent,
-    CalendarEvents, CalendarEventRecurrence, SavedBooking, Preference,
-} from "../model/index";
+    CalendarEvents, CalendarEventRecurrence, Preference,
+} from "../model";
 import {
     defaultColor,
     periods,
@@ -13,24 +13,22 @@ import {
     LANG_CALENDAR,
     rights,
     ACTIONS,
-    ActionButtonType
+    ActionButtonType, minStartMomentDate, maxEndMomentDate
 } from "../model/constantes";
 import {
-    isSameAfter,
     makerFormatTimeInput,
     utcTime,
     safeApply
 } from "../model/Utils";
-import {calendar} from "entcore/types/src/ts/calendar";
 import {AxiosResponse} from "axios";
 import {DateUtils} from "../utils/date.utils";
 import {Subject} from "rxjs";
 import {Moment} from "moment";
 import {FORMAT} from "../core/const/date-format";
 import {DAY_OF_WEEK} from "../core/enum/dayOfWeek.enum";
-import {attachmentService} from "../services/attachment.service";
+import {attachmentService} from "../services";
 import {PERIODE_TYPE} from "../core/enum/period-type.enum";
-import {RbsEmitter} from "../model/rbs/rbs-emitter.model";
+import {RbsEmitter} from "../model";
 import {IScope} from "angular";
 import {RBS_EVENTER} from "../core/enum/rbs/rbs-eventer.enum";
 import {RBS_SNIPLET} from "../core/const/rbs-sniplet.const";
@@ -85,6 +83,8 @@ export const calendarController = ng.controller('CalendarController',
             $scope.ENABLE_RBS = ENABLE_RBS;
             $scope.rbsEmitter = new RbsEmitter($scope, !!$scope.ENABLE_RBS);
             $scope.ENABLE_ZIMBRA = ENABLE_ZIMBRA;
+            $scope.minDate = moment(minStartMomentDate);
+            $scope.maxDate = moment().add(maxEndMomentDate, 'years').startOf('day');
 
                 template.open('main', 'main-view');
                 template.open('top-menu', 'top-menu');
@@ -191,6 +191,7 @@ export const calendarController = ng.controller('CalendarController',
                     }
                 }
             }
+
 
             $scope.isEmpty = () => {
                 return $scope.calendars
@@ -310,6 +311,7 @@ export const calendarController = ng.controller('CalendarController',
                     return val === true;
                 });
             };
+
 
         $scope.changeStartMoment = () => {
             if (!$scope.isDateValid()) {
@@ -1691,7 +1693,8 @@ export const calendarController = ng.controller('CalendarController',
                 $scope.eventForm = angular.element(document.getElementById("event-form")).scope();
                 /** Ensures that the fields of the form are correctly filled*/
                 let areFieldsInCommonValid: boolean = ($scope.rbsEmitter.checkBookingValidAndSendInfoToSniplet() && !$scope.eventForm.editEvent.$invalid && $scope.isCalendarSelectedInEvent()
-                    && $scope.isTimeValid() && $scope.isDateValid() &&  $scope.areRecurrenceAndEventLengthsCompatible());
+                    && $scope.isTimeValid() && $scope.isDateValid() &&  $scope.areRecurrenceAndEventLengthsCompatible()
+                    && !$scope.isStartDateTooOld() && !$scope.isEndDateTooFar() && $scope.isValidRecurrentEndDate());
 
                 switch (actionButton) {
                     case ACTIONS.save:
@@ -1727,6 +1730,30 @@ export const calendarController = ng.controller('CalendarController',
             $scope.isDateValid = (): boolean => ($scope.calendarEvent.startMoment && $scope.calendarEvent.endMoment
                 && moment($scope.calendarEvent.startMoment).isValid() && moment($scope.calendarEvent.endMoment).isValid()
                 && moment($scope.calendarEvent.startMoment).isSameOrBefore(moment($scope.calendarEvent.endMoment), 'day'));
+
+            /**
+             * Returns true if startMoment is older than january 1/2000
+             */
+            $scope.isStartDateTooOld = (): boolean => ($scope.calendarEvent.startMoment < $scope.minDate);
+
+            /**
+             * Returns true if endMoment is after 80 years further
+             */
+            $scope.isEndDateTooFar = (): boolean => ($scope.calendarEvent.endMoment > $scope.maxDate);
+
+            /**
+             * Check the end date of recurrence
+             */
+            $scope.isValidRecurrentEndDate = (): boolean => {
+                const { end_type, end_on } = $scope.calendarEvent.recurrence;
+                if (end_type === 'on' && end_on) {
+                    const endOnMoment = moment(end_on);
+                    return endOnMoment <= $scope.maxDate
+                        && endOnMoment >= $scope.minDate
+                        && endOnMoment > $scope.calendarEvent.endMoment;
+                }
+                return true;
+            }
 
             /**
              * Returns true if the event length is shorter than the recurrence length
