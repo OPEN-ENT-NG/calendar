@@ -84,7 +84,6 @@ export const calendarController = ng.controller('CalendarController',
             $scope.rbsEmitter = new RbsEmitter($scope, !!$scope.ENABLE_RBS);
             $scope.ENABLE_ZIMBRA = ENABLE_ZIMBRA;
             $scope.minDate = moment(minStartMomentDate);
-            $scope.maxDate = moment().add(maxEndMomentDate, 'years').startOf('day');
 
                 template.open('main', 'main-view');
                 template.open('top-menu', 'top-menu');
@@ -1739,7 +1738,7 @@ export const calendarController = ng.controller('CalendarController',
             /**
              * Returns true if endMoment is after 80 years further
              */
-            $scope.isEndDateTooFar = (): boolean => ($scope.calendarEvent.endMoment > $scope.maxDate);
+            $scope.isEndDateTooFar = (): boolean => $scope.calendarEvent.endMoment > moment($scope.calendarEvent.startMoment).add(maxEndMomentDate, 'years');
 
             /**
              * Check the end date of recurrence
@@ -1748,7 +1747,7 @@ export const calendarController = ng.controller('CalendarController',
                 const { end_type, end_on } = $scope.calendarEvent.recurrence;
                 if (end_type === 'on' && end_on) {
                     const endOnMoment = moment(end_on);
-                    return endOnMoment <= $scope.maxDate
+                    return endOnMoment <= moment($scope.calendarEvent.startMoment).add(maxEndMomentDate, 'years')
                         && endOnMoment >= $scope.minDate
                         && endOnMoment > $scope.calendarEvent.endMoment;
                 }
