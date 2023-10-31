@@ -552,8 +552,9 @@ public class EventHelper extends MongoDbControllerHelper {
 
     /**
      * Check if a recurrent event has valid end date.
-     * If it has an end date, it must be earlier than the current date + 80 years
-     * If it's a number of recureence type of event : this number should be less than 100
+     * If it has an end date, it must be earlier than the event start date + 80 years
+     * If it's a number of recurrence type of event : this number should be more than 1 and less than 365
+     * If it's a number of recurrence type of event : we calculate a periodicEndDate and compare it to the max possible endDate we fixed to be sure its under 80 years long
      * @param object  JsonObject, the event to save
      * @return true if the recurrence meets the requirements mentionned before
      */
@@ -569,11 +570,12 @@ public class EventHelper extends MongoDbControllerHelper {
                 Date endOnDate = DateUtils.parseDate(endOnString, DateUtils.DATE_FORMAT_UTC);
                 result = DateUtils.isStrictlyBefore(endOnDate, refEndDate);
             } else if (Field.after.equals(endType)) {
-                int range = (int) object.getJsonObject(Field.recurrence).getValue(Field.end_after);
+                int range = object.getJsonObject(Field.recurrence).containsKey(Field.end_after) ? object.getJsonObject(Field.recurrence).getInteger(Field.end_after) : 0;
                 if(range <= Field.end_after_min_value || range >= Field.end_after_max_value){
                     return false;
                 }
                 Date periodicEndDate = DateUtils.getPeriodicEndDate(startDate, object);
+                if(periodicEndDate == null) return false;
                 result = DateUtils.isStrictlyBefore(periodicEndDate, refEndDate);
             }
             return result;

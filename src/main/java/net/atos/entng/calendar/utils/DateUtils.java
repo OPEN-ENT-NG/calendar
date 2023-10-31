@@ -80,10 +80,11 @@ public final class DateUtils {
     }
 
     public static Date getPeriodicEndDate(Date startDate, JsonObject object) {
-        int range = (int) object.getJsonObject(Field.recurrence).getValue(Field.end_after);
+        int range = object.getJsonObject(Field.recurrence).containsKey(Field.end_after) ? object.getJsonObject(Field.recurrence).getInteger(Field.end_after) : 0;
+        int every = object.getJsonObject(Field.recurrence).containsKey(Field.every) ? object.getJsonObject(Field.recurrence).getInteger(Field.every) : 0;
+        if(range == 0 || every == 0) return null;
         final Calendar cal = new GregorianCalendar();
         String type = (String) object.getJsonObject(Field.recurrence).getValue(Field.type);
-        int every = (int) object.getJsonObject(Field.recurrence).getValue(Field.every);
         cal.setTime(startDate);
         if(Field.every_day.equals(type)){
             cal.add(Calendar.DAY_OF_YEAR, range * every);
