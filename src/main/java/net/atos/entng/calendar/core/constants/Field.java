@@ -86,6 +86,7 @@ public class Field {
 
     // event recurrence type option
     public static final String every_week = "every_week";
+    public static final String every_day = "every_day";
     // event recurrence length (1, 2, 3 ... days/week)
     public static final String every = "every";
 

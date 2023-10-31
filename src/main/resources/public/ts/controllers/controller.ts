@@ -1742,14 +1742,20 @@ export const calendarController = ng.controller('CalendarController',
 
             /**
              * Check the end date of recurrence
+             * no compute if recurrence type == every_days because the maximum number of years to be reached is 9
              */
             $scope.isValidRecurrentEndDate = (): boolean => {
-                const { end_type, end_on } = $scope.calendarEvent.recurrence;
-                if (end_type === 'on' && end_on) {
+                const { end_type, end_on, type, every, end_after } = $scope.calendarEvent.recurrence;
+                if (end_type === 'on') {
                     const endOnMoment = moment(end_on);
                     return endOnMoment <= moment($scope.calendarEvent.startMoment).add(maxEndMomentDate, 'years')
                         && endOnMoment >= $scope.minDate
                         && endOnMoment > $scope.calendarEvent.endMoment;
+                } else if (end_type === 'after' && type === 'every_week') {
+                    let weeksToAdd: number = end_after * every;
+                    let maxEventEndDate : Date = moment($scope.calendarEvent.startMoment).add(maxEndMomentDate, 'years');
+                    let recurrentEndDate : Date = moment($scope.calendarEvent.startMoment).add(weeksToAdd, 'weeks');
+                    return recurrentEndDate < maxEventEndDate;
                 }
                 return true;
             }

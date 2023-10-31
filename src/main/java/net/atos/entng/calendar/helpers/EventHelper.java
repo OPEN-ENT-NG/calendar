@@ -530,13 +530,13 @@ public class EventHelper extends MongoDbControllerHelper {
         if(startDate == null || endDate == null)return false;
 
         Date refStartDate = DateUtils.parseDate(Field.REFSTARTDATE, DateUtils.DATE_FORMAT_UTC);
-        Date refEndDate = DateUtils.getRefEndDate();
+        Date refEndDate = DateUtils.getRefEndDate(startDate);
 
         boolean isStartMomentNotTooOld = DateUtils.isStrictlyAfter(startDate, refStartDate);
         boolean isEndMomentNotTooFar = DateUtils.isStrictlyBefore(endDate, refEndDate);
         boolean isOneDayEvent = DateUtils.isSameDay(startDate, endDate);
         boolean isNotRecurrentEvent = Boolean.FALSE.equals(object.getBoolean(Field.isRecurrent));
-        boolean areDatesValid = DateUtils.isStrictlyBefore(startDate, endDate) && isStartMomentNotTooOld && isEndMomentNotTooFar && isRecurrentEndDateValid(object);
+        boolean areDatesValid = DateUtils.isStrictlyBefore(startDate, endDate) && isStartMomentNotTooOld && isEndMomentNotTooFar && isRecurrentEndDateValid(object, startDate);
 
         long dayInMilliseconds = 1000 * 60 * 60 * 24;
         int eventDayLength = (int) ((endDate.getTime() - startDate.getTime()) / dayInMilliseconds);
@@ -557,8 +557,8 @@ public class EventHelper extends MongoDbControllerHelper {
      * @param object  JsonObject, the event to save
      * @return true if the recurrence meets the requirements mentionned before
      */
-    private boolean isRecurrentEndDateValid (JsonObject object) {
-        Date refEndDate = DateUtils.getRefEndDate();
+    private boolean isRecurrentEndDateValid (JsonObject object, Date startDate) {
+        Date refEndDate = DateUtils.getRefEndDate(startDate);
         if (Boolean.FALSE.equals(object.getBoolean(Field.isRecurrent))) {
             return true;
         } else {
@@ -569,8 +569,12 @@ public class EventHelper extends MongoDbControllerHelper {
                 Date endOnDate = DateUtils.parseDate(endOnString, DateUtils.DATE_FORMAT_UTC);
                 result = DateUtils.isStrictlyBefore(endOnDate, refEndDate);
             } else if (Field.after.equals(endType)) {
-                int endAfterValue = (int) object.getJsonObject(Field.recurrence).getValue(Field.end_after);
-                result =  endAfterValue >= Field.end_after_min_value && endAfterValue <= Field.end_after_max_value;
+                int range = (int) object.getJsonObject(Field.recurrence).getValue(Field.end_after);
+                if(range <= Field.end_after_min_value || range >= Field.end_after_max_value){
+                    return false;
+                }
+                Date periodicEndDate = DateUtils.getPeriodicEndDate(startDate, object);
+                result = DateUtils.isStrictlyBefore(periodicEndDate, refEndDate);
             }
             return result;
         }

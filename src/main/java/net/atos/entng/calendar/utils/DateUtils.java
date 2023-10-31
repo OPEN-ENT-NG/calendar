@@ -1,5 +1,6 @@
 package net.atos.entng.calendar.utils;
 
+import io.vertx.core.json.JsonObject;
 import net.atos.entng.calendar.core.constants.Field;
 
 import java.text.DateFormat;
@@ -71,11 +72,24 @@ public final class DateUtils {
         return dateString;
     }
 
-    public static Date getRefEndDate() {
-        Date currentDate = new Date();
+    public static Date getRefEndDate(Date startDate) {
         final Calendar cal = new GregorianCalendar();
-        cal.setTime(currentDate);
+        cal.setTime(startDate);
         cal.add(Calendar.YEAR, Field.REFENDDATE);
+        return cal.getTime();
+    }
+
+    public static Date getPeriodicEndDate(Date startDate, JsonObject object) {
+        int range = (int) object.getJsonObject(Field.recurrence).getValue(Field.end_after);
+        final Calendar cal = new GregorianCalendar();
+        String type = (String) object.getJsonObject(Field.recurrence).getValue(Field.type);
+        int every = (int) object.getJsonObject(Field.recurrence).getValue(Field.every);
+        cal.setTime(startDate);
+        if(Field.every_day.equals(type)){
+            cal.add(Calendar.DAY_OF_YEAR, range * every);
+        } else if (Field.every_week.equals(type)) {
+            cal.add(Calendar.WEEK_OF_YEAR, range * every);
+        }
         return cal.getTime();
     }
 
