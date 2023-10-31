@@ -88,8 +88,8 @@ public final class DateUtils {
      *  This means that with a maximum interval of 9 weeks and 365 maximum recurrences, you can reach a maximum of 63 years.
      */
     public static Date getPeriodicEndDate(Date startDate, JsonObject object) {
-        int range = object.getJsonObject(Field.recurrence).containsKey(Field.end_after) ? object.getJsonObject(Field.recurrence).getInteger(Field.end_after) : 0;
-        int every = object.getJsonObject(Field.recurrence).containsKey(Field.every) ? object.getJsonObject(Field.recurrence).getInteger(Field.every) : 0;
+        int range = object.getJsonObject(Field.recurrence, new JsonObject()).getInteger(Field.end_after, 0);
+        int every = object.getJsonObject(Field.recurrence, new JsonObject()).getInteger(Field.every, 0);
         if(range == 0 || every == 0) return null;
         final Calendar cal = new GregorianCalendar();
         String type = (String) object.getJsonObject(Field.recurrence).getValue(Field.type);

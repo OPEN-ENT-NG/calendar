@@ -570,7 +570,7 @@ public class EventHelper extends MongoDbControllerHelper {
                 Date endOnDate = DateUtils.parseDate(endOnString, DateUtils.DATE_FORMAT_UTC);
                 result = DateUtils.isStrictlyBefore(endOnDate, refEndDate);
             } else if (Field.after.equals(endType)) {
-                int range = object.getJsonObject(Field.recurrence).containsKey(Field.end_after) ? object.getJsonObject(Field.recurrence).getInteger(Field.end_after) : 0;
+                int range = object.getJsonObject(Field.recurrence, new JsonObject()).getInteger(Field.end_after, 0);
                 if(range <= Field.end_after_min_value || range >= Field.end_after_max_value){
                     return false;
                 }
