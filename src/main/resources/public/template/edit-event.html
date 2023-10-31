@@ -353,7 +353,7 @@
                             <div class="top-spacing-twice warning form-element" ng-if="!areRecurrenceAndEventLengthsCompatible()">
                                 <i18n>calendar.event.length.error</i18n>
                             </div>
-                            <div class="top-spacing-twice warning form-element" ng-if="!isValidRecurrentEndDate()">
+                            <div class="top-spacing-twice warning form-element" ng-if="calendarEvent.isRecurrent && !isValidRecurrentEndDate()">
                                 <i18n>calendar.error.date.recurrence</i18n>
                             </div>
                         </div>
