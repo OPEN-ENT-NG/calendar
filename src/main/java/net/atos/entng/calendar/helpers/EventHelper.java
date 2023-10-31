@@ -564,9 +564,10 @@ public class EventHelper extends MongoDbControllerHelper {
             return true;
         } else {
             boolean result = false;
-            String endType = (String) recurrentEvent.getJsonObject(Field.recurrence).getValue(Field.end_type);
+            String endType = recurrentEvent.getJsonObject(Field.recurrence, new JsonObject()).getString(Field.end_type, null);
             if (Field.on.equals(endType)) {
-                String endOnString = (String) recurrentEvent.getJsonObject(Field.recurrence).getValue(Field.end_on);
+                String endOnString = recurrentEvent.getJsonObject(Field.recurrence, new JsonObject()).getString(Field.end_on, null);
+                if(endOnString == null) return false;
                 Date endOnDate = DateUtils.parseDate(endOnString, DateUtils.DATE_FORMAT_UTC);
                 result = DateUtils.isStrictlyBefore(endOnDate, refEndDate);
             } else if (Field.after.equals(endType)) {

@@ -92,7 +92,7 @@ public final class DateUtils {
         int every = object.getJsonObject(Field.recurrence, new JsonObject()).getInteger(Field.every, 0);
         if(range == 0 || every == 0) return null;
         final Calendar cal = new GregorianCalendar();
-        String type = (String) object.getJsonObject(Field.recurrence).getValue(Field.type);
+        String type = object.getJsonObject(Field.recurrence, new JsonObject()).getString(Field.type, null);
         cal.setTime(startDate);
         if(Field.every_day.equals(type)){
             cal.add(Calendar.DAY_OF_YEAR, range * every);
