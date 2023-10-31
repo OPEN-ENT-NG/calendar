@@ -79,6 +79,14 @@ public final class DateUtils {
         return cal.getTime();
     }
 
+    /**
+     *  Calculates the end date of a periodic event based on the start date, recurrence type, range, and interval
+     *  This date shows the real end date of the event if it would be saved
+     *  So we return this calculated date and compare it to the max end date we fixed which must be under 80 years after start date
+     *  Exemple : Calculation of the periodic end date based on an interval of 9 weeks and with 365 recurrences.
+     *  Number of years = 63 added to the start date
+     *  This means that with a maximum interval of 9 weeks and 365 maximum recurrences, you can reach a maximum of 63 years.
+     */
     public static Date getPeriodicEndDate(Date startDate, JsonObject object) {
         int range = object.getJsonObject(Field.recurrence).containsKey(Field.end_after) ? object.getJsonObject(Field.recurrence).getInteger(Field.end_after) : 0;
         int every = object.getJsonObject(Field.recurrence).containsKey(Field.every) ? object.getJsonObject(Field.recurrence).getInteger(Field.every) : 0;
