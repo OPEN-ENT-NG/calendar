@@ -1,5 +1,6 @@
 package net.atos.entng.calendar.utils;
 
+import io.vertx.core.json.JsonObject;
 import net.atos.entng.calendar.core.constants.Field;
 
 import java.text.DateFormat;
@@ -71,11 +72,33 @@ public final class DateUtils {
         return dateString;
     }
 
-    public static Date getRefEndDate() {
-        Date currentDate = new Date();
+    public static Date getRefEndDate(Date startDate) {
         final Calendar cal = new GregorianCalendar();
-        cal.setTime(currentDate);
+        cal.setTime(startDate);
         cal.add(Calendar.YEAR, Field.REFENDDATE);
+        return cal.getTime();
+    }
+
+    /**
+     *  Calculates the end date of a periodic event based on the start date, recurrence type, range, and interval
+     *  This date shows the real end date of the event if it would be saved
+     *  So we return this calculated date and compare it to the max end date we fixed which must be under 80 years after start date
+     *  Exemple : Calculation of the periodic end date based on an interval of 9 weeks and with 365 recurrences.
+     *  Number of years = 63 added to the start date
+     *  This means that with a maximum interval of 9 weeks and 365 maximum recurrences, you can reach a maximum of 63 years.
+     */
+    public static Date getPeriodicEndDate(Date startDate, JsonObject object) {
+        int range = object.getJsonObject(Field.recurrence, new JsonObject()).getInteger(Field.end_after, 0);
+        int every = object.getJsonObject(Field.recurrence, new JsonObject()).getInteger(Field.every, 0);
+        if(range == 0 || every == 0) return null;
+        final Calendar cal = new GregorianCalendar();
+        String type = object.getJsonObject(Field.recurrence, new JsonObject()).getString(Field.type, null);
+        cal.setTime(startDate);
+        if(Field.every_day.equals(type)){
+            cal.add(Calendar.DAY_OF_YEAR, range * every);
+        } else if (Field.every_week.equals(type)) {
+            cal.add(Calendar.WEEK_OF_YEAR, range * every);
+        }
         return cal.getTime();
     }
 
