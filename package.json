@@ -60,6 +60,6 @@
     "@mdi/font": "6.5.95",
     "sass": "1.49.9",
     "entcore-css-lib": "npm:ode-csslib@4.0.12",
-    "underscore": "1.8.3"
+    "underscore": "1.12.1"
   }
 }
