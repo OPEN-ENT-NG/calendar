@@ -19,7 +19,7 @@
 
 package net.atos.entng.calendar.services.impl;
 
-import com.mongodb.QueryBuilder;
+import com.mongodb.client.model.Filters;
 import fr.wseduc.mongodb.MongoDb;
 import fr.wseduc.mongodb.MongoQueryBuilder;
 import fr.wseduc.mongodb.MongoUpdateBuilder;
@@ -42,17 +42,17 @@ import net.atos.entng.calendar.services.CalendarService;
 import net.atos.entng.calendar.services.EventServiceMongo;
 import net.atos.entng.calendar.services.ServiceFactory;
 import net.atos.entng.calendar.services.UserService;
-import net.fortuna.ical4j.util.UidGenerator;
 import org.apache.commons.lang3.mutable.MutableInt;
+import org.bson.conversions.Bson;
 import org.entcore.common.service.impl.MongoDbCrudService;
 import org.entcore.common.user.UserInfos;
 
-import java.net.SocketException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.UUID;
 
+import static com.mongodb.client.model.Filters.*;
 import static fr.wseduc.webutils.Utils.handlerToAsyncHandler;
 import static net.atos.entng.calendar.Calendar.CALENDAR_COLLECTION;
 import static org.entcore.common.mongodb.MongoDbResult.*;
@@ -91,7 +91,7 @@ public class EventServiceMongoImpl extends MongoDbCrudService implements EventSe
      */
     @Override
     public void list(String calendarId, UserInfos user, String startDate, String endDate, final Handler<Either<String, JsonArray>> handler) {
-        QueryBuilder queryCalendar = QueryBuilder.start(Field._ID).is(calendarId);
+        Bson queryCalendar = eq(Field._ID, calendarId);
 
         mongo.findOne(CALENDAR_COLLECTION, MongoQueryBuilder.build(queryCalendar), validActionResultHandler(result -> {
             if (result.isLeft()) {
@@ -213,8 +213,10 @@ public class EventServiceMongoImpl extends MongoDbCrudService implements EventSe
     @Override
     public void retrieve(String calendarId, String eventId, UserInfos user, Handler<Either<String, JsonObject>> handler) {
         // Query
-        QueryBuilder query = QueryBuilder.start("_id").is(eventId);
-        query.put("calendar").is(calendarId);
+        Bson query = and(
+          eq("_id",eventId),
+          eq("calendar", calendarId)
+        );
 
         // Projection
         JsonObject projection = new JsonObject();
@@ -231,8 +233,10 @@ public class EventServiceMongoImpl extends MongoDbCrudService implements EventSe
     @Override
     public void retrieveByIcsUid(String calendarId, String icsUid, UserInfos user, Handler<Either<String, JsonObject>> handler) {
         // Query
-        QueryBuilder query = QueryBuilder.start("icsUid").is(icsUid);
-        query.put("calendar").is(calendarId);
+        Bson query = and(
+          eq("icsUid",icsUid),
+          eq("calendar", calendarId)
+        );
 
         // Projection
         JsonObject projection = new JsonObject();
@@ -244,7 +248,7 @@ public class EventServiceMongoImpl extends MongoDbCrudService implements EventSe
     public Future<JsonArray> retrieveByCalendarId(String calendarId) {
         Promise<JsonArray> promise = Promise.promise();
         // Query
-        QueryBuilder query = QueryBuilder.start(Field.CALENDAR).is(calendarId);
+        Bson query = eq(Field.CALENDAR, calendarId);
 
         mongo.find(this.collection, MongoQueryBuilder.build(query), result -> {
             if (result.body().isEmpty()) {
@@ -264,8 +268,10 @@ public class EventServiceMongoImpl extends MongoDbCrudService implements EventSe
     @Override
     public void update(String calendarId, String eventId, JsonObject body, UserInfos user, Handler<Either<String, JsonObject>> handler) {
         // Query
-        QueryBuilder query = QueryBuilder.start("_id").is(eventId);
-        query.put("calendar").is(calendarId);
+        Bson query = and(
+          eq("_id",eventId),
+          eq("calendar", calendarId)
+        );
 
         // Clean data
         body.remove("_id");
@@ -283,7 +289,7 @@ public class EventServiceMongoImpl extends MongoDbCrudService implements EventSe
     @Override
     public void update(String eventId, JsonObject body, UserInfos user, Handler<Either<String, JsonObject>> handler) {
         // Query
-        QueryBuilder query = QueryBuilder.start("_id").is(eventId);
+        Bson query = eq("_id",eventId);
 
         // Clean data
         body.remove("_id");
@@ -300,8 +306,10 @@ public class EventServiceMongoImpl extends MongoDbCrudService implements EventSe
 
     @Override
     public void delete(String calendarId, String eventId, UserInfos user, Handler<Either<String, JsonObject>> handler) {
-        QueryBuilder query = QueryBuilder.start("_id").is(eventId);
-        query.put("calendar").is(calendarId);
+        Bson query = and(
+          eq("_id",eventId),
+          eq("calendar", calendarId)
+        );
         mongo.delete(this.collection, MongoQueryBuilder.build(query), validActionResultHandler(handler));
 
     }
@@ -317,8 +325,10 @@ public class EventServiceMongoImpl extends MongoDbCrudService implements EventSe
         Promise<Void> promise = Promise.promise();
 
         // Query
-        QueryBuilder query = QueryBuilder.start(Field.CALENDAR).is(calendarId);
-        query.put(Field.STARTMOMENT).greaterThan(comparisonDate);
+        Bson query = and(
+          eq(Field.CALENDAR, calendarId),
+          gt(Field.STARTMOMENT, comparisonDate)
+        );
 
         mongo.delete(this.collection, MongoQueryBuilder.build(query), result -> {
             if (result.body().isEmpty()) {
@@ -338,7 +348,7 @@ public class EventServiceMongoImpl extends MongoDbCrudService implements EventSe
     public Future<Void> deleteByCalendarId(String calendarId) {
         Promise<Void> promise = Promise.promise();
 
-        QueryBuilder query = QueryBuilder.start(Field.CALENDAR).is(calendarId);
+        Bson query = eq(Field.CALENDAR, calendarId);
 
         mongo.delete(this.collection, MongoQueryBuilder.build(query), validResultHandler(event -> {
             if (event.isLeft()) {
@@ -362,7 +372,7 @@ public class EventServiceMongoImpl extends MongoDbCrudService implements EventSe
             public void handle(Either<String, JsonArray> event) {
                 JsonArray values = event.right().getValue();
                 message.put("events", values);
-                eb.send(ICalHandler.ICAL_HANDLER_ADDRESS, message, handlerToAsyncHandler(handler));
+                eb.request(ICalHandler.ICAL_HANDLER_ADDRESS, message, handlerToAsyncHandler(handler));
             }
         });
     }
@@ -403,7 +413,7 @@ public class EventServiceMongoImpl extends MongoDbCrudService implements EventSe
         final EventServiceMongoImpl eventService = this;
         final MutableInt i = new MutableInt();
 
-        eb.send(ICalHandler.ICAL_HANDLER_ADDRESS, message, handlerToAsyncHandler(new Handler<Message<JsonObject>>() {
+        eb.request(ICalHandler.ICAL_HANDLER_ADDRESS, message, handlerToAsyncHandler(new Handler<Message<JsonObject>>() {
             @Override
             public void handle(Message<JsonObject> reply) {
                 final JsonObject result = new JsonObject();
@@ -466,7 +476,7 @@ public class EventServiceMongoImpl extends MongoDbCrudService implements EventSe
     }
 
     @Override
-    public void findOne(String collection, QueryBuilder query, Handler<Either<String, JsonObject>> handler) {
+    public void findOne(String collection, Bson query, Handler<Either<String, JsonObject>> handler) {
         JsonObject projection = new JsonObject();
         mongo.findOne(collection, MongoQueryBuilder.build(query), validResultHandler(handler));
     }
@@ -487,19 +497,21 @@ public class EventServiceMongoImpl extends MongoDbCrudService implements EventSe
     @Override
     public void getCalendarEventById(String eventId, Handler<Either<String, JsonObject>> handler) {
         JsonObject projection = new JsonObject();
-        QueryBuilder query = QueryBuilder.start("_id").is(eventId);
+        Bson query = eq("_id",eventId);
         mongo.findOne("calendarevent", MongoQueryBuilder.build(query), validResultHandler(handler));
     }
 
     @Override
     public void getEventsByCalendarAndDate(String[] calendars, int nbLimit, Handler<Either<String, JsonArray>> handler) {
-        QueryBuilder query;
+        Bson query;
         DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSX");
         String dateToIso = df.format(new Date());
         JsonObject sort = new JsonObject().put("startMoment", 1);
 
-        query = new QueryBuilder().and(QueryBuilder.start("calendar").in(calendars).get(),
-                QueryBuilder.start("endMoment").greaterThanEquals(dateToIso).get());
+        query = and(
+          in("calendar", calendars),
+          gte("endMoment", dateToIso)
+        );
 
         mongo.find("calendarevent", MongoQueryBuilder.build(query),
                 sort, null, -1, nbLimit, 2147483647,

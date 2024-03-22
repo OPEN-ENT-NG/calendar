@@ -1,6 +1,5 @@
 package net.atos.entng.calendar.services.impl;
 
-import com.mongodb.QueryBuilder;
 import fr.wseduc.mongodb.MongoDb;
 import fr.wseduc.mongodb.MongoQueryBuilder;
 import fr.wseduc.mongodb.MongoUpdateBuilder;
@@ -12,7 +11,9 @@ import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import net.atos.entng.calendar.core.constants.Field;
 import net.atos.entng.calendar.services.PlatformService;
+import org.bson.conversions.Bson;
 
+import static com.mongodb.client.model.Filters.eq;
 import static org.entcore.common.mongodb.MongoDbResult.validResultHandler;
 import static org.entcore.common.mongodb.MongoDbResult.validResultsHandler;
 
@@ -31,7 +32,7 @@ public class PlatformServiceImpl implements PlatformService {
     public Future<JsonObject> retrieve(String id) {
         Promise<JsonObject> promise = Promise.promise();
 
-        QueryBuilder query = QueryBuilder.start(Field._ID).is(id);
+        final Bson query = eq(Field._ID, id);
 
 
         mongo.findOne(this.collection, MongoQueryBuilder.build(query), validResultHandler(event -> {
@@ -87,7 +88,7 @@ public class PlatformServiceImpl implements PlatformService {
     public Future<Void> update(String id, JsonObject body) {
         Promise<Void> promise = Promise.promise();
 
-        QueryBuilder query = QueryBuilder.start(Field._ID).is(id);
+        final Bson query = eq(Field._ID, id);
 
         MongoUpdateBuilder modifier = new MongoUpdateBuilder();
         for (String attribute : body.fieldNames()) {
@@ -113,7 +114,7 @@ public class PlatformServiceImpl implements PlatformService {
         Promise<Void> promise = Promise.promise();
 
 
-        QueryBuilder query = QueryBuilder.start(Field._ID).is(id);
+        final Bson query = eq(Field._ID, id);
 
         mongo.delete(this.collection, MongoQueryBuilder.build(query), validResultHandler(event -> {
             if(event.isLeft()){

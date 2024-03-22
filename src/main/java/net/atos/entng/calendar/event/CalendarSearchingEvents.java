@@ -20,7 +20,6 @@
 package net.atos.entng.calendar.event;
 
 import com.mongodb.DBObject;
-import com.mongodb.QueryBuilder;
 import fr.wseduc.mongodb.MongoDb;
 import fr.wseduc.mongodb.MongoQueryBuilder;
 import fr.wseduc.webutils.Either;
@@ -28,6 +27,7 @@ import fr.wseduc.webutils.Either.Right;
 import fr.wseduc.webutils.I18n;
 import net.atos.entng.calendar.Calendar;
 import net.atos.entng.calendar.core.constants.Field;
+import org.bson.conversions.Bson;
 import org.entcore.common.search.SearchingEvents;
 import org.entcore.common.service.VisibilityFilter;
 import org.entcore.common.service.impl.MongoDbSearchService;
@@ -43,6 +43,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
+import static com.mongodb.client.model.Filters.*;
 import static org.entcore.common.mongodb.MongoDbResult.validResults;
 import static org.entcore.common.mongodb.MongoDbResult.validResultsHandler;
 
@@ -62,19 +63,18 @@ public class CalendarSearchingEvents implements SearchingEvents {
 		if (appFilters.contains(CalendarSearchingEvents.class.getSimpleName())) {
 
 			final List<String> groupIdsLst = groupIds.getList();
-			final List<DBObject> groups = new ArrayList<DBObject>();
-			groups.add(QueryBuilder.start("userId").is(userId).get());
+			final List<Bson> groups = new ArrayList<>();
+			groups.add(eq("userId",userId));
 			for (String gpId: groupIdsLst) {
-				groups.add(QueryBuilder.start("groupId").is(gpId).get());
+				groups.add(eq("groupId",gpId));
 			}
 
-			final QueryBuilder rightsQuery = new QueryBuilder().or(
-					QueryBuilder.start("visibility").is(VisibilityFilter.PUBLIC.name()).get(),
-					QueryBuilder.start("visibility").is(VisibilityFilter.PROTECTED.name()).get(),
-					QueryBuilder.start("owner.userId").is(userId).get(),
-					QueryBuilder.start("shared").elemMatch(
-							new QueryBuilder().or(groups.toArray(new DBObject[groups.size()])).get()
-					).get());
+			final Bson rightsQuery = or(
+					eq("visibility",VisibilityFilter.PUBLIC.name()),
+					eq("visibility",VisibilityFilter.PROTECTED.name()),
+					eq("owner.userId",userId),
+					elemMatch("shared", or(groups))
+				);
 
 			JsonObject sort = new JsonObject().put("modified", -1);
 			final JsonObject projection = new JsonObject();
@@ -192,11 +192,10 @@ public class CalendarSearchingEvents implements SearchingEvents {
 		returnFields.add("owner.userId");
 		returnFields.add("owner.displayName");
 
-		final QueryBuilder worldsQuery = new QueryBuilder();
-		worldsQuery.text(MongoDbSearchService.textSearchedComposition(searchWords));
+		final Bson worldsQuery = text(MongoDbSearchService.textSearchedComposition(searchWords));
 
-		final QueryBuilder calendarQuery = new QueryBuilder().start("calendar").in(mapIdTitle.keySet());
-		final QueryBuilder query = new QueryBuilder().and(worldsQuery.get(), calendarQuery.get());
+		final Bson calendarQuery = in("calendar", mapIdTitle.keySet());
+		final Bson query = and(worldsQuery, calendarQuery);
 
 		JsonObject sort = new JsonObject().put("modified", -1);
 		final JsonObject projection = new JsonObject();

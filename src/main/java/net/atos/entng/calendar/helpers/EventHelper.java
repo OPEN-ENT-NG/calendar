@@ -19,6 +19,7 @@
 
 package net.atos.entng.calendar.helpers;
 
+import static com.mongodb.client.model.Filters.eq;
 import static net.atos.entng.calendar.Calendar.*;
 import static org.entcore.common.http.response.DefaultResponseHandler.arrayResponseHandler;
 import static org.entcore.common.http.response.DefaultResponseHandler.defaultResponseHandler;
@@ -32,7 +33,6 @@ import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import com.mongodb.QueryBuilder;
 import fr.wseduc.mongodb.MongoDb;
 import fr.wseduc.mongodb.MongoQueryBuilder;
 import fr.wseduc.webutils.Either;
@@ -48,6 +48,7 @@ import net.atos.entng.calendar.services.EventServiceMongo;
 import net.atos.entng.calendar.services.ServiceFactory;
 import net.atos.entng.calendar.services.UserService;
 import net.atos.entng.calendar.utils.DateUtils;
+import org.bson.conversions.Bson;
 import org.entcore.common.events.EventStore;
 import org.entcore.common.events.EventStoreFactory;
 import org.entcore.common.mongodb.MongoDbControllerHelper;
@@ -414,17 +415,17 @@ public class EventHelper extends MongoDbControllerHelper {
     public void notifyUsersSharing(final HttpServerRequest request, final UserInfos user, final String calendarId,
                                    final JsonObject calendarEvent, final boolean isCreated, Boolean restrictedEvent) {
         String collection;
-        QueryBuilder query;
+        final Bson query;
         JsonObject keys;
         JsonArray fetch;
 
         collection = CALENDAR_COLLECTION;
-        query = QueryBuilder.start("_id").is(calendarId);
+        query = eq("_id", calendarId);
         keys = new JsonObject().put("calendar", 1);
         fetch = new JsonArray().add("shared");
 
 
-        findRecipiants(collection, query, keys, fetch, user, restrictedEvent, calendarEvent, event ->
+        findRecipients(collection, query, keys, fetch, user, restrictedEvent, calendarEvent, event ->
                 sendNotificationToRecipients(event, isCreated, user, calendarEvent, calendarId, request));
     }
 
@@ -464,14 +465,14 @@ public class EventHelper extends MongoDbControllerHelper {
         }
     }
 
-    private void findRecipiants(String collection, QueryBuilder query, JsonObject keys, final JsonArray fetch,
+    private void findRecipients(String collection, final Bson query, JsonObject keys, final JsonArray fetch,
                                 final UserInfos user, Boolean restrictedEvent, JsonObject calendarEvent, Handler<Map<String, Object>> handler) {
-        findRecipiants(collection, query, keys, fetch, null, user, restrictedEvent, calendarEvent, handler);
+        findRecipients(collection, query, keys, fetch, null, user, restrictedEvent, calendarEvent, handler);
 
     }
 
     @SuppressWarnings("unhandle")
-    private void findRecipiants(String collection, QueryBuilder query, JsonObject keys, final JsonArray fetch,
+    private void findRecipients(String collection, Bson query, JsonObject keys, final JsonArray fetch,
                                 final String filterRights, final UserInfos user, Boolean restrictedEvent, JsonObject calendarEvent,
                                 final Handler<Map<String, Object>> handler) {
         // getting the calendar id
@@ -1000,7 +1001,7 @@ public class EventHelper extends MongoDbControllerHelper {
         }
 
         // Query
-        QueryBuilder query = QueryBuilder.start(Field._ID).is(attachmentId);
+        final Bson query = eq(Field._ID, attachmentId);
 
         mongo.findOne(Calendar.DOCUMENTS_COLLECTION, MongoQueryBuilder.build(query), validResultHandler(result -> {
             if (result.isLeft() || result.right().getValue().size() == 0 || !(result.right().getValue() instanceof JsonObject)) {

@@ -17,9 +17,14 @@ pipeline {
       stage('Build') {
         steps {
           checkout scm
-          sh './build.sh clean install publish'
+          sh 'GIT_BRANCH=dev ./build.sh init clean install publish'
         }
       }
     }
+  post {
+    cleanup {
+      sh 'docker-compose down'
+    }
+  }
 }
 

@@ -20,7 +20,6 @@
 package net.atos.entng.calendar.services.impl;
 
 import com.mongodb.DBObject;
-import com.mongodb.QueryBuilder;
 import fr.wseduc.mongodb.MongoDb;
 import fr.wseduc.mongodb.MongoQueryBuilder;
 import fr.wseduc.mongodb.MongoUpdateBuilder;
@@ -32,14 +31,15 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import net.atos.entng.calendar.core.constants.Field;
-import net.atos.entng.calendar.models.CalendarModel;
 import net.atos.entng.calendar.services.CalendarService;
+import org.bson.conversions.Bson;
 import org.entcore.common.user.UserInfos;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import static com.mongodb.client.model.Filters.*;
 import static org.entcore.common.mongodb.MongoDbResult.*;
 
 
@@ -59,7 +59,7 @@ public class CalendarServiceImpl implements CalendarService {
     public Future<JsonArray> list(List<String> calendarIds) {
         Promise<JsonArray> promise = Promise.promise();
         // Query
-        QueryBuilder query = QueryBuilder.start("_id").in(calendarIds);
+        final Bson query = in("_id", calendarIds);
         JsonObject sort = new JsonObject().put("modified", -1);
         // Projection
         JsonObject projection = new JsonObject();
@@ -84,22 +84,20 @@ public class CalendarServiceImpl implements CalendarService {
     public Future<JsonArray> list(List<String> calendarIds, Boolean isExternal, String userId) {
         Promise<JsonArray> promise = Promise.promise();
 
-        List<DBObject> queryList = new ArrayList<>();
-
         // filter by ids
-        QueryBuilder query = QueryBuilder.start(Field._ID).in(calendarIds);
-        if(userId != null) query.put(String.format("%s.%s", Field.OWNER, Field.USERID)).is(userId);
+        Bson query = in(Field._ID, calendarIds);
+        if(userId != null) {
+            query = eq(String.format("%s.%s", Field.OWNER, Field.USERID), userId);
+        }
 
 
         // if a calendar is external it contains "isExternal" = true and a string icsUrl
         if (Boolean.TRUE.equals(isExternal)) {
-            query.or(
-                QueryBuilder.start(Field.ISEXTERNAL).is(true).get(),
-                QueryBuilder.start(Field.ICSLINK).notIn(new String[]{"", null}).get()
+            query = or(
+                eq(Field.ISEXTERNAL, true),
+                not(in(Field.ICSLINK, "", null))
             );
         }
-
-        queryList.add(query.get());
 
         JsonObject sort = new JsonObject().put("modified", -1);
 
@@ -123,8 +121,10 @@ public class CalendarServiceImpl implements CalendarService {
     public Future<JsonObject> getDefaultCalendar(UserInfos user) {
         Promise<JsonObject> promise = Promise.promise();
         // Query
-        QueryBuilder query = QueryBuilder.start("owner.userId").is(user.getUserId());
-        query.put(Field.IS_DEFAULT).is(true);
+        final Bson query = and(
+          eq("owner.userId", user.getUserId()),
+          eq(Field.IS_DEFAULT, true)
+        );
 
         mongo.findOne(this.collection, MongoQueryBuilder.build(query), validResultHandler(result -> {
             if(result.isLeft()) {
@@ -163,8 +163,10 @@ public class CalendarServiceImpl implements CalendarService {
     public Future<Boolean> isDefaultCalendar(String calendarId) {
         Promise<Boolean> promise = Promise.promise();
         // Query
-        QueryBuilder query = QueryBuilder.start("_id").is(calendarId);
-        query.put(Field.IS_DEFAULT).is(true);
+        final Bson query = and(
+          eq("_id", calendarId),
+          eq(Field.IS_DEFAULT, true)
+        );
 
         mongo.findOne(this.collection, MongoQueryBuilder.build(query), validResultHandler(result -> {
             if(result.isLeft()) {
@@ -217,7 +219,7 @@ public class CalendarServiceImpl implements CalendarService {
     public Future<Void> update(String calendarId, JsonObject body) {
         Promise<Void> promise = Promise.promise();
         // Query
-        QueryBuilder query = QueryBuilder.start(Field._ID).is(calendarId);
+        final Bson query = eq(Field._ID, calendarId);
 
         // Modifier
         MongoUpdateBuilder modifier = new MongoUpdateBuilder();
@@ -261,7 +263,7 @@ public class CalendarServiceImpl implements CalendarService {
     public Future<Void> delete(String calendarId) {
         Promise<Void> promise = Promise.promise();
 
-        QueryBuilder query = QueryBuilder.start(Field._ID).is(calendarId);
+        final Bson query = eq(Field._ID, calendarId);
 
         mongo.delete(this.collection, MongoQueryBuilder.build(query), validResultHandler(event -> {
             if (event.isLeft()) {
@@ -280,8 +282,10 @@ public class CalendarServiceImpl implements CalendarService {
     public Future<JsonObject> getPlatformCalendar(UserInfos user, String platform) {
         Promise<JsonObject> promise = Promise.promise();
         // Query
-        QueryBuilder query = QueryBuilder.start("owner.userId").is(user.getUserId());
-        query.put(Field.PLATFORM).is(platform);
+        final Bson query = and(
+          eq("owner.userId", user.getUserId()),
+          eq(Field.PLATFORM, platform)
+        );
 
         mongo.findOne(this.collection, MongoQueryBuilder.build(query), validResultHandler(result -> {
             if(result.isLeft()) {

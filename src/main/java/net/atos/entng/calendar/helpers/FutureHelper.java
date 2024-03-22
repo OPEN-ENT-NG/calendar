@@ -3,7 +3,6 @@ package net.atos.entng.calendar.helpers;
 import fr.wseduc.webutils.Either;
 import io.vertx.core.*;
 import io.vertx.core.eventbus.Message;
-import io.vertx.core.impl.CompositeFutureImpl;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
@@ -11,8 +10,8 @@ import io.vertx.core.logging.LoggerFactory;
 import net.atos.entng.calendar.core.constants.Field;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class FutureHelper {
     private static final Logger log = LoggerFactory.getLogger(FutureHelper.class);
@@ -23,11 +22,11 @@ public class FutureHelper {
     }
 
     public static <T> CompositeFuture all(List<Future<T>> futures) {
-        return CompositeFutureImpl.all(futures.toArray(new Future[0]));
+        return CompositeFuture.all(Collections.emptyList());
     }
 
     public static <T> CompositeFuture join(List<Future<T>> futures) {
-        return CompositeFutureImpl.join(futures.toArray(new Future[0]));
+        return CompositeFuture.join(Collections.emptyList());
     }
 
     public static Handler<Either<String, JsonArray>> handlerJsonArray(Promise<JsonArray> promise) {
@@ -96,7 +95,6 @@ public class FutureHelper {
                 handler.handle(new Either.Right<>(new ArrayList<>(event.result().body())));
             } else {
                 handler.handle(new Either.Left<>(event.cause().getMessage()));
-                return;
             }
         };
     }

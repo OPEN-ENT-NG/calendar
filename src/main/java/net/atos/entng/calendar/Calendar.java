@@ -22,6 +22,7 @@ package net.atos.entng.calendar;
 import fr.wseduc.mongodb.MongoDb;
 import fr.wseduc.webutils.Server;
 import io.vertx.core.DeploymentOptions;
+import io.vertx.core.Promise;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.client.WebClientOptions;
 import net.atos.entng.calendar.controllers.CalendarController;
@@ -57,8 +58,8 @@ public class Calendar extends BaseServer {
 
     
     @Override
-    public void start() throws Exception {
-        super.start();
+    public void start(Promise<Void> startPromise) throws Exception {
+        super.start(startPromise);
         ServiceFactory serviceFactory = new ServiceFactory(vertx, Neo4j.getInstance(), Sql.getInstance(), MongoDb.getInstance(), initWebclient());
         CrudService eventService = new EventServiceMongoImpl(CALENDAR_EVENT_COLLECTION, vertx.eventBus(), serviceFactory);
 
@@ -85,7 +86,7 @@ public class Calendar extends BaseServer {
 
         // External Import Calendar services
         vertx.deployVerticle(ExternalImportICal.class, new DeploymentOptions().setConfig(config).setWorker(true));
-
+        startPromise.tryComplete();
     }
 
     private WebClient initWebclient() {
