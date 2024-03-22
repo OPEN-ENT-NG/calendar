@@ -1,24 +1,14 @@
 package net.atos.entng.calendar.helper;
 
-import com.redis.M;
-import com.redis.S;
-import com.redis.U;
-import fr.wseduc.webutils.I18n;
-import fr.wseduc.webutils.eventbus.ResultMessage;
-import io.advantageous.boon.core.Str;
-import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
-import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.EventBus;
-import io.vertx.core.eventbus.Message;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 import net.atos.entng.calendar.Calendar;
 import net.atos.entng.calendar.core.constants.Field;
-import net.atos.entng.calendar.event.CalendarSearchingEvents;
 import net.atos.entng.calendar.helpers.CalendarHelper;
 import net.atos.entng.calendar.models.CalendarModel;
 import net.atos.entng.calendar.services.ServiceFactory;
@@ -83,7 +73,7 @@ public class CalendarHelperTest {
             async.complete();
 
             return null;
-        }).when(eventBus).request(Mockito.any(), Mockito.any(), Mockito.any());
+        }).when(eventBus).request(Mockito.any(), Mockito.any(), Mockito.any(Handler.class));
 
         Whitebox.invokeMethod(calendarHelper, "getICalFromExternalPlatform", user, ZIMBRA,
                 new CalendarModel(calendar), host, i18nLang);

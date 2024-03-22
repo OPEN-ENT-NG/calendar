@@ -1,5 +1,7 @@
 #!/bin/bash
 
+MVN_OPTS="-Duser.home=/var/maven"
+
 if [ ! -e node_modules ]
 then
   mkdir node_modules
@@ -37,14 +39,27 @@ case $i in
 esac
 done
 
+init() {
+  me=`id -u`:`id -g`
+  echo "DEFAULT_DOCKER_USER=$me" > .env
+}
+
 clean () {
   if [ "$NO_DOCKER" = "true" ] ; then
     rm -rf node_modules
     rm -f yarn.lock
-    gradle clean
+    mvn clean
   else
-    docker-compose run --rm -u "$USER_UID:$GROUP_GID" gradle gradle clean
+    docker compose run --rm maven mvn $MVN_OPTS clean
   fi
+}
+
+install () {
+  docker compose run --rm maven mvn $MVN_OPTS install -DskipTests
+}
+
+test () {
+  docker compose run --rm maven mvn $MVN_OPTS test
 }
 
 buildNode () {
@@ -67,14 +82,14 @@ buildNode () {
           if [ "$NO_DOCKER" = "true" ] ; then
             yarn install --no-bin-links && yarn upgrade entcore && node_modules/gulp/bin/gulp.js build
           else
-            docker-compose run --rm -u "$USER_UID:$GROUP_GID" node sh -c "yarn install --no-bin-links --legacy-peer-deps --force && yarn upgrade entcore && node_modules/gulp/bin/gulp.js build"
+            docker compose run --rm -u "$USER_UID:$GROUP_GID" node sh -c "yarn install --no-bin-links --legacy-peer-deps --force && yarn upgrade entcore && node_modules/gulp/bin/gulp.js build"
           fi
           ;;
         *)
           if [ "$NO_DOCKER" = "true" ] ; then
             yarn install && yarn upgrade entcore && node_modules/gulp/bin/gulp.js build
           else
-            docker-compose run --rm -u "$USER_UID:$GROUP_GID" node sh -c "yarn install --legacy-peer-deps --force && yarn upgrade entcore && node_modules/gulp/bin/gulp.js build"
+            docker compose run --rm -u "$USER_UID:$GROUP_GID" node sh -c "yarn install --legacy-peer-deps --force && yarn upgrade entcore && node_modules/gulp/bin/gulp.js build"
           fi
       esac
   else
@@ -84,64 +99,55 @@ buildNode () {
           if [ "$NO_DOCKER" = "true" ] ; then
             yarn install && yarn upgrade entcore && node_modules/gulp/bin/gulp.js build
           else
-            docker-compose run --rm -u "$USER_UID:$GROUP_GID" node sh -c "yarn install --no-bin-links --legacy-peer-deps --force && npm rm --no-save entcore && yarn install --no-save entcore@dev && node_modules/gulp/bin/gulp.js build"
+            docker compose run --rm -u "$USER_UID:$GROUP_GID" node sh -c "yarn install --no-bin-links --legacy-peer-deps --force && npm rm --no-save entcore && yarn install --no-save entcore@dev && node_modules/gulp/bin/gulp.js build"
           fi
           ;;
         *)
           if [ "$NO_DOCKER" = "true" ] ; then
             yarn install --no-bin-links && yarn upgrade entcore && node_modules/gulp/bin/gulp.js build
           else
-            docker-compose run --rm -u "$USER_UID:$GROUP_GID" node sh -c "yarn install --legacy-peer-deps --force && npm rm --no-save entcore && yarn install --no-save entcore@dev && node_modules/gulp/bin/gulp.js build"
+            docker compose run --rm -u "$USER_UID:$GROUP_GID" node sh -c "yarn install --legacy-peer-deps --force && npm rm --no-save entcore && yarn install --no-save entcore@dev && node_modules/gulp/bin/gulp.js build"
           fi
       esac
   fi
 }
 
-buildGradle () {
-  if [ "$NO_DOCKER" = "true" ] ; then
-    gradle shadowJar install publishToMavenLocal
-  else
-    docker-compose run --rm -u "$USER_UID:$GROUP_GID" gradle gradle shadowJar install publishToMavenLocal
-  fi
-}
+publish() {
+  version=`docker compose run --rm maven mvn $MVN_OPTS help:evaluate -Dexpression=project.version -q -DforceStdout`
+  level=`echo $version | cut -d'-' -f3`
+  case "$level" in
+    *SNAPSHOT) export nexusRepository='snapshots' ;;
+    *)         export nexusRepository='releases' ;;
+  esac
 
-publish () {
-  if [ -e "?/.gradle" ] && [ ! -e "?/.gradle/gradle.properties" ]
-  then
-    echo "odeUsername=$NEXUS_ODE_USERNAME" > "?/.gradle/gradle.properties"
-    echo "odePassword=$NEXUS_ODE_PASSWORD" >> "?/.gradle/gradle.properties"
-    echo "sonatypeUsername=$NEXUS_SONATYPE_USERNAME" >> "?/.gradle/gradle.properties"
-    echo "sonatypePassword=$NEXUS_SONATYPE_PASSWORD" >> "?/.gradle/gradle.properties"
-  fi
-  if [ "$NO_DOCKER" = "true" ] ; then
-    gradle publish
-  else
-    docker-compose run --rm -u "$USER_UID:$GROUP_GID" gradle gradle publish
-  fi
+  docker compose run --rm  maven mvn -DrepositoryId=ode-$nexusRepository -DskiptTests -Dmaven.test.skip=true --settings /var/maven/.m2/settings.xml deploy
 }
 
 watch () {
   if [ "$NO_DOCKER" = "true" ] ; then
     node_modules/gulp/bin/gulp.js watch --springboard=../recette
   else
-    docker-compose run --rm -u "$USER_UID:$GROUP_GID" node sh -c "node_modules/gulp/bin/gulp.js watch --springboard=/home/node/$SPRINGBOARD"
+    docker compose run --rm -u "$USER_UID:$GROUP_GID" node sh -c "node_modules/gulp/bin/gulp.js watch --springboard=/home/node/$SPRINGBOARD"
   fi
 }
 
 for param in "$@"
 do
   case $param in
+    init)
+      init
+      ;;
     clean)
       clean
       ;;
     buildNode)
       buildNode
       ;;
-    buildGradle)
-      buildGradle
-      ;;
     install)
-      buildNode && buildGradle
+      buildNode && install
+      ;;
+    test)
+      test
       ;;
     watch)
       watch
