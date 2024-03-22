@@ -362,7 +362,7 @@ public class EventServiceMongoImpl extends MongoDbCrudService implements EventSe
             public void handle(Either<String, JsonArray> event) {
                 JsonArray values = event.right().getValue();
                 message.put("events", values);
-                eb.send(ICalHandler.ICAL_HANDLER_ADDRESS, message, handlerToAsyncHandler(handler));
+                eb.request(ICalHandler.ICAL_HANDLER_ADDRESS, message, handlerToAsyncHandler(handler));
             }
         });
     }
@@ -403,7 +403,7 @@ public class EventServiceMongoImpl extends MongoDbCrudService implements EventSe
         final EventServiceMongoImpl eventService = this;
         final MutableInt i = new MutableInt();
 
-        eb.send(ICalHandler.ICAL_HANDLER_ADDRESS, message, handlerToAsyncHandler(new Handler<Message<JsonObject>>() {
+        eb.request(ICalHandler.ICAL_HANDLER_ADDRESS, message, handlerToAsyncHandler(new Handler<Message<JsonObject>>() {
             @Override
             public void handle(Message<JsonObject> reply) {
                 final JsonObject result = new JsonObject();

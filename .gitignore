@@ -43,3 +43,5 @@ gradle/
 /package-lock.json
 /src/main/resources/public/css/
 /yarn.lock
+.env
+dependency-reduced-pom.xml
