@@ -59,7 +59,7 @@
     "ts-jest": "26.4.2",
     "@mdi/font": "6.5.95",
     "sass": "1.49.9",
-    "entcore-css-lib": "npm:ode-csslib@4.0.12",
+    "entcore-css-lib": "npm:ode-csslib@4.2.3",
     "underscore": "1.8.3"
   }
 }
