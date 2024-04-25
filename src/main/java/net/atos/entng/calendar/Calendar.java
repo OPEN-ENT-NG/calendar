@@ -86,7 +86,7 @@ public class Calendar extends BaseServer {
 
         // External Import Calendar services
         vertx.deployVerticle(ExternalImportICal.class, new DeploymentOptions().setConfig(config).setWorker(true));
-
+        startPromise.tryComplete();
     }
 
     private WebClient initWebclient() {
