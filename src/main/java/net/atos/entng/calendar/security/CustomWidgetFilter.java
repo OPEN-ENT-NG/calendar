@@ -1,8 +1,8 @@
 package net.atos.entng.calendar.security;
 
-import com.mongodb.QueryBuilder;
 import fr.wseduc.mongodb.MongoQueryBuilder;
 import fr.wseduc.webutils.http.Binding;
+import org.bson.conversions.Bson;
 import org.entcore.common.http.filter.MongoAppFilter;
 import org.entcore.common.http.filter.ResourcesProvider;
 import org.entcore.common.user.UserInfos;
@@ -12,6 +12,8 @@ import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 
 import java.util.List;
+
+import static com.mongodb.client.model.Filters.*;
 
 /**
  * Check if user have access to calendars
@@ -26,20 +28,20 @@ public class CustomWidgetFilter implements ResourcesProvider {
         List<String> ids = request.params().getAll("calendarId");
         request.pause();
         if (ids != null && !ids.isEmpty()) {
-            log.debug("DEBUG CustomWidgetFilter calendarId : " + ids.toString());
-            QueryBuilder queryShared = QueryBuilder.start().or(
-                    QueryBuilder.start("shared.userId").is(user.getUserId()).get(),
-                    QueryBuilder.start("shared.groupId").in(user.getGroupsIds().toArray(new String[0])).get()
+            log.debug("DEBUG CustomWidgetFilter calendarId : " + ids);
+            final Bson queryShared = or(
+                    eq("shared.userId",user.getUserId()),
+                    in("shared.groupId",user.getGroupsIds())
             );
 
-            QueryBuilder queryOr = QueryBuilder.start().or(
-                    queryShared.get(),
-                    QueryBuilder.start("owner.userId").is(user.getUserId()).get()
+            final Bson queryOr = or(
+                    queryShared,
+                    eq("owner.userId",user.getUserId())
             );
 
-            QueryBuilder queryAnd = QueryBuilder.start().and(
-                    queryOr.get(),
-                    QueryBuilder.start("_id").in(ids.toArray(new String[0])).get()
+            final Bson queryAnd = and(
+                    queryOr,
+                    in("_id", ids)
             );
 
             MongoAppFilter.executeCountQuery(request, "calendar",

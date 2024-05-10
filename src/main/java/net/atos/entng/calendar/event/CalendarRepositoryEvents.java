@@ -21,13 +21,13 @@ package net.atos.entng.calendar.event;
 
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBObject;
-import com.mongodb.QueryBuilder;
 import fr.wseduc.mongodb.MongoQueryBuilder;
 import fr.wseduc.mongodb.MongoUpdateBuilder;
 import fr.wseduc.webutils.Either;
 import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.Message;
 import net.atos.entng.calendar.Calendar;
+import org.bson.conversions.Bson;
 import org.entcore.common.mongodb.MongoDbResult;
 import org.entcore.common.service.impl.MongoDbRepositoryEvents;
 import io.vertx.core.Handler;
@@ -39,6 +39,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
+
+import static com.mongodb.client.model.Filters.*;
 
 public class CalendarRepositoryEvents extends MongoDbRepositoryEvents {
 
@@ -54,13 +56,13 @@ public class CalendarRepositoryEvents extends MongoDbRepositoryEvents {
     public void exportResources(JsonArray resourcesIds, boolean exportDocuments, boolean exportSharedResources, String exportId, String userId,
                                 JsonArray g, String exportPath, String locale, String host, Handler<Boolean> handler)
     {
-        QueryBuilder findByOwner = QueryBuilder.start("owner.userId").is(userId);
-        QueryBuilder findByShared = QueryBuilder.start().or(
-            QueryBuilder.start("shared.userId").is(userId).get(),
-            QueryBuilder.start("shared.groupId").in(g).get()
+        final Bson findByOwner = eq("owner.userId",userId);
+        final Bson findByShared = or(
+            eq("shared.userId",userId),
+            in("shared.groupId",g)
         );
 
-        QueryBuilder findByAuthorOrOwnerOrShared = exportSharedResources == false ? findByOwner : QueryBuilder.start().or(findByOwner.get(),findByShared.get());
+        final Bson findByAuthorOrOwnerOrShared = exportSharedResources == false ? findByOwner : or(findByOwner,findByShared);
 
         JsonObject query;
 
@@ -68,8 +70,9 @@ public class CalendarRepositoryEvents extends MongoDbRepositoryEvents {
             query = MongoQueryBuilder.build(findByAuthorOrOwnerOrShared);
         else
         {
-            QueryBuilder limitToResources = findByAuthorOrOwnerOrShared.and(
-                QueryBuilder.start("_id").in(resourcesIds).get()
+            final Bson limitToResources = and(
+              findByAuthorOrOwnerOrShared,
+              in("_id",resourcesIds)
             );
             query = MongoQueryBuilder.build(limitToResources);
         }
@@ -93,7 +96,7 @@ public class CalendarRepositoryEvents extends MongoDbRepositoryEvents {
                     });
 
                     final Set<String> ids = results.stream().map(res -> ((JsonObject)res).getString("_id")).collect(Collectors.toSet());
-                    QueryBuilder findByCategoryId = QueryBuilder.start("calendar").in(ids);
+                    final Bson findByCategoryId = in("calendar",ids);
                     JsonObject query2 = MongoQueryBuilder.build(findByCategoryId);
 
                     mongo.find(Calendar.CALENDAR_EVENT_COLLECTION, query2, new Handler<Message<JsonObject>>()
@@ -186,10 +189,10 @@ public class CalendarRepositoryEvents extends MongoDbRepositoryEvents {
             groupIds[i] = j.getString("group");
         }
 
-        final JsonObject matcher = MongoQueryBuilder.build(QueryBuilder.start("shared.groupId").in(groupIds));
+        final JsonObject matcher = MongoQueryBuilder.build(in("shared.groupId",groupIds));
 
         MongoUpdateBuilder modifier = new MongoUpdateBuilder();
-        modifier.pull("shared", MongoQueryBuilder.build(QueryBuilder.start("groupId").in(groupIds)));
+        modifier.pull("shared", MongoQueryBuilder.build(in("groupId",groupIds)));
         // remove all the shares with groups
         mongo.update(Calendar.CALENDAR_COLLECTION, matcher, modifier.build(), false, true, MongoDbResult.validActionResultHandler(new Handler<Either<String, JsonObject>>() {
             @Override
@@ -242,9 +245,9 @@ public class CalendarRepositoryEvents extends MongoDbRepositoryEvents {
      * @param usersIds users identifiers
      */
     private void removeSharesCalendars(final String[] usersIds) {
-        final JsonObject criteria = MongoQueryBuilder.build(QueryBuilder.start("shared.userId").in(usersIds));
+        final JsonObject criteria = MongoQueryBuilder.build(in("shared.userId",usersIds));
         MongoUpdateBuilder modifier = new MongoUpdateBuilder();
-        modifier.pull("shared", MongoQueryBuilder.build(QueryBuilder.start("userId").in(usersIds)));
+        modifier.pull("shared", MongoQueryBuilder.build(in("userId",usersIds)));
 
         // Remove Categories shares with these users
         mongo.update(Calendar.CALENDAR_COLLECTION, criteria, modifier.build(), false, true, MongoDbResult.validActionResultHandler(new Handler<Either<String, JsonObject>>() {
@@ -265,13 +268,11 @@ public class CalendarRepositoryEvents extends MongoDbRepositoryEvents {
      * @param usersIds users identifiers
      */
     private void prepareCleanCalendars(final String[] usersIds) {
-        DBObject deletedUsers = new BasicDBObject();
-        // users currently deleted
-        deletedUsers.put("owner.userId", new BasicDBObject("$in", usersIds));
+        Bson deletedUsers = in("owner.userId", usersIds);
         // users who have already been deleted
-        DBObject ownerIsDeleted = new BasicDBObject("owner.deleted", true);
+        final Bson ownerIsDeleted = eq("owner.deleted", true);
         // no manager found
-        JsonObject matcher = MongoQueryBuilder.build(QueryBuilder.start("shared." + Calendar.MANAGE_RIGHT_ACTION).notEquals(true).or(deletedUsers, ownerIsDeleted));
+        JsonObject matcher = MongoQueryBuilder.build(and(ne("shared." + Calendar.MANAGE_RIGHT_ACTION, true), or(deletedUsers, ownerIsDeleted)));
         // return only calendar identifiers
         JsonObject projection = new JsonObject().put("_id", 1);
 
@@ -303,7 +304,7 @@ public class CalendarRepositoryEvents extends MongoDbRepositoryEvents {
      * @param calendarIds calendars identifiers
      */
     private void cleanCalendars(final String[] usersIds, final String[] calendarIds) {
-        JsonObject matcher = MongoQueryBuilder.build(QueryBuilder.start("_id").in(calendarIds));
+        JsonObject matcher = MongoQueryBuilder.build(in("_id",calendarIds));
 
         mongo.delete(Calendar.CALENDAR_COLLECTION, matcher, MongoDbResult.validActionResultHandler(new Handler<Either<String, JsonObject>>() {
             @Override
@@ -324,7 +325,7 @@ public class CalendarRepositoryEvents extends MongoDbRepositoryEvents {
      * @param calendarIds calendars identifiers
      */
     private void cleanEvents(final String[] calendarIds) {
-        JsonObject matcher = MongoQueryBuilder.build(QueryBuilder.start("calendar").in(calendarIds));
+        JsonObject matcher = MongoQueryBuilder.build(in("calendar",calendarIds));
 
         mongo.delete(Calendar.CALENDAR_EVENT_COLLECTION, matcher, MongoDbResult.validActionResultHandler(new Handler<Either<String, JsonObject>>() {
             @Override
@@ -343,7 +344,7 @@ public class CalendarRepositoryEvents extends MongoDbRepositoryEvents {
      * @param usersIds users identifiers
      */
     private void tagUsersAsDeleted(final String[] usersIds) {
-        final JsonObject criteria = MongoQueryBuilder.build(QueryBuilder.start("owner.userId").in(usersIds));
+        final JsonObject criteria = MongoQueryBuilder.build(in("owner.userId",usersIds));
         MongoUpdateBuilder modifier = new MongoUpdateBuilder();
         modifier.set("owner.deleted", true);
 
