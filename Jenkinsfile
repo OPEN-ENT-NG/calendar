@@ -17,7 +17,7 @@ pipeline {
       stage('Build') {
         steps {
           checkout scm
-          sh './build.sh init clean install publish'
+          sh 'GIT_BRANCH=dev ./build.sh init clean install publish'
         }
       }
     }
