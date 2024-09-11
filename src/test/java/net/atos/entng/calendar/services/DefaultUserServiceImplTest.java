@@ -50,24 +50,6 @@ public class DefaultUserServiceImplTest {
 
                 + " UNION " +
 
-                "MATCH (n:ProfileGroup )<-[:IN]-(u:User) " +
-                "WHERE n.id IN {ids} AND u.id <> {userId} " +
-                "RETURN distinct u.id as id, u.displayName as displayName"
-
-                + " UNION " +
-
-                "MATCH (n:ManualGroup )<-[:IN]-(u:User) " +
-                "WHERE n.id IN {ids} AND u.id <> {userId} " +
-                "RETURN distinct u.id as id, u.displayName as displayName"
-
-                + " UNION " +
-
-                "MATCH (n:CommunityGroup )<-[:IN]-(u:User) " +
-                "WHERE n.id IN {ids} AND u.id <> {userId} " +
-                "RETURN distinct u.id as id, u.displayName as displayName"
-
-                + " UNION " +
-
                 "MATCH (n:Group )<-[:IN]-(u:User) " +
                 "WHERE n.id IN {ids} AND u.id <> {userId} " +
                 "RETURN distinct u.id as id, u.displayName as displayName";
@@ -95,24 +77,6 @@ public class DefaultUserServiceImplTest {
         JsonObject expectedUser = new JsonObject().put(Field.USERID, USER_ID).put(Field.IDS, groupIds);
         String expectedQuery = "MATCH (u:User) " +
                 "WHERE u.id IN {ids} " +
-                "RETURN distinct u.id as id, u.displayName as displayName"
-
-                + " UNION " +
-
-                "MATCH (n:ProfileGroup )<-[:IN]-(u:User) " +
-                "WHERE n.id IN {ids} " +
-                "RETURN distinct u.id as id, u.displayName as displayName"
-
-                + " UNION " +
-
-                "MATCH (n:ManualGroup )<-[:IN]-(u:User) " +
-                "WHERE n.id IN {ids} " +
-                "RETURN distinct u.id as id, u.displayName as displayName"
-
-                + " UNION " +
-
-                "MATCH (n:CommunityGroup )<-[:IN]-(u:User) " +
-                "WHERE n.id IN {ids} " +
                 "RETURN distinct u.id as id, u.displayName as displayName"
 
                 + " UNION " +

@@ -65,24 +65,6 @@ public class DefaultUserServiceImpl implements UserService {
 
                 + " UNION " +
 
-                "MATCH (n:ProfileGroup )<-[:IN]-(u:User) " +
-                "WHERE n.id IN {ids} " + (keepUserFromSession ? "" : "AND u.id <> {userId} ") +
-                "RETURN distinct u.id as id, u.displayName as displayName"
-
-                + " UNION " +
-
-                "MATCH (n:ManualGroup )<-[:IN]-(u:User) " +
-                "WHERE n.id IN {ids} " + (keepUserFromSession ? "" : "AND u.id <> {userId} ") +
-                "RETURN distinct u.id as id, u.displayName as displayName"
-
-                + " UNION " +
-
-                "MATCH (n:CommunityGroup )<-[:IN]-(u:User) " +
-                "WHERE n.id IN {ids} " + (keepUserFromSession ? "" : "AND u.id <> {userId} ") +
-                "RETURN distinct u.id as id, u.displayName as displayName"
-
-                + " UNION " +
-
                 "MATCH (n:Group )<-[:IN]-(u:User) " +
                 "WHERE n.id IN {ids} " + (keepUserFromSession ? "" : "AND u.id <> {userId} ") +
                 "RETURN distinct u.id as id, u.displayName as displayName";

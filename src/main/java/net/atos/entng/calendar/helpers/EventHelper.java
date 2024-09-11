@@ -685,27 +685,6 @@ public class EventHelper extends MongoDbControllerHelper {
 
                 + " UNION " +
 
-                "MATCH (n:ProfileGroup )<-[:IN]-(u:User) " +
-                "WHERE n.id IN ['" +
-                Joiner.on("','").join(shareIds) + "'] AND u.id <> {userId} " +
-                "RETURN distinct u.id as id"
-
-                + " UNION " +
-
-                "MATCH (n:ManualGroup )<-[:IN]-(u:User) " +
-                "WHERE n.id IN ['" +
-                Joiner.on("','").join(shareIds) + "'] AND u.id <> {userId} " +
-                "RETURN distinct u.id as id"
-
-                + " UNION " +
-
-                "MATCH (n:CommunityGroup )<-[:IN]-(u:User) " +
-                "WHERE n.id IN ['" +
-                Joiner.on("','").join(shareIds) + "'] AND u.id <> {userId} " +
-                "RETURN distinct u.id as id"
-
-                + " UNION " +
-
                 "MATCH (n:Group )<-[:IN]-(u:User) " +
                 "WHERE n.id IN ['" +
                 Joiner.on("','").join(shareIds) + "'] AND u.id <> {userId} " +
