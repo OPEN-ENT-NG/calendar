@@ -20,15 +20,19 @@
 package net.atos.entng.calendar.helpers;
 
 import static net.atos.entng.calendar.Calendar.*;
+import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.entcore.common.http.response.DefaultResponseHandler.arrayResponseHandler;
 import static org.entcore.common.http.response.DefaultResponseHandler.defaultResponseHandler;
 import static org.entcore.common.http.response.DefaultResponseHandler.notEmptyResponseHandler;
 import static org.entcore.common.mongodb.MongoDbResult.validResultHandler;
+import static org.entcore.common.utils.DateUtils.DEFAULT_LOCAL_DATE_TIME_FORMATTER;
+import static org.entcore.common.utils.DateUtils.UTC_ZONE;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.time.*;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -167,55 +171,187 @@ public class EventHelper extends MongoDbControllerHelper {
 
     @Override
     public void update(final HttpServerRequest request) {
-        UserUtils.getUserInfos(eb, request, new Handler<UserInfos>() {
-            @Override
-            public void handle(final UserInfos user) {
-                if (user != null) {
-                    RequestUtils.bodyToJson(request, new Handler<JsonObject>() {
-                        @Override
-                        public void handle(JsonObject object) {
-                            final String eventId = request.params().get(EVENT_ID_PARAMETER);
-                            final String calendarId = request.params().get(CALENDAR_ID_PARAMETER);
-                            isExternalCalendarEventImmutable(eventId)
-                                    .onSuccess(isExternal -> {
-                                        if(Boolean.FALSE.equals(isExternal)) {
-                                            if (isEventValid(object)) {
-                                                crudService.update(eventId, object, user, new Handler<Either<String, JsonObject>>() {
-                                                    public void handle(Either<String, JsonObject> event) {
-                                                        if (event.isRight()) {
-                                                            final JsonObject message = new JsonObject();
-                                                            message.put("id", calendarId);
-                                                            message.put("eventId", eventId);
-                                                            message.put("start_date", (String) null);
-                                                            message.put("end_date", (String) null);
-                                                            message.put("sendNotif", object.containsKey("sendNotif") ? object.getBoolean("sendNotif") : null);
-                                                            notifyEventCreatedOrUpdated(request, user, message, false);
-                                                            renderJson(request, event.right().getValue(), 200);
-                                                        } else if (event.isLeft()) {
-                                                            log.error("Error when getting notification informations.");
-                                                        }
-                                                    }
-                                                });
-                                            } else {
-                                                log.error(String.format("[Calendar@EventHelper::update] " + "Submitted event is not valid"),
-                                                        I18n.getInstance().translate("calendar.error.date.saving", getHost(request), I18n.acceptLanguage(request)));
-                                                Renders.unauthorized(request);
+        UserUtils.getAuthenticatedUserInfos(eb, request).onSuccess(user -> {
+            RequestUtils.bodyToJson(request, object -> {
+                final String eventId = request.params().get(EVENT_ID_PARAMETER);
+                final String calendarId = request.params().get(CALENDAR_ID_PARAMETER);
+                isExternalCalendarEventImmutable(eventId)
+                        .onSuccess(isExternal -> {
+                            if(Boolean.FALSE.equals(isExternal)) {
+                                if (isEventValid(object)) {
+                                    crudService.update(eventId, object, user, new Handler<Either<String, JsonObject>>() {
+                                        public void handle(Either<String, JsonObject> event) {
+                                            if (event.isRight()) {
+                                                final JsonObject message = new JsonObject();
+                                                message.put("id", calendarId);
+                                                message.put("eventId", eventId);
+                                                message.put("start_date", (String) null);
+                                                message.put("end_date", (String) null);
+                                                message.put("sendNotif", object.containsKey("sendNotif") ? object.getBoolean("sendNotif") : null);
+                                                notifyEventCreatedOrUpdated(request, user, message, false);
+                                                renderJson(request, event.right().getValue(), 200);
+                                            } else if (event.isLeft()) {
+                                                log.error("Error when getting notification informations.");
                                             }
-                                        } else {
-                                            unauthorized(request);
                                         }
-                                    })
-                                    .onFailure(err -> {
-                                        renderError(request);
                                     });
-                        }
-                    });
+                                } else {
+                                    log.error(String.format("[Calendar@EventHelper::update] " + "Submitted event is not valid"),
+                                            I18n.getInstance().translate("calendar.error.date.saving", getHost(request), I18n.acceptLanguage(request)));
+                                    Renders.unauthorized(request);
+                                }
+                            } else {
+                                unauthorized(request);
+                            }
+                        })
+                        .onFailure(err -> {
+                            renderError(request);
+                        });
+            });
+        });
+    }
+
+
+    public void updateAllEvents(final HttpServerRequest request) {
+        UserUtils.getAuthenticatedUserInfos(eb, request).onSuccess(user -> {
+            RequestUtils.bodyToJson(request, object -> {
+                final String eventId = request.params().get(EVENT_ID_PARAMETER);
+                final String calendarId = request.params().get(CALENDAR_ID_PARAMETER);
+                isExternalCalendarEventImmutable(eventId)
+                  .onSuccess(isExternal -> {
+                      if(Boolean.FALSE.equals(isExternal)) {
+                          if (isEventValid(object)) {
+                              crudService.retrieve(eventId, eventData -> {
+                                  if(eventData.isLeft()) {
+                                      log.warn("Could not find event {0} in database", eventId);
+                                      Renders.notFound(request);
+                                  } else {
+                                      final JsonObject eventInDatabase = eventData.right().getValue();
+                                      final String parentId = eventInDatabase.getString("parentId");
+                                      if(isEmpty(parentId) || !eventInDatabase.getBoolean("isRecurrent", false)) {
+                                          log.warn("Tried to update the event {0} and all its occurrences but it is not a recurrent event", eventId);
+                                          Renders.badRequest(request);
+                                      } else {
+                                          final JsonArray pipelines = createEventUpdateModifier(object, eventInDatabase);
+                                          mongo.aggregate(CALENDAR_EVENT_COLLECTION, pipelines)
+                                            .onFailure(th -> {
+                                                log.error("An error occurred while updating calendar event {0}", eventId, th);
+                                                Renders.renderError(request);
+                                            })
+                                            .onSuccess(e -> {
+                                                    final JsonObject message = new JsonObject();
+                                                    message.put("id", calendarId);
+                                                    message.put("eventId", eventId);
+                                                    message.put("start_date", (String) null);
+                                                    message.put("end_date", (String) null);
+                                                    message.put("sendNotif", object.containsKey("sendNotif") ? object.getBoolean("sendNotif") : null);
+                                                    notifyEventCreatedOrUpdated(request, user, message, false);
+                                                    renderJson(request, new JsonObject().put("status", "ok"), 200);
+                                            });
+                                      }
+                                  }
+                              });
+                          } else {
+                              log.error(String.format("[Calendar@EventHelper::update] " + "Submitted event is not valid"),
+                                I18n.getInstance().translate("calendar.error.date.saving", getHost(request), I18n.acceptLanguage(request)));
+                              Renders.unauthorized(request);
+                          }
+                      } else {
+                          unauthorized(request);
+                      }
+                  })
+                  .onFailure(err -> {
+                      renderError(request);
+                  });
+            });
+        });
+    }
+
+    private JsonArray createEventUpdateModifier(final JsonObject modification, JsonObject eventInDatabase) {
+        final String parentId = eventInDatabase.getString("parentId");
+        final JsonObject project = new JsonObject();
+        final JsonArray pipelines = new JsonArray()
+            .add(new JsonObject().put("$match", new JsonObject().put("parentId", parentId).put("isRecurrent", true)))
+            .add(new JsonObject().put("$project", project))
+            .add(new JsonObject().put("$merge", CALENDAR_EVENT_COLLECTION));
+        for (String attr : modification.fieldNames()) {
+            if(!attr.endsWith("Moment") && !"index".equals(attr)) {
+                Object value = modification.getValue(attr);
+                if(value instanceof Boolean || value instanceof Number) {
+                    project.put(attr, new JsonObject().put("$literal", value));
+                } else if(value instanceof JsonObject) {
+                    modifyForAggregation((JsonObject) value);
                 } else {
-                    log.debug("User not found in session.");
-                    Renders.unauthorized(request);
+                    project.put(attr, value);
                 }
             }
-        });
+        }
+        // If the time range of the event changed, we update the time range of EVERY event, thus overloading any
+        // changes that might have been performed on a single event
+        if(!modification.getString("startMoment").equals(eventInDatabase.getString("startMoment")) ||
+           !modification.getString("endMoment").equals(eventInDatabase.getString("endMoment"))) {
+            // Here, we will use the start and end moment of the current event to extract the new time bounds of the
+            // event and set the same to all events
+            final String startMomentOfIndex = modification.getString("startMoment");
+            final String endMomentOfIndex = modification.getString("endMoment");
+            final ZonedDateTime initialStart = Instant.parse(startMomentOfIndex).atZone(UTC_ZONE);
+            final ZonedDateTime initialEnd = Instant.parse(endMomentOfIndex).atZone(UTC_ZONE);
+            addAggregationOperationToSetHourForLocalDateTime("startMoment", initialStart, project);
+            addAggregationOperationToSetHourForLocalDateTime("endMoment", initialEnd, project);
+
+            final LocalDateTime initialNotifStart = LocalDateTime.parse(modification.getString("notifStartMoment"), DEFAULT_LOCAL_DATE_TIME_FORMATTER);
+            final LocalDateTime initialNotifEnd = LocalDateTime.parse(modification.getString("notifEndMoment"), DEFAULT_LOCAL_DATE_TIME_FORMATTER);
+
+            addAggregationOperationToSetHourForUTCDateTime("notifStartMoment", initialNotifStart, project);
+
+            addAggregationOperationToSetHourForUTCDateTime("notifEndMoment", initialNotifEnd, project);
+        }
+        project.put("modified", new JsonObject().put("$toDate", System.currentTimeMillis()));
+        return pipelines;
+    }
+
+    private JsonObject modifyForAggregation(JsonObject value) {
+        if(value == null) {
+            return null;
+        } else {
+            final JsonObject copy = value.copy();
+            final Set<String> fieldNames = copy.fieldNames();
+            for (String fieldName : fieldNames) {
+                final Object eltValue = copy.getValue(fieldName);
+                if(eltValue instanceof Boolean || eltValue instanceof Number) {
+                    copy.put(fieldName, new JsonObject().put("$literal", eltValue));
+                } else if(eltValue instanceof JsonObject) {
+                    copy.put(fieldName, modifyForAggregation((JsonObject) eltValue));
+                } else {
+                    copy.put(fieldName, eltValue);
+                }
+            }
+            return copy;
+        }
+    }
+
+    private void addAggregationOperationToSetHourForUTCDateTime(final String fieldName, final LocalDateTime newDate, final JsonObject aggregate) {
+        aggregate.put(fieldName, new JsonObject().put("$dateToString", new JsonObject()
+          .put("format", "%d/%m/%Y %H:%M")
+          .put("date", new JsonObject()
+            .put("$dateFromParts", new JsonObject()
+              .put("year", new JsonObject().put("$year", new JsonObject().put("$dateFromString", new JsonObject().put("dateString", "$" + fieldName).put("format", "%d/%m/%Y %H:%M"))))
+              .put("month", new JsonObject().put("$month", new JsonObject().put("$dateFromString", new JsonObject().put("dateString", "$" + fieldName).put("format", "%d/%m/%Y %H:%M"))))
+              .put("day", new JsonObject().put("$dayOfMonth", new JsonObject().put("$dateFromString", new JsonObject().put("dateString", "$" + fieldName).put("format", "%d/%m/%Y %H:%M"))))
+              .put("hour", new JsonObject().put("$literal", newDate.getHour()))
+              .put("minute", new JsonObject().put("$literal", newDate.getMinute()))))));
+    }
+
+    private void addAggregationOperationToSetHourForLocalDateTime(final String fieldName, final ZonedDateTime newDate, JsonObject aggregate) {
+        aggregate.put(fieldName, new JsonObject().put("$dateToString", new JsonObject()
+          .put("format", "%Y-%m-%dT%H:%M:%S.%LZ")
+          .put("date", new JsonObject()
+            .put("$dateFromParts", new JsonObject()
+              .put("year", new JsonObject().put("$year", new JsonObject().put("$dateFromString", new JsonObject().put("dateString", "$" +fieldName))))
+              .put("month", new JsonObject().put("$month", new JsonObject().put("$dateFromString", new JsonObject().put("dateString", "$" +fieldName))))
+              .put("day", new JsonObject().put("$dayOfMonth", new JsonObject().put("$dateFromString", new JsonObject().put("dateString", "$" +fieldName))))
+              .put("hour", new JsonObject().put("$literal", newDate.getHour()))
+              .put("minute", new JsonObject().put("$literal", newDate.getMinute()))))));
     }
 
     @Override
