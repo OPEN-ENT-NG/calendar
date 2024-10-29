@@ -164,7 +164,7 @@ public class CalendarServiceImplTest {
             context.assertEquals(updatedCalendar, expectedCalendar);
             async.complete();
             return null;
-        }).when(mongo).update(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any());
+        }).when(mongo).update(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(Handler.class));
 
         calendarService.update(CALENDAR_ID, updateCalendar);
         async.await(10000);
