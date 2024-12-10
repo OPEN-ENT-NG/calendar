@@ -99,6 +99,18 @@ public class EventController extends MongoDbControllerHelper {
         });
     }
 
+    @Post("/:id/event/:eventid/updateAll")
+    @SecuredAction(value = "calendar.contrib", type = ActionType.RESOURCE)
+    @Trace(Actions.UPDATE_EVENT)
+    public void updateAllEvents(final HttpServerRequest request) {
+        RequestUtils.bodyToJson(request, pathPrefix + "event", new Handler<JsonObject>() {
+            @Override
+            public void handle(JsonObject event) {
+                eventHelper.updateAllEvents(request);
+            }
+        });
+    }
+
     @Delete("/:id/event/:eventid")
     @SecuredAction(value = "calendar.contrib", type = ActionType.RESOURCE)
     @Trace(Actions.DELETE_EVENT)

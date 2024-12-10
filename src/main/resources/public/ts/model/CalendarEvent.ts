@@ -86,6 +86,14 @@ export class CalendarEvent implements Selectable, Shareable{
         }
     };
 
+    async saveAll(){
+         if (this.allday) {
+             this.startTime = moment().hours(timeConfig.start_hour).minutes(0).second(0).millisecond(0)._d;
+             this.endTime = moment().hours(timeConfig.end_hour).minutes(0).second(0).millisecond(0)._d;
+         }
+        await this.updateAll();
+     };
+
     async create(){
         this.editDateBeforeSend(true);
         let {data : {_id : id}} = await http.post('/calendar/' + this.calendar[0]._id + '/events', this.toJSON());
@@ -95,6 +103,11 @@ export class CalendarEvent implements Selectable, Shareable{
     async update(){
         this.editDateBeforeSend(false);
        await http.put('/calendar/' + this.calendar[0]._id + '/event/' + this._id, this.toJSON());
+    };
+
+    async updateAll(){
+        this.editDateBeforeSend(false);
+       await http.post('/calendar/' + this.calendar[0]._id + '/event/' + this._id + "/updateAll", this.toJSON());
     };
 
     async delete(isExternal?: boolean) {

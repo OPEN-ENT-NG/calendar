@@ -3,7 +3,6 @@ package net.atos.entng.calendar.utils;
 import io.vertx.core.json.JsonObject;
 import net.atos.entng.calendar.core.constants.Field;
 
-import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -15,11 +14,7 @@ public final class DateUtils {
 
     public static final String DATE_FORMAT = "yyyy-MM-dd";
     public static final String DATE_FORMAT_UTC = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
-    public static final String FRENCH_DATE_FORMAT ="dd-MM-yyyy";
     public static final String YEAR = "yyyy";
-    public static final String DAY_MONTH_YEAR_HOUR_TIME = "dd/MM/yyyy HH:mm:ss";
-    public static final String HOUR_MINUTE_SECOND = "HH:mm:ss";
-    public static final String HOUR_MINUTE = "HH:mm";
     public static final String ICAL_DATE_FORMAT = "yyyyMMdd'T'HHmmss'Z'";
     public static final String ICAL_ALLDAY_FORMAT = "yyyyMMdd";
 
@@ -52,24 +47,13 @@ public final class DateUtils {
         if ((d1 == null) || (d2 == null)) {
             return false;
         }
-        final Date d1Arr = untimed(d1);
-        final Date d2Arr = untimed(d2);
-        return (d1Arr.equals(d2Arr));
-    }
-
-    private static Date untimed(Date date) {
-        final Calendar cal = new GregorianCalendar();
-        cal.setTime(date);
-        cal.set(Calendar.HOUR_OF_DAY, 0);
-
-        return cal.getTime();
-    }
-
-    public static String dateToString(Date date) {
-        DateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT_UTC);
-        String dateString = dateFormat.format(date);
-
-        return dateString;
+        final Calendar cal1 = Calendar.getInstance();
+        cal1.setTime(d1);
+        final Calendar cal2 = Calendar.getInstance();
+        cal2.setTime(d2);
+        return cal1.get(Calendar.YEAR) == cal2.get(Calendar.YEAR) &&
+          cal1.get(Calendar.MONTH) == cal2.get(Calendar.MONTH) &&
+          cal1.get(Calendar.DAY_OF_MONTH) == cal2.get(Calendar.DAY_OF_MONTH);
     }
 
     public static Date getRefEndDate(Date startDate) {
