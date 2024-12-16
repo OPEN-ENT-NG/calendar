@@ -45,9 +45,10 @@ export const calendarController = ng.controller('CalendarController',
         "$timeout",
         "$compile",
         "$sanitize",
+        "$sce",
         "model",
         "route",
-        function ($location, $scope, $timeout, $compile, $sanitize, model, route) {
+        function ($location, $scope, $timeout, $compile, $sanitize, $sce, model, route) {
             $scope._ = _;
             $scope.lang = lang;
             $scope.template = template;
@@ -1880,6 +1881,9 @@ export const calendarController = ng.controller('CalendarController',
                 return externalCalendarUtils.checkExternalCalendarRight(right);
             };
 
+            $scope.getDescriptionHTML = (description: string): string => {
+                return !!description ? $sce.trustAsHtml(description) : null;
+            }
 
             var updateCalendarList = function (start, end) {
                 model.calendarEvents.filters.startMoment.date(start.date());
