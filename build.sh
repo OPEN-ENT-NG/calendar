@@ -62,6 +62,16 @@ test () {
   docker compose run --rm maven mvn $MVN_OPTS test
 }
 
+buildNodeDev () {
+ case `uname -s` in
+    MINGW*)
+      docker-compose run --rm -u "$USER_UID:$GROUP_GID" node sh -c "yarn install --production=false --no-bin-links && node_modules/gulp/bin/gulp.js build && yarn run build:sass"
+      ;;
+    *)
+      docker-compose run --rm -u "$USER_UID:$GROUP_GID" node sh -c "yarn install --production=false && node_modules/gulp/bin/gulp.js build && yarn run build:sass"
+  esac
+}
+
 buildNode () {
   #jenkins
   echo "[buildNode] Get branch name from jenkins env..."
@@ -145,6 +155,9 @@ do
       ;;
     clean)
       clean
+      ;;
+    buildNodeDev)
+      buildNodeDev
       ;;
     buildNode)
       buildNode
