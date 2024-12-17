@@ -1,4 +1,16 @@
+section {
+  max-height: calc(100vh - 25vh);
+}
+
 .editEvent {
+
+  .richEditor {
+    .drawing-zone {
+      overflow: auto;
+      max-height: 100%;
+    }
+  }
+
   &-time {
     margin-bottom: 15px !important;
   }
