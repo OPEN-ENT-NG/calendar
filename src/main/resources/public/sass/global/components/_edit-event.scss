@@ -6,12 +6,18 @@ span.editorFormattedContent {
   margin-bottom: 15px;
 }
 
+
 .editEvent {
+
+  &-content {
+    display: flex;
+    overflow: auto;
+  }
 
   .richEditor {
     .drawing-zone {
       overflow: auto;
-      max-height: 100%;
+      height: 250px;
     }
   }
 
