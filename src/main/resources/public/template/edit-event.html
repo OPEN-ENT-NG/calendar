@@ -10,7 +10,7 @@
             <div class="row editEvent-content">
 
                 <!-- Event details -->
-                <article class="twelve cell">
+                <article>
                     <h2 class="backgroundBlueTitle">
                         <i18n>calendar.event.header.details</i18n>
                     </h2>
@@ -102,7 +102,7 @@
                 </article>
 
                 <!-- Event Dates -->
-                <article class="twelve cell">
+                <article>
                     <h2 class="backgroundBlueTitle">
                         <i18n ng-if="!calendarEvent.editAllRecurrence">calendar.event.header.dates</i18n>
                         <i18n ng-if="calendarEvent.editAllRecurrence">calendar.event.timeslot</i18n>
@@ -182,7 +182,7 @@
                 </article>
 
                 <!-- Event Recurrence -->
-                <article class="twelve cell" ng-if="!(calendarEvent.bookings && (calendarEvent.bookings.length > 0) && !calendarEvent.isRecurrent)">
+                <article ng-if="!(calendarEvent.bookings && (calendarEvent.bookings.length > 0) && !calendarEvent.isRecurrent)">
                     <h2 class="backgroundBlueTitle">
                         <i18n>calendar.event.header.recurrence</i18n>
                     </h2>
