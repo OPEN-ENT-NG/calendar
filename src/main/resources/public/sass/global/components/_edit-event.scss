@@ -12,7 +12,8 @@ section.lightbox>div.content {
   .richEditor {
     .drawing-zone {
       overflow: auto;
-      max-height: 250px;
+      max-height: 450px;
+      min-height: 200px !important;
     }
   }
 
