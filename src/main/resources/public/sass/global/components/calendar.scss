@@ -13,12 +13,14 @@
     padding: 10px;
 }
 
-section.editEventLightBox.lightbox {
+//section.editEventLightBox.lightbox {
+//    .content {
+//        overflow: auto !important;
+//    }
+//}
 
-
-    .content {
-        overflow: auto !important;
-    }
+section.editEventLightBox.lightbox>.content {
+    overflow: auto !important;
 }
 
 .color-selector .green, .row .green, nav.vertical ul li a.green, .calendarTooltip>.green {
