@@ -1885,6 +1885,9 @@ export const calendarController = ng.controller('CalendarController',
                 return !!description ? $sce.trustAsHtml(description) : null;
             }
 
+            console.log($scope.calendarEvent);
+
+
             var updateCalendarList = function (start, end) {
                 model.calendarEvents.filters.startMoment.date(start.date());
                 model.calendarEvents.filters.startMoment.month(start.month());

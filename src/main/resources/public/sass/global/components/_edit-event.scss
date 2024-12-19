@@ -5,7 +5,6 @@ span.editorFormattedContent {
 
 section.lightbox>div.content {
   overflow: auto !important;
-  background-color: blueviolet;
 }
 
 .editEvent {
@@ -13,7 +12,7 @@ section.lightbox>div.content {
   .richEditor {
     .drawing-zone {
       overflow: auto;
-      max-height: 100%;
+      max-height: 250px;
     }
   }
 
