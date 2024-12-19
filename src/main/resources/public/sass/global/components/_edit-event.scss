@@ -1,10 +1,20 @@
-section {
-  max-height: calc(100vh - 25vh);
-}
-
 span.editorFormattedContent {
   margin-bottom: 15px;
 }
+
+.section.editEventLightBox>.content {
+  overflow: auto !important;
+}
+
+//section.editEventLightBox.lightbox {
+//    .content {
+//        overflow: auto !important;
+//    }
+//}
+//
+//section.editEventLightBox.lightbox>.content {
+//  overflow: auto !important;
+//}
 
 .editEvent {
 
