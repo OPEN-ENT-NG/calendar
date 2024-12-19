@@ -372,21 +372,23 @@
                 </div>
             </div>
 
-            <button class="right-magnet" ng-click="saveCalendarEventEdit(calendarEvent)"
-                    ng-disabled="!hasRightOnSharedEvent(calendarEvent, rights.resources.updateEvent.right)
+            <div>
+                <button class="right-magnet" ng-click="saveCalendarEventEdit(calendarEvent)"
+                        ng-disabled="!hasRightOnSharedEvent(calendarEvent, rights.resources.updateEvent.right)
                     || !isEventFormValid(calendarEvent, buttonAction.save)">
-                <i18n>save</i18n>
-            </button>
-            <button class="right-magnet" ng-click="saveAndShareEvent(calendarEvent, $event)"
-                    ng-disabled="!hasRightOnSharedEvent(calendarEvent, rights.resources.shareEvent.right)
+                    <i18n>save</i18n>
+                </button>
+                <button class="right-magnet" ng-click="saveAndShareEvent(calendarEvent, $event)"
+                        ng-disabled="!hasRightOnSharedEvent(calendarEvent, rights.resources.shareEvent.right)
                     || !isEventFormValid(calendarEvent, buttonAction.share)">
-                [[nameOfShareButton(calendarEvent, "calendar")]]
-            </button>
-            <button ng-if="calendarEvent._id" class="right-magnet" ng-click="confirmRemoveCalendarEvent(calendarEvent, $event)"
-                    ng-disabled="!hasRightOnSharedEvent(calendarEvent, rights.resources.updateEvent.right)
+                    [[nameOfShareButton(calendarEvent, "calendar")]]
+                </button>
+                <button ng-if="calendarEvent._id" class="right-magnet" ng-click="confirmRemoveCalendarEvent(calendarEvent, $event)"
+                        ng-disabled="!hasRightOnSharedEvent(calendarEvent, rights.resources.updateEvent.right)
                     || !isEventFormValid(calendarEvent, buttonAction.delete)">
-                <i18n>remove</i18n>
-            </button>
+                    <i18n>remove</i18n>
+                </button>
+            </div>
         </form>
     </section>
 </div>

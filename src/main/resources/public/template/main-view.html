@@ -185,7 +185,7 @@
     </lightbox>
 </div>
 
-<!-- Lightbox : Event creation / edition -->
+<!-- Lightbox : Event display -->
 <div ng-if="display.showEventPanel">
     <lightbox show="display.showEventPanel" on-close="closeCalendarEvent()" delegate-close="canICloseLightBox()">
         <container template="lightbox"></container>
@@ -194,7 +194,7 @@
 
 <!-- Lightbox : Event creation / edition -->
 <div ng-show="display.showEditEventPanel">
-    <lightbox show="display.showEditEventPanel" on-close="closeCalendarEvent()" delegate-close="canICloseLightBox()">
+    <lightbox show="display.showEditEventPanel" on-close="closeCalendarEvent()" delegate-close="canICloseLightBox()" class="editEventLightBox">
         <div ng-include="'/calendar/public/template/edit-event.html'"></div>
     </lightbox>
 </div>

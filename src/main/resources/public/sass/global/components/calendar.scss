@@ -13,6 +13,14 @@
     padding: 10px;
 }
 
+section.editEventLightBox.lightbox {
+
+
+    .content {
+        overflow: auto !important;
+    }
+}
+
 .color-selector .green, .row .green, nav.vertical ul li a.green, .calendarTooltip>.green {
     background-color: #28c7a9 !important;
 }
