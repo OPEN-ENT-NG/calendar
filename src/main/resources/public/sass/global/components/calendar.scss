@@ -13,9 +13,9 @@
     padding: 10px;
 }
 
-section.editEventLightBox.lightbox {
+section.editEventLightBox {
     overflow: auto !important;
-    .content {
+    .lightbox>.content {
         overflow: auto !important;
     }
     ::-webkit-scrollbar-track {
