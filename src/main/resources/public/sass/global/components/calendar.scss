@@ -13,15 +13,19 @@
     padding: 10px;
 }
 
-//section.editEventLightBox.lightbox {
-//    .content {
-//        overflow: auto !important;
-//    }
-//}
-
-section.editEventLightBox.lightbox>.content {
+section.editEventLightBox.lightbox {
     overflow: auto !important;
+    .content {
+        overflow: auto !important;
+    }
+    ::-webkit-scrollbar-track {
+        border-radius: 0 5px 5px 0;
+    }
 }
+
+//section.editEventLightBox.lightbox>.content {
+//    overflow: auto !important;
+//}
 
 .color-selector .green, .row .green, nav.vertical ul li a.green, .calendarTooltip>.green {
     background-color: #28c7a9 !important;
