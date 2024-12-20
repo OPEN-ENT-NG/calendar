@@ -1,4 +1,22 @@
+span.editorFormattedContent {
+  margin-bottom: 15px;
+}
+
+
+section.lightbox>div.content {
+  overflow: auto !important;
+}
+
 .editEvent {
+
+  .richEditor {
+    .drawing-zone {
+      overflow: auto;
+      max-height: 450px;
+      min-height: 200px !important;
+    }
+  }
+
   &-time {
     margin-bottom: 15px !important;
   }
