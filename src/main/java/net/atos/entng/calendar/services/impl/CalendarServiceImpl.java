@@ -87,16 +87,16 @@ public class CalendarServiceImpl implements CalendarService {
         // filter by ids
         Bson query = in(Field._ID, calendarIds);
         if(userId != null) {
-            query = eq(String.format("%s.%s", Field.OWNER, Field.USERID), userId);
+            query = and(query, eq(String.format("%s.%s", Field.OWNER, Field.USERID), userId));
         }
 
 
         // if a calendar is external it contains "isExternal" = true and a string icsUrl
         if (Boolean.TRUE.equals(isExternal)) {
-            query = or(
+            query = and(query, or(
                 eq(Field.ISEXTERNAL, true),
                 not(in(Field.ICSLINK, "", null))
-            );
+            ));
         }
 
         JsonObject sort = new JsonObject().put("modified", -1);
