@@ -22,11 +22,11 @@ public class FutureHelper {
     }
 
     public static <T> CompositeFuture all(List<Future<T>> futures) {
-        return CompositeFuture.all(Collections.emptyList());
+        return Future.all(futures);
     }
 
     public static <T> CompositeFuture join(List<Future<T>> futures) {
-        return CompositeFuture.join(Collections.emptyList());
+        return Future.join(futures);
     }
 
     public static Handler<Either<String, JsonArray>> handlerJsonArray(Promise<JsonArray> promise) {
