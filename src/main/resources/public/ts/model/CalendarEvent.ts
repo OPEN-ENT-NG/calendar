@@ -57,7 +57,7 @@ export class CalendarEvent implements Selectable, Shareable{
     deleteAllBookings: boolean;
     isExternal: boolean;
     reminderType: CalendarEventReminderType;
-    reminderFrequency: CalendarEventReminderType;
+    reminderFrequency: CalendarEventReminderFrequency;
 
 
     constructor (calendarEvent? : Object) {
