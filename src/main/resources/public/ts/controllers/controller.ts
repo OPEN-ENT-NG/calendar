@@ -37,6 +37,7 @@ import {calendarService} from "../services";
 
 declare var ENABLE_RBS: boolean;
 declare var ENABLE_ZIMBRA: boolean;
+declare var ENABLE_REMINDER: boolean;
 declare let window: any;
 
 export const calendarController = ng.controller('CalendarController',
