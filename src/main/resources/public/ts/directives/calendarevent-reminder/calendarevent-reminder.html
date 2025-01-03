@@ -12,7 +12,7 @@
                 <i18n>calendar.event.reminder.type</i18n>
             </label>
 
-            <label class="checkbox">
+            <label class="checkbox" ng-if="vm.hasEmailOrZimbra()">
                 <input type="checkbox" ng-model="vm.calendarEvent.reminderType.email">
                 <span><i18n><span>calendar.email</span></i18n></span>
             </label>

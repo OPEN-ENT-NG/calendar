@@ -19,12 +19,11 @@ interface ICalendarReminderFormProps {
 interface IViewModel extends ng.IController, ICalendarReminderFormProps {
     i18nUtils?: I18nUtils;
 
-    // for link method
-    resetForm?(calendar: CalendarForm): void;
-    isFormComplete?(): boolean;
-    changeSelection?(field: string, platform?: string): void;
-    translate?(text: string): string;
-    hasZimbraExpert?(): boolean;
+    // resetForm?(calendar: CalendarForm): void;
+    // isFormComplete?(): boolean;
+    changeSelection?(field: string): void;
+    getTranslate?(key: string, params?: string[]): string;
+    hasEmailOrZimbra?(): boolean;
 }
 
 interface ICalendarReminderFormScope extends IScope {
@@ -48,25 +47,25 @@ class Controller implements IViewModel {
     }
 
     //todo
-    resetForm(): void {
-        // clear input fields
-        let urlInput: Element = angular.element(document.getElementById("external-calendar-url-input"));
-        urlInput[0].value = "";
-        let extCalendarForm: IScope = angular.element(document.getElementById("external-calendar-form")).scope();
-        extCalendarForm['externalCalendarForm'].$setPristine();
-
-        //clear color
-        this.$timeout(() : void => {
-            angular.element(document.getElementsByClassName("color grey")).triggerHandler('click');
-        })
-
-        safeApply(this.$scope);
-    }
+    // resetForm(): void {
+    //     // clear input fields
+    //     let urlInput: Element = angular.element(document.getElementById("external-calendar-url-input"));
+    //     urlInput[0].value = "";
+    //     let extCalendarForm: IScope = angular.element(document.getElementById("external-calendar-form")).scope();
+    //     extCalendarForm['externalCalendarForm'].$setPristine();
+    //
+    //     //clear color
+    //     this.$timeout(() : void => {
+    //         angular.element(document.getElementsByClassName("color grey")).triggerHandler('click');
+    //     })
+    //
+    //     safeApply(this.$scope);
+    // }
 
     //todo
-    isFormComplete(): boolean {
-        return !!this.$scope.vm.calendar && !!this.$scope.vm.calendar.title && (!!this.$scope.vm.calendar.icsLink !== !!this.$scope.vm.calendar.platform);
-    }
+    // isFormComplete(): boolean {
+    //     return !!this.$scope.vm.calendar && !!this.$scope.vm.calendar.title && (!!this.$scope.vm.calendar.icsLink !== !!this.$scope.vm.calendar.platform);
+    // }
 
 
     changeSelection(field: string): void {
@@ -75,13 +74,13 @@ class Controller implements IViewModel {
                 this.addOrRemoveReminder(this.$scope.vm.calendarEvent.reminderFrequency.hour);
                 break;
             case "day":
-                this.$scope.vm.calendar.platform = undefined;
+                this.addOrRemoveReminder(this.$scope.vm.calendarEvent.reminderFrequency.day);
                 break;
             case "week":
-                this.$scope.vm.calendar.platform = undefined;
+                this.addOrRemoveReminder(this.$scope.vm.calendarEvent.reminderFrequency.week);
                 break;
             case "month":
-                this.$scope.vm.calendar.icsLink = undefined;
+                this.addOrRemoveReminder(this.$scope.vm.calendarEvent.reminderFrequency.month);
                 break;
         }
     }
@@ -94,8 +93,8 @@ class Controller implements IViewModel {
         }
     }
 
-    hasZimbraExpert(): boolean {
-        return !!(model.me.authorizedActions.find(action => action.displayName == "zimbra.expert"));
+    hasEmailOrZimbra(): boolean {
+        return !!model.me.email || !!(model.me.authorizedActions.find(action => action.displayName == "zimbra.view"));
     }
 
 }
