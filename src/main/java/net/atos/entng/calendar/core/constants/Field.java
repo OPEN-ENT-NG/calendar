@@ -131,6 +131,8 @@ public class Field {
     public static final String CALENDARSYNCTTL = "calendarSyncTTL";
     public static final String ENABLEZIMBRA = "enableZimbra";
     public static final String ENABLE_ZIMBRA = "enable-zimbra";
+    public static final String ENABLEREMINDER = "enableReminder";
+    public static final String ENABLE_REMINDER = "enableCalendarReminder";
 
     //Miscellaneous
     public static final String ALL = "all";

@@ -56,6 +56,9 @@ export class CalendarEvent implements Selectable, Shareable{
     bookings: Array<SavedBooking|Booking>;
     deleteAllBookings: boolean;
     isExternal: boolean;
+    reminderType: CalendarEventReminderType;
+    reminderFrequency: CalendarEventReminderType;
+
 
     constructor (calendarEvent? : Object) {
         this.myRights = new Rights(this);
@@ -145,7 +148,7 @@ export class CalendarEvent implements Selectable, Shareable{
             notifEndMoment: this.notifEndMoment.format("DD/MM/YYYY HH:mm"),
             attachments : this.attachments ? this.attachments.map((attachment: Document) => new Document(attachment).toJSON()) : [],
             bookings: this.bookings,
-            hasBooking: this.hasBooking
+            hasBooking: this.hasBooking,
         }
         if (!this._id) {
             body.calendar = this.getCalendarId();
@@ -153,6 +156,7 @@ export class CalendarEvent implements Selectable, Shareable{
         if (this.sendNotif === false){
             body.sendNotif = this.sendNotif;
         }
+        
         return body;
     };
 
@@ -299,6 +303,18 @@ export type CalendarEventRecurrence = {
     every: number;
     end_type: string;
     end_after: number;
+};
+
+export type CalendarEventReminderType = {
+    email: boolean;
+    timeline: boolean;
+};
+
+export type CalendarEventReminderFrequency = {
+    hour: number[];
+    day: number[];
+    week: number[];
+    month: number[];
 };
 
 export class filterCalendarEvent {

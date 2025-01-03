@@ -212,5 +212,14 @@
     "calendar.last.update": "Last update",
     "calendar.already.updated": "Calendar has already been updated",
     "calendar.has.been.added": "has been added.",
-    "calendar.get.events.error": "Error when retrieving events from calendar"
+    "calendar.get.events.error": "Error when retrieving events from calendar",
+    "calendar.event.reminders": "Reminders",
+    "calendar.event.reminder.type": "Reminder types",
+    "calendar.email": "Email",
+    "calendar.timeline": "Timeline",
+    "calendar.event.reminder.frequency": "Reminder frequency",
+    "calendar.event.reminder.hour": "{0} hour before",
+    "calendar.event.reminder.day": "{0} day before",
+    "calendar.event.reminder.week": "{0} week before",
+    "calendar.event.reminder.month": "{0} month before"
 }
