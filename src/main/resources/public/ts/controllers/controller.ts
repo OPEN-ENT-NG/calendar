@@ -26,7 +26,7 @@ import {Subject} from "rxjs";
 import {Moment} from "moment";
 import {FORMAT} from "../core/const/date-format";
 import {DAY_OF_WEEK} from "../core/enum/dayOfWeek.enum";
-import {attachmentService} from "../services";
+import {attachmentService, calendarEventService} from "../services";
 import {PERIODE_TYPE} from "../core/enum/period-type.enum";
 import {RbsEmitter} from "../model";
 import {IScope} from "angular";
@@ -85,6 +85,7 @@ export const calendarController = ng.controller('CalendarController',
             $scope.ENABLE_RBS = ENABLE_RBS;
             $scope.rbsEmitter = new RbsEmitter($scope, !!$scope.ENABLE_RBS);
             $scope.ENABLE_ZIMBRA = ENABLE_ZIMBRA;
+            $scope.ENABLE_REMINDER = ENABLE_REMINDER;
             $scope.minDate = moment(minStartMomentDate);
 
                 template.open('main', 'main-view');
@@ -1886,7 +1887,22 @@ export const calendarController = ng.controller('CalendarController',
                 return !!description ? $sce.trustAsHtml(description) : null;
             }
 
-            console.log($scope.calendarEvent);
+            $scope.isEventReminderValid = (calendarEvent: CalendarEvent): boolean => {
+                return !!(calendarEvent.reminders.reminderType.timeline || calendarEvent.reminders.reminderType.email)
+                    && (!!calendarEvent.reminders.reminderFrequency.hour.length
+                        || !!calendarEvent.reminders.reminderFrequency.day.length
+                        || !!calendarEvent.reminders.reminderFrequency.week.length
+                        || !!calendarEvent.reminders.reminderFrequency.month.length );
+            }
+
+            $scope.saveCalendarEventReminder = async (): Promise<void> => {
+                if ($scope.isEventReminderValid($scope.calendarEvent.reminders) && $scope.calendarEvent.reminders.id) {
+                    await calendarEventService.updateCalendarEventReminder($scope.calendarEvent.calendars[0], $scope.calendarEvent._id,$scope.calendarEvents.reminders);
+                } else if ($scope.isEventReminderValid($scope.calendarEvent.reminders) && !$scope.calendarEvent.reminders.id) {
+                    await calendarEventService.createCalendarEventReminder($scope.calendarEvent.calendars[0], $scope.calendarEvent._id,$scope.calendarEvents.reminders);
+                }
+
+            }
 
 
             var updateCalendarList = function (start, end) {

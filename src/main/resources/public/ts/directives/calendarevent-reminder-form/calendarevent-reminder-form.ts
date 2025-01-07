@@ -6,17 +6,18 @@ import {CalendarForm} from "../../model/calendar-form.model";
 import {idiom as lang} from "entcore";
 import {I18nUtils} from "../../utils/i18n.utils";
 import { CalendarEvent } from "../../model";
+import {CalendarEventReminder, CalendarEventReminderFrequency, CalendarEventReminderType } from "../../model/reminder";
 
 
-interface ICalendarReminderFormProps {
+interface ICalendareventReminderFormProps {
     calendarEvent?: CalendarEvent;
-    enableCalendarReminder?: boolean;
+    // enableCalendarReminder?: boolean;
 
-    onCreateExternalCalendar?(): (calendar: CalendarForm) => void;
-    onCloseExternalCalendarForm?(): () => void;
+    // onCreateExternalCalendar?(): (calendar: CalendarForm) => void;
+    // onCloseExternalCalendarForm?(): () => void;
 }
 
-interface IViewModel extends ng.IController, ICalendarReminderFormProps {
+interface IViewModel extends ng.IController, ICalendareventReminderFormProps {
     i18nUtils?: I18nUtils;
 
     // resetForm?(calendar: CalendarForm): void;
@@ -26,20 +27,25 @@ interface IViewModel extends ng.IController, ICalendarReminderFormProps {
     hasEmailOrZimbra?(): boolean;
 }
 
-interface ICalendarReminderFormScope extends IScope {
+interface ICalendareventReminderFormScope extends IScope {
     vm: IViewModel;
 }
 
 class Controller implements IViewModel {
 
-    constructor(private $scope: ICalendarReminderFormScope, private $parse: any, private $timeout: ITimeoutService) {
+    constructor(private $scope: ICalendareventReminderFormScope, private $parse: any, private $timeout: ITimeoutService) {
+        console.log("constr", this.$scope.vm.calendarEvent);
     }
 
     $onInit() {
         this.$scope.vm.i18nUtils = new I18nUtils();
+        console.log("init", this.$scope.vm.calendarEvent);
+        if (!this.$scope.vm.calendarEvent.reminders?.id)
+        this.$scope.vm.calendarEvent.reminders = new CalendarEventReminder(this.$scope.vm.calendarEvent._id, new CalendarEventReminderType(), new CalendarEventReminderFrequency());
     }
 
     $onDestroy() {
+        //reset form
     }
     
     getTranslate = (key: string, params?: string[]) => {
@@ -63,24 +69,30 @@ class Controller implements IViewModel {
     // }
 
     //todo
-    // isFormComplete(): boolean {
-    //     return !!this.$scope.vm.calendar && !!this.$scope.vm.calendar.title && (!!this.$scope.vm.calendar.icsLink !== !!this.$scope.vm.calendar.platform);
+    // isEventReminderValid = (): boolean => {
+    //     return !!(this.$scope.vm.calendarEvent.reminders.reminderType.timeline || this.$scope.vm.calendarEvent.reminders.reminderType.email) 
+    //         && (!!this.$scope.vm.calendarEvent.reminders.reminderFrequency.hour.length 
+    //             || !!this.$scope.vm.calendarEvent.reminders.reminderFrequency.day.length 
+    //             || !!this.$scope.vm.calendarEvent.reminders.reminderFrequency.week.length 
+    //             || !!this.$scope.vm.calendarEvent.reminders.reminderFrequency.month.length );
     // }
 
 
     changeSelection(field: string): void {
+        console.log(this.$scope.vm.calendarEvent);
+
         switch (field) {
             case "hour":
-                this.addOrRemoveReminder(this.$scope.vm.calendarEvent.reminderFrequency.hour);
+                this.addOrRemoveReminder(this.$scope.vm.calendarEvent.reminders.reminderFrequency.hour);
                 break;
             case "day":
-                this.addOrRemoveReminder(this.$scope.vm.calendarEvent.reminderFrequency.day);
+                this.addOrRemoveReminder(this.$scope.vm.calendarEvent.reminders.reminderFrequency.day);
                 break;
             case "week":
-                this.addOrRemoveReminder(this.$scope.vm.calendarEvent.reminderFrequency.week);
+                this.addOrRemoveReminder(this.$scope.vm.calendarEvent.reminders.reminderFrequency.week);
                 break;
             case "month":
-                this.addOrRemoveReminder(this.$scope.vm.calendarEvent.reminderFrequency.month);
+                this.addOrRemoveReminder(this.$scope.vm.calendarEvent.reminders.reminderFrequency.month);
                 break;
         }
     }
@@ -102,20 +114,21 @@ class Controller implements IViewModel {
 function directive($parse) {
     return {
         restrict: 'E',
-        templateUrl: `${ROOTS.directive}calendarevent-reminder/calendarevent-reminder.html`,
+        templateUrl: `/calendar/public/ts/directives/calendarevent-reminder-form/calendarevent-reminder-form.html`,
         controllerAs: 'vm',
         scope: {
-            calendarEvent: '=',
+            calendarEvent: '='
             // enableCalendarReminder: "=",
             // onCreateExternalCalendar: '&',
             // onCloseExternalCalendarForm: '&'
         },
         bindToController: true,
         controller: ['$scope', '$parse', '$timeout', Controller],
-        link: function ($scope: ICalendarReminderFormScope,
+        link: function ($scope: ICalendareventReminderFormScope,
                         element: ng.IAugmentedJQuery,
                         attrs: ng.IAttributes,
                         vm: IViewModel) {
+            console.log("debut", $scope.vm.calendarEvent);
             // vm.onCreateExternalCalendarAction = (): void => {
             //     $parse($scope.vm.onCreateExternalCalendar())($scope.vm.calendar);
             // },
@@ -126,4 +139,4 @@ function directive($parse) {
     }
 }
 
-export const CalendarReminderForm = ng.directive('CalendarReminderForm', directive);
+export const calendareventReminderForm = ng.directive('calendareventReminderForm', directive);

@@ -1,0 +1,56 @@
+<article class="calendareventReminderForm">
+    <h2 class="backgroundBlueTitle">
+        <i18n>calendar.event.reminders</i18n>
+    </h2>
+    <div class="toggle">
+        <div class="content">
+
+            <!--Reminder types-->
+            <div class="row">
+                <div class="twelve cell bottom-spacing-twice">
+                    <i18n>calendar.event.reminder.type</i18n>
+                </div>
+
+                <div>TEST</div>
+
+                <div class="bottom-spacing-twice flex twelve cell">
+                    <div class="checkbox left-spacing-twice" ng-if="vm.hasEmailOrZimbra()">
+                        <input type="checkbox" ng-model="vm.calendarEvent.reminders.reminderType.email">
+                        <label><i18n>calendar.email</i18n></label>
+                    </div>
+                    <div class="checkbox left-spacing-twice">
+                        <input type="checkbox" ng-model="vm.calendarEvent.reminders.reminderType.timeline">
+                        <label><i18n>calendar.timeline</i18n></label>
+                    </div>
+                </div>
+            </div>
+
+
+            <!--Reminder frequency-->
+            <div class="row">
+                <div class="twelve cell bottom-spacing-twice">
+                    <i18n>calendar.event.reminder.frequency</i18n>
+                </div>
+
+                <div class="bottom-spacing-twice flex twelve cell">
+                    <div class="checkbox left-spacing-twice">
+                        <input type="checkbox" ng-click="vm.changeSelection('hour')">
+                        <label><i18n>[[vm.getTranslate("calendar.event.reminder.hour", [1])]]</i18n></label>
+                    </div>
+                    <div class="checkbox left-spacing-twice">
+                        <input type="checkbox" ng-click="vm.changeSelection('day')">
+                        <label><i18n>[[vm.getTranslate("calendar.event.reminder.day", [1])]]</i18n></label>
+                    </div>
+                    <div class="checkbox left-spacing-twice">
+                        <input type="checkbox" ng-click="vm.changeSelection('week')">
+                        <label><i18n>[[vm.getTranslate("calendar.event.reminder.week", [1])]]</i18n></label>
+                    </div>
+                    <div class="checkbox left-spacing-twice">
+                        <input type="checkbox" ng-click="vm.changeSelection('month')">
+                        <label><i18n>[[vm.getTranslate("calendar.event.reminder.month", [1])]]</i18n></label>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</article>

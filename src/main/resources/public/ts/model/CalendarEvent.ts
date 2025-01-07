@@ -9,6 +9,7 @@ import {FORMAT} from "../core/const/date-format";
 import {calendarEventService, CalendarEventService} from "../services/calendar-event.service";
 import {SavedBooking} from "./rbs/booking.model";
 import {externalCalendarUtils} from "../utils/externalCalendarUtils";
+import { CalendarEventReminder } from "./reminder";
 
 export class CalendarEvent implements Selectable, Shareable{
     _id: string;
@@ -56,8 +57,7 @@ export class CalendarEvent implements Selectable, Shareable{
     bookings: Array<SavedBooking|Booking>;
     deleteAllBookings: boolean;
     isExternal: boolean;
-    reminderType: CalendarEventReminderType;
-    reminderFrequency: CalendarEventReminderFrequency;
+    reminders: CalendarEventReminder;
 
 
     constructor (calendarEvent? : Object) {
@@ -303,18 +303,6 @@ export type CalendarEventRecurrence = {
     every: number;
     end_type: string;
     end_after: number;
-};
-
-export type CalendarEventReminderType = {
-    email: boolean;
-    timeline: boolean;
-};
-
-export type CalendarEventReminderFrequency = {
-    hour: number[];
-    day: number[];
-    week: number[];
-    month: number[];
 };
 
 export class filterCalendarEvent {
