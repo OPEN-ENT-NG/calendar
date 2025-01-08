@@ -1895,7 +1895,12 @@ export const calendarController = ng.controller('CalendarController',
                         || !!$scope.calendarEvent.reminders?.reminderFrequency?.day
                         || !!$scope.calendarEvent.reminders?.reminderFrequency?.week
                         || !!$scope.calendarEvent.reminders?.reminderFrequency?.month ))
-                    || (!$scope.calendarEvent.reminders?.reminderType?.timeline
+                    || $scope.isEventReminderFormEmpty();
+            }
+
+            $scope.isEventReminderFormEmpty = (): boolean => {
+                // nothing selected
+                return(!$scope.calendarEvent.reminders?.reminderType?.timeline
                         && !$scope.calendarEvent.reminders?.reminderType?.email
                         && !$scope.calendarEvent.reminders?.reminderFrequency?.hour
                         && !$scope.calendarEvent.reminders?.reminderFrequency?.day

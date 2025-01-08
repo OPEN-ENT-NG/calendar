@@ -105,14 +105,14 @@
         <!--Reminder form-->
         <div ng-if="ENABLE_REMINDER">
             <calendarevent-reminder-form
-                    calendarEvent="calendarEvent"
+                    calendar-event="calendarEvent"
                     on-event-reminder-valid="isEventReminderValid"
             >
             </calendarevent-reminder-form>
         </div>
 
-        <button class="right-magnet" ng-click="saveCalendarEventReminder(calendarEvent)"
-                ng-disabled="!isEventReminderFormValid(calendarEvent)">
+        <button class="right-magnet" ng-click="saveCalendarEventReminder()"
+                ng-disabled="!isEventReminderValid(calendarEvent)">
             <i18n>calendar.event.reminder.save</i18n>
         </button>
     </div>

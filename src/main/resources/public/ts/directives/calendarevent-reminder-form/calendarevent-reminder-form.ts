@@ -39,17 +39,6 @@ class Controller implements IViewModel {
 
     $onInit() {
         this.$scope.vm.i18nUtils = new I18nUtils();
-        console.log("before", this.$scope.vm.calendarEvent);
-        // if (!this.$scope.vm.calendarEvent.reminders?.id)
-        // this.$scope.vm.calendarEvent.reminders = new CalendarEventReminder(this.$scope.vm.calendarEvent._id, new CalendarEventReminderType(), new CalendarEventReminderFrequency());
-
-        this.$scope.vm.$watch(() => this.$scope.vm.calendarEvent, (newValue) => {
-            if (newValue && !newValue.reminders?.id) {
-                newValue.reminders = new CalendarEventReminder(this.$scope.vm.calendarEvent._id);
-            }
-        });
-
-        console.log("after", this.$scope.vm.calendarEvent);
     }
 
 
