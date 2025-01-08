@@ -219,5 +219,6 @@
     "calendar.event.reminder.day": "{0} jour avant",
     "calendar.event.reminder.week": "{0} semaine avant",
     "calendar.event.reminder.month": "{0} mois avant",
-    "calendar.event.reminder.save": "Enregistrer le rappel"
+    "calendar.event.reminder.save": "Enregistrer le rappel",
+    "calendar.event.reminder.form.not.valid" : "Veuillez remplir toutes les informations du rappel avant d'enregistrer."
 }

@@ -11,8 +11,6 @@
                     <i18n>calendar.event.reminder.type</i18n>
                 </div>
 
-                <div>TEST</div>
-
                 <div class="bottom-spacing-twice flex twelve cell">
                     <div class="checkbox left-spacing-twice" ng-if="vm.hasEmailOrZimbra()">
                         <input type="checkbox" ng-model="vm.calendarEvent.reminders.reminderType.email">
@@ -34,22 +32,26 @@
 
                 <div class="bottom-spacing-twice flex twelve cell">
                     <div class="checkbox left-spacing-twice">
-                        <input type="checkbox" ng-click="vm.changeSelection('hour')">
+                        <input type="checkbox" ng-model="vm.calendarEvent.reminders.reminderFrequency.hour">
                         <label><i18n>[[vm.getTranslate("calendar.event.reminder.hour", [1])]]</i18n></label>
                     </div>
                     <div class="checkbox left-spacing-twice">
-                        <input type="checkbox" ng-click="vm.changeSelection('day')">
+                        <input type="checkbox" ng-model="vm.calendarEvent.reminders.reminderFrequency.day">
                         <label><i18n>[[vm.getTranslate("calendar.event.reminder.day", [1])]]</i18n></label>
                     </div>
                     <div class="checkbox left-spacing-twice">
-                        <input type="checkbox" ng-click="vm.changeSelection('week')">
+                        <input type="checkbox" ng-model="vm.calendarEvent.reminders.reminderFrequency.week">
                         <label><i18n>[[vm.getTranslate("calendar.event.reminder.week", [1])]]</i18n></label>
                     </div>
                     <div class="checkbox left-spacing-twice">
-                        <input type="checkbox" ng-click="vm.changeSelection('month')">
+                        <input type="checkbox" ng-model="vm.calendarEvent.reminders.reminderFrequency.month">
                         <label><i18n>[[vm.getTranslate("calendar.event.reminder.month", [1])]]</i18n></label>
                     </div>
                 </div>
+            </div>
+
+            <div class="top-spacing-twice warning form-element" ng-if="!vm.onCheckEventReminderValid()">
+                <i18n>calendar.event.reminder.form.not.valid</i18n>
             </div>
         </div>
     </div>

@@ -221,5 +221,7 @@
     "calendar.event.reminder.hour": "{0} hour before",
     "calendar.event.reminder.day": "{0} day before",
     "calendar.event.reminder.week": "{0} week before",
-    "calendar.event.reminder.month": "{0} month before"
+    "calendar.event.reminder.month": "{0} month before",
+    "calendar.event.reminder.save": "Save reminder",
+    "calendar.event.reminder.form.not.valid" : "Please fill all the reminder information before saving."
 }

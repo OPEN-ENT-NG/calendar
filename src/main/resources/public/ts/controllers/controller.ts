@@ -1696,7 +1696,8 @@ export const calendarController = ng.controller('CalendarController',
                 /** Ensures that the fields of the form are correctly filled*/
                 let areFieldsInCommonValid: boolean = ($scope.rbsEmitter.checkBookingValidAndSendInfoToSniplet() && !$scope.eventForm.editEvent.$invalid && $scope.isCalendarSelectedInEvent()
                     && $scope.isTimeValid() && $scope.isDateValid() &&  $scope.areRecurrenceAndEventLengthsCompatible()
-                    && !$scope.isStartDateTooOld() && !$scope.isEndDateTooFar() && $scope.isValidRecurrentEndDate());
+                    && !$scope.isStartDateTooOld() && !$scope.isEndDateTooFar() && $scope.isValidRecurrentEndDate())
+                    && (!ENABLE_REMINDER || $scope.isEventReminderValid());
 
                 switch (actionButton) {
                     case ACTIONS.save:
@@ -1887,21 +1888,28 @@ export const calendarController = ng.controller('CalendarController',
                 return !!description ? $sce.trustAsHtml(description) : null;
             }
 
-            $scope.isEventReminderValid = (calendarEvent: CalendarEvent): boolean => {
-                return !!(calendarEvent.reminders.reminderType.timeline || calendarEvent.reminders.reminderType.email)
-                    && (!!calendarEvent.reminders.reminderFrequency.hour.length
-                        || !!calendarEvent.reminders.reminderFrequency.day.length
-                        || !!calendarEvent.reminders.reminderFrequency.week.length
-                        || !!calendarEvent.reminders.reminderFrequency.month.length );
+            $scope.isEventReminderValid = (): boolean => {
+                //one reminder type + one reminder frequency selected OR nothing selected
+                return ((!!$scope.calendarEvent.reminders?.reminderType?.timeline || !!$scope.calendarEvent.reminders?.reminderType?.email)
+                    && (!!$scope.calendarEvent.reminders?.reminderFrequency?.hour
+                        || !!$scope.calendarEvent.reminders?.reminderFrequency?.day
+                        || !!$scope.calendarEvent.reminders?.reminderFrequency?.week
+                        || !!$scope.calendarEvent.reminders?.reminderFrequency?.month ))
+                    || (!$scope.calendarEvent.reminders?.reminderType?.timeline
+                        && !$scope.calendarEvent.reminders?.reminderType?.email
+                        && !$scope.calendarEvent.reminders?.reminderFrequency?.hour
+                        && !$scope.calendarEvent.reminders?.reminderFrequency?.day
+                        && !$scope.calendarEvent.reminders?.reminderFrequency?.week
+                        && !$scope.calendarEvent.reminders?.reminderFrequency?.month);
             }
 
             $scope.saveCalendarEventReminder = async (): Promise<void> => {
-                if ($scope.isEventReminderValid($scope.calendarEvent.reminders) && $scope.calendarEvent.reminders.id) {
+                console.log("saveCalendarEventReminder");
+                if ($scope.isEventReminderValid($scope.calendarEvent.reminders) && !!$scope.calendarEvent.reminders?.id) {
                     await calendarEventService.updateCalendarEventReminder($scope.calendarEvent.calendars[0], $scope.calendarEvent._id,$scope.calendarEvents.reminders);
-                } else if ($scope.isEventReminderValid($scope.calendarEvent.reminders) && !$scope.calendarEvent.reminders.id) {
+                } else if ($scope.isEventReminderValid($scope.calendarEvent.reminders) && !$scope.calendarEvent.reminders?.id) {
                     await calendarEventService.createCalendarEventReminder($scope.calendarEvent.calendars[0], $scope.calendarEvent._id,$scope.calendarEvents.reminders);
                 }
-
             }
 
 

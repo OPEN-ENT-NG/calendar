@@ -14,7 +14,7 @@ interface ICalendareventReminderFormProps {
     // enableCalendarReminder?: boolean;
 
     // onCreateExternalCalendar?(): (calendar: CalendarForm) => void;
-    // onCloseExternalCalendarForm?(): () => void;
+    onEventReminderValid?: () => boolean;
 }
 
 interface IViewModel extends ng.IController, ICalendareventReminderFormProps {
@@ -32,22 +32,31 @@ interface ICalendareventReminderFormScope extends IScope {
 }
 
 class Controller implements IViewModel {
+    calendarEvent: CalendarEvent;
 
     constructor(private $scope: ICalendareventReminderFormScope, private $parse: any, private $timeout: ITimeoutService) {
-        console.log("constr", this.$scope.vm.calendarEvent);
     }
 
     $onInit() {
         this.$scope.vm.i18nUtils = new I18nUtils();
-        console.log("init", this.$scope.vm.calendarEvent);
-        if (!this.$scope.vm.calendarEvent.reminders?.id)
-        this.$scope.vm.calendarEvent.reminders = new CalendarEventReminder(this.$scope.vm.calendarEvent._id, new CalendarEventReminderType(), new CalendarEventReminderFrequency());
+        console.log("before", this.$scope.vm.calendarEvent);
+        // if (!this.$scope.vm.calendarEvent.reminders?.id)
+        // this.$scope.vm.calendarEvent.reminders = new CalendarEventReminder(this.$scope.vm.calendarEvent._id, new CalendarEventReminderType(), new CalendarEventReminderFrequency());
+
+        this.$scope.vm.$watch(() => this.$scope.vm.calendarEvent, (newValue) => {
+            if (newValue && !newValue.reminders?.id) {
+                newValue.reminders = new CalendarEventReminder(this.$scope.vm.calendarEvent._id);
+            }
+        });
+
+        console.log("after", this.$scope.vm.calendarEvent);
     }
+
 
     $onDestroy() {
         //reset form
     }
-    
+
     getTranslate = (key: string, params?: string[]) => {
         return !!params ? this.$scope.vm.i18nUtils.getWithParams(key, params) : this.$scope.vm.i18nUtils.translate(key);
     }
@@ -68,34 +77,27 @@ class Controller implements IViewModel {
     //     safeApply(this.$scope);
     // }
 
-    //todo
-    // isEventReminderValid = (): boolean => {
-    //     return !!(this.$scope.vm.calendarEvent.reminders.reminderType.timeline || this.$scope.vm.calendarEvent.reminders.reminderType.email) 
-    //         && (!!this.$scope.vm.calendarEvent.reminders.reminderFrequency.hour.length 
-    //             || !!this.$scope.vm.calendarEvent.reminders.reminderFrequency.day.length 
-    //             || !!this.$scope.vm.calendarEvent.reminders.reminderFrequency.week.length 
-    //             || !!this.$scope.vm.calendarEvent.reminders.reminderFrequency.month.length );
+
+    // changeSelection(field: string): void {
+    //     console.log("selec", this.$scope.vm.calendarEvent);
+    //     if (!this.$scope.vm.calendarEvent.reminders.reminderFrequency) {
+    //         this.$scope.vm.calendarEvent.reminders.reminderFrequency = new CalendarEventReminderFrequency();
+    //     }
+    //     switch (field) {
+    //         case "hour":
+    //             this.addOrRemoveReminder(this.$scope.vm.calendarEvent.reminders.reminderFrequency.hour);
+    //             break;
+    //         case "day":
+    //             this.addOrRemoveReminder(this.$scope.vm.calendarEvent.reminders.reminderFrequency.day);
+    //             break;
+    //         case "week":
+    //             this.addOrRemoveReminder(this.$scope.vm.calendarEvent.reminders.reminderFrequency.week);
+    //             break;
+    //         case "month":
+    //             this.addOrRemoveReminder(this.$scope.vm.calendarEvent.reminders.reminderFrequency.month);
+    //             break;
+    //     }
     // }
-
-
-    changeSelection(field: string): void {
-        console.log(this.$scope.vm.calendarEvent);
-
-        switch (field) {
-            case "hour":
-                this.addOrRemoveReminder(this.$scope.vm.calendarEvent.reminders.reminderFrequency.hour);
-                break;
-            case "day":
-                this.addOrRemoveReminder(this.$scope.vm.calendarEvent.reminders.reminderFrequency.day);
-                break;
-            case "week":
-                this.addOrRemoveReminder(this.$scope.vm.calendarEvent.reminders.reminderFrequency.week);
-                break;
-            case "month":
-                this.addOrRemoveReminder(this.$scope.vm.calendarEvent.reminders.reminderFrequency.month);
-                break;
-        }
-    }
 
     private addOrRemoveReminder = (timeMeasurement: number[]): void => {
         if (!!timeMeasurement.length) {
@@ -117,10 +119,8 @@ function directive($parse) {
         templateUrl: `/calendar/public/ts/directives/calendarevent-reminder-form/calendarevent-reminder-form.html`,
         controllerAs: 'vm',
         scope: {
-            calendarEvent: '='
-            // enableCalendarReminder: "=",
-            // onCreateExternalCalendar: '&',
-            // onCloseExternalCalendarForm: '&'
+            calendarEvent: '=',
+            onEventReminderValid: '&',
         },
         bindToController: true,
         controller: ['$scope', '$parse', '$timeout', Controller],
@@ -128,13 +128,10 @@ function directive($parse) {
                         element: ng.IAugmentedJQuery,
                         attrs: ng.IAttributes,
                         vm: IViewModel) {
-            console.log("debut", $scope.vm.calendarEvent);
-            // vm.onCreateExternalCalendarAction = (): void => {
-            //     $parse($scope.vm.onCreateExternalCalendar())($scope.vm.calendar);
-            // },
-            //     vm.onCloseExternalCalendarFormAction = (): void => {
-            //         $parse($scope.vm.onCloseExternalCalendarForm())($scope.vm.calendar);
-            //     }
+            vm.onCheckEventReminderValid = (): boolean => {
+                console.log("inside check reminder");
+                return $parse($scope.vm.onEventReminderValid())({});
+            }
         }
     }
 }
