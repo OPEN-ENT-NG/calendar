@@ -29,7 +29,7 @@
     </repositories>
 
     <properties>
-        <entCoreVersion>6.0-SNAPSHOT</entCoreVersion>
+        <entCoreVersion>6.0-develop-pedago-SNAPSHOT</entCoreVersion>
         <junitVersion>4.10</junitVersion>
         <mockitoVersion>[2.0,3.0)</mockitoVersion>
         <powerMockVersion>2.0.2</powerMockVersion>
@@ -37,7 +37,7 @@
         <toolsVersion>2.0.0-final</toolsVersion>
         <reflectionsVersion>0.10.2</reflectionsVersion>
         <web-utils.version>3.0-SNAPSHOT</web-utils.version>
-        <mongodb-helper.version>3.0-SNAPSHOT</mongodb-helper.version>
+        <mongodb-helper.version>3.0-develop-pedago-SNAPSHOT</mongodb-helper.version>
     </properties>
 
     <dependencies>
