@@ -1,4 +1,4 @@
-package net.atos.entng.reminder.models;
+package net.atos.entng.reminder.front.end.models;
 
 import io.vertx.core.json.JsonObject;
 
@@ -6,21 +6,19 @@ import io.vertx.core.json.JsonObject;
 import java.util.ArrayList;
 import java.util.Date;
 
-public class ReminderModel implements IModel<ReminderModel> {
-
+public class ReminderFrontEndModel implements IModel<ReminderFrontEndModel> {
 
     private final String id;
     private final String eventId;
-    private final JsonObject owner;
-    private final JsonArray<JsonObject> reminderType;
-    private final JsonArray<Date> reminderFrequency;
+    private final ReminderType reminderType;
+    private final ReminderFrequency reminderFrequency;
 
-    public CalendarModel(JsonObject reminder) {
+    public ReminderFrontEndModel(JsonObject reminder) {
         this.id = reminder.getString(Field._ID, "");
         this.title = reminder.getString(Field.EVENTID_CAMEL, "");
 
-        this.reminderType = reminder.getList(Field.COLOR, null);
-        this.reminderFrequency = reminder.getJsonArray(Field.OWNER, new JsonObject()); //pass through converter
+        this.reminderType = reminder.getJsonArray(Field.REMINDERTYPE, new ReminderType());
+        this.reminderFrequency = reminder.getJsonArray(Field.REMINDERFREQUENCY, new ReminderFrequency()); //pass through converter
     }
 
     public String getId() {
@@ -35,11 +33,11 @@ public class ReminderModel implements IModel<ReminderModel> {
         return owner;
     }
 
-    public JsonArray<JsonObject> getReminderType() {
+    public JsonArray<ReminderType> getReminderType() {
         return reminderType;
     }
 
-    public JsonArray<Date> getReminderFrequency() {
+    public JsonArray<ReminderFrequency> getReminderFrequency() {
         return reminderFrequency;
     }
 
@@ -51,10 +49,9 @@ public class ReminderModel implements IModel<ReminderModel> {
 
         return reminderObject;
     }
-
 }
 
-public static class ReminderTypeModel {
+public static class ReminderTypeFrontEndModel {
     boolean email;
     boolean timeline;
 
@@ -64,16 +61,17 @@ public static class ReminderTypeModel {
     }
 }
 
-public static class ReminderFrequencyModel {
+public static class ReminderFrequencyFrontEndModel {
     boolean hour;
     boolean day;
     boolean week;
     boolean month;
 
     public ReminderFrequency(JsonObject reminderFrequency) {
-        this.hour = reminder.getJsonArray(Field.HOUR, new JsonObject().put(Field.HOUR, new JsonArray()));
-        this.day = reminder.getJsonArray(Field.DAY, new JsonObject().put(Field.DAY, new JsonArray()));
-        this.week = reminder.getJsonArray(Field.WEEK, new JsonObject().put(Field.WEEK, new JsonArray()));
-        this.month = reminder.getJsonArray(Field.MONTH, new JsonObject().put(Field.MONTH, new JsonArray()));
+        this.hour = reminder.getBoolean(Field.HOUR, new JsonObject().put(Field.HOUR, false));
+        this.day = reminder.getBoolean(Field.DAY, new JsonObject().put(Field.DAY, false));
+        this.week = reminder.getBoolean(Field.WEEK, new JsonObject().put(Field.WEEK, false));
+        this.month = reminder.getBoolean(Field.MONTH, new JsonObject().put(Field.MONTH, false));
     }
 }
+
