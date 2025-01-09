@@ -106,6 +106,7 @@ public class CalendarController extends MongoDbControllerHelper {
                 final JsonObject context = new JsonObject();
                 context.put(Field.ENABLERBS, config.getBoolean(Field.ENABLE_RBS, false));
                 context.put(Field.ENABLEZIMBRA, config.getBoolean(Field.ENABLE_ZIMBRA, false));
+                context.put(Field.ENABLEREMINDER, config.getBoolean(Field.ENABLEREMINDER, false));
                 calendarService.getDefaultCalendar(user)
                         .onSuccess(calendar -> {
                             if (calendar.isEmpty() || calendar.fieldNames().isEmpty()) {
