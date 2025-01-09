@@ -35,6 +35,7 @@ public class Field {
     // event
     public static final String calendarEvent = "calendarEvent";
     public static final String EVENTID = "eventid";
+    public static final String EVENTID_CAMEL = "eventId";
 
     // event start moment
     public static final String STARTMOMENT = "startMoment";
