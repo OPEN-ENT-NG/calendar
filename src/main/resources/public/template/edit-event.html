@@ -369,6 +369,14 @@
                             class="row">
                     </sniplet>
                 </div>
+                <!--Reminder form-->
+                <div ng-if="ENABLE_REMINDER">
+                    <calendarevent-reminder-form
+                            calendar-event="calendarEvent"
+                            on-event-reminder-valid="isEventReminderValid"
+                     >
+                    </calendarevent-reminder-form>
+                </div>
             </div>
 
             <button class="right-magnet" ng-click="saveCalendarEventEdit(calendarEvent)"
