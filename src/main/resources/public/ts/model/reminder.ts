@@ -1,12 +1,5 @@
 import {CalendarEvents} from "./CalendarEvent";
 
-export interface ICalendarEventReminderPayload {
-    _id?: string;
-    eventId: string;
-    reminderType: CalendarEventReminderType;
-    reminderFrequency: CalendarEventReminderFrequency;
-}
-
 export class CalendarEventReminder {
     private _id?: string;
     private _eventId: string;
