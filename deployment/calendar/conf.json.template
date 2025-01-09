@@ -16,6 +16,7 @@
         "entcore.port" : 8009,
         "enable-rbs": ${enableRbs},
         "enable-zimbra": ${enableZimbra},
+        "enableReminder": ${enableCalendarReminder},
         "calendarSyncTTL": ${calendarSyncTTL},
         "publicConf": {
           <% if ("true".equals(xitiSwitch)) { %>

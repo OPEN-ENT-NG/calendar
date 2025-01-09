@@ -9,6 +9,7 @@ import {FORMAT} from "../core/const/date-format";
 import {calendarEventService, CalendarEventService} from "../services/calendar-event.service";
 import {SavedBooking} from "./rbs/booking.model";
 import {externalCalendarUtils} from "../utils/externalCalendarUtils";
+import { CalendarEventReminder } from "./reminder";
 
 export class CalendarEvent implements Selectable, Shareable{
     _id: string;
@@ -56,6 +57,8 @@ export class CalendarEvent implements Selectable, Shareable{
     bookings: Array<SavedBooking|Booking>;
     deleteAllBookings: boolean;
     isExternal: boolean;
+    reminders: CalendarEventReminder;
+
 
     constructor (calendarEvent? : Object) {
         this.myRights = new Rights(this);
@@ -158,7 +161,7 @@ export class CalendarEvent implements Selectable, Shareable{
             notifEndMoment: this.notifEndMoment.format("DD/MM/YYYY HH:mm"),
             attachments : this.attachments ? this.attachments.map((attachment: Document) => new Document(attachment).toJSON()) : [],
             bookings: this.bookings,
-            hasBooking: this.hasBooking
+            hasBooking: this.hasBooking,
         }
         if (!this._id) {
             body.calendar = this.getCalendarId();
@@ -166,6 +169,7 @@ export class CalendarEvent implements Selectable, Shareable{
         if (this.sendNotif === false){
             body.sendNotif = this.sendNotif;
         }
+        
         return body;
     };
 
