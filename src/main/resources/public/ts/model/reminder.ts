@@ -15,8 +15,6 @@ export class CalendarEventReminder {
 
     constructor(
         eventId: string,
-        // reminderType: CalendarEventReminderType,
-        // reminderFrequency: CalendarEventReminderFrequency,
         _id?: string
     ) {        
         if (!!_id) {
@@ -28,27 +26,9 @@ export class CalendarEventReminder {
         }
         this._eventId = eventId;
 
-        // this._reminderType = {
-        //     email: reminderType.email ?? false,
-        //     timeline: reminderType.timeline ?? false,
-        // }
-        //
-        // this._reminderFrequency = {
-        //     hour: reminderFrequency.hour ?? [],
-        //     day: reminderFrequency.day ?? [],
-        //     week: reminderFrequency.week ?? [],
-        //     month: reminderFrequency.month ?? [],
-        // }
-
         this._reminderType = new CalendarEventReminderType();
-        // this._reminderType.email = reminderType.email ?? false;
-        // this._reminderType.timeline = reminderType.timeline ?? false;
 
         this._reminderFrequency = new CalendarEventReminderFrequency();
-        // this._reminderFrequency.hour = reminderFrequency.hour ?? [];
-        // this._reminderFrequency.day = reminderFrequency.day ?? [];
-        // this._reminderFrequency.week = reminderFrequency.week ?? [];
-        // this._reminderFrequency.month = reminderFrequency.month ?? [];
     }
 
     // Getters and Setters
