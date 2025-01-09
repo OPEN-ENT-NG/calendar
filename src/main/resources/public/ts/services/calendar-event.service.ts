@@ -1,10 +1,13 @@
 import {ng} from 'entcore'
 import http, {AxiosResponse} from "axios";
-import {Calendar} from "../model";
+import {Calendar, CalendarEvent} from "../model";
+import { CalendarEventReminder } from '../model/reminder';
 
 export interface ICalendarEventService {
     fetchCalendarEvents(calendarId: string, startDate?: string, endDate?: string): Promise<AxiosResponse>;
     deleteCalendarEventAndBookings(calendarId: string, eventId: string, deleteAllBookings?: boolean, isExternal?: boolean): Promise<AxiosResponse>;
+    createCalendarEventReminder(calendarId: string, eventId: string, reminderData: CalendarEventReminder): Promise<AxiosResponse>;
+    updateCalendarEventReminder(calendarId: string, eventId: string, reminderData: CalendarEventReminder): Promise<AxiosResponse>;
 }
 
 export const calendarEventService: ICalendarEventService = {
@@ -30,6 +33,14 @@ export const calendarEventService: ICalendarEventService = {
             externalCalendarParam = `&url=${isExternal}`;
         }
         return http.delete(`/calendar/${calendarId}/event/${eventId}${urlParam}${allBookingParam}${externalCalendarParam}`);
+    },
+
+    async createCalendarEventReminder(calendarId: string, eventId: string, reminderData: CalendarEventReminder): Promise<AxiosResponse> {
+        return http.put(`/calendar/${calendarId}/event/${eventId}/reminder`, reminderData.toJson());
+    },
+
+    async updateCalendarEventReminder(calendarId: string, eventId: string, reminderData: CalendarEventReminder): Promise<AxiosResponse> {
+        return http.put(`/calendar/${calendarId}/event/${eventId}/reminder`, reminderData.toJson());
     }
 };
 

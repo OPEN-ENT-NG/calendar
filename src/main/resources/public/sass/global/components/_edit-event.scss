@@ -87,4 +87,10 @@ section.lightbox>div.content {
   .content::after {
     content: unset;
   }
+
+  .calendareventReminderForm {
+    .reminderFormLabel {
+      margin-bottom: 15px;
+    }
+  }
 }
