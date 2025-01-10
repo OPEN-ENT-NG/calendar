@@ -110,9 +110,12 @@ public class EventHelper extends MongoDbControllerHelper {
                 String startDate = request.params().get(Field.STARTDATE);
                 String endDate = request.params().get(Field.ENDDATE);
                 eventService.list(calendarId, user, startDate, endDate, arrayResponseHandler(request))
-                        .onSuccess(eventList -> {
+                        .compose(eventList -> {
                             //add reminders if needed
-                            return eventList;
+                            if (Boolean.FALSE.equals(config.getBoolean(Field.ENABLEREMINDER))) {
+                                return Future.succeededFuture();
+                            }
+                            return eventList; //getEventReminders
                         })
                         .onSuccess(finalEventList -> {
 
