@@ -1,3 +1,5 @@
+package net.atos.entng.calendar.utils;
+
 import java.util.*;
 import java.util.stream.Collectors;
 
