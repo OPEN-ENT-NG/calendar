@@ -165,6 +165,9 @@ do
     install)
       buildNode && install
       ;;
+    installDev)
+      buildNodeDev && install
+      ;;
     test)
       test
       ;;
