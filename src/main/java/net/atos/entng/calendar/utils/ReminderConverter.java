@@ -1,101 +1,94 @@
 package net.atos.entng.calendar.utils;
 
+import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.stream.Collectors;
 
-public class ReminderConverter {
+import io.vertx.core.json.JsonObject;
+import net.atos.entng.calendar.core.constants.Field;
+import net.atos.entng.calendar.models.User;
+import net.atos.entng.calendar.models.reminders.ReminderFrequencyFrontEndModel;
+import net.atos.entng.calendar.models.reminders.ReminderFrontEndModel;
+import net.atos.entng.calendar.models.reminders.ReminderModel;
+import net.atos.entng.calendar.models.reminders.ReminderTypeModel;
+import org.entcore.common.user.UserInfos;
+
+public final class ReminderConverter {
+
+    private ReminderConverter()  {}
 
     public static ReminderFrontEndModel convertToReminderFrontEndModel(ReminderModel reminderModel, Date eventStartMoment) {
         ReminderFrontEndModel reminderFrontEndModel = new ReminderFrontEndModel();
-        reminderFrontEndModel._id = reminderModel._id;
-        reminderFrontEndModel.eventId = reminderModel.eventId;
-        reminderFrontEndModel.userId = reminderModel.userId;
+        reminderFrontEndModel.setId(reminderModel.getId());
+        reminderFrontEndModel.setEventId(reminderModel.getEventId());
+        reminderFrontEndModel.setReminderType(reminderModel.getReminderType());
 
-        // Convertir reminderType
-        ReminderFrontEndModel.ReminderType reminderType = new ReminderType();
-        for (Map<String, Object> type : reminderModel.reminderType) {
-            if (type.containsKey(Field.EMAIL)) {
-                reminderType.email = (boolean) type.get(Field.EMAIL);
-            }
-            if (type.containsKey(Field.TIMELINE)) {
-                reminderType.timeline = (boolean) type.get(Field.TIMELINE);
-            }
-        }
-        reminderFrontEndModel.reminderType = reminderType;
+        // Convert reminderFrequency
+        ReminderFrequencyFrontEndModel frontEndReminderFrequency = new ReminderFrequencyFrontEndModel(new JsonObject());
 
-        // Convertir reminderFrequency
-        ReminderFrontEndModel.ReminderFrequency reminderFrequency = new ReminderFrequency();
-        for (Date date : object1.reminderFrequency) {
-            long diffHours = (eventStartMoment.getTime() - date.getTime()) / (1000 * 60 * 60);
 
-            if (diffHours < 24) {
-                reminderFrequency.hour = true;
-            }
-            if (diffHours >= 24 && diffHours < 48) {
-                reminderFrequency.day = true;
-            }
-            if (diffHours >= 168 && diffHours < 192) {
-                reminderFrequency.week = true;
-            }
-            if (diffHours >= 720 && diffHours < 744) {
-                reminderFrequency.month = true;
-            }
-        }
-        reminder.reminderFrequency = reminderFrequency;
+        reminderModel.getReminderFrequency().stream()
+                .map(stringDate -> DateUtils.parseDate(stringDate, DateUtils.DATE_FORMAT_UTC))
+                .map(date -> (eventStartMoment.getTime() - date.getTime()) / (1000 * 60 * 60))
+                .forEach(diffHours -> {
+                    if (diffHours < 24) {
+                        frontEndReminderFrequency.setHour(true);
+                    }
+                    if (diffHours >= 24 && diffHours < 48) {
+                        frontEndReminderFrequency.setDay(true);
+                    }
+                    if (diffHours >= 168 && diffHours < 192) {
+                        frontEndReminderFrequency.setWeek(true);
+                    }
+                    if (diffHours >= 720 && diffHours < 744) {
+                        frontEndReminderFrequency.setMonth(true);
+                    }
+        });
+        reminderFrontEndModel.setReminderFrequency(frontEndReminderFrequency);
 
-        reminderFrontEndModel = reminder;
         return reminderFrontEndModel;
     }
 
-    public static ReminderModel convertToReminderModel(ReminderFrontEndModel reminderFrontEndModel, Date eventStartMoment, UserInfos user) {
-        ReminderModel reminderModel = new ReminderModel();
-        reminderModel._id = reminderFrontEndModel._id;
-        reminderModel.eventId = reminderFrontEndModel.eventId;
-        reminderModel.user = reminderFrontEndModel.user;
-
-        // Convertir reminderType
-        List<Map<String, Object>> reminderType = new ReminderType();
-        if (reminderFrontEndModel.reminder != null && reminderFrontEndModel.reminderType != null) {
-            ReminderType rt = reminderFrontEndModel.reminderType;
-            if (rt.email) {
-                reminderType.add(Collections.singletonMap(Field.EMAIL, true));
-            }
-            if (rt.timeline) {
-                reminderType.add(Collections.singletonMap(Field.TIMELINE, true));
-            }
-        }
-        reminderModel.reminderType = reminderType;
+    public static ReminderModel convertToReminderModel(ReminderFrontEndModel reminderFrontEndModel,
+                                                       Date eventStartMoment, UserInfos user) {
+        ReminderModel reminderModel = new ReminderModel(new JsonObject());
+        reminderModel.setId(reminderFrontEndModel.getId());
+        reminderModel.setEventId(reminderFrontEndModel.getEventId());
+        reminderModel.setReminderType(reminderFrontEndModel.getReminderType());
+        reminderModel.setOwner(new User(new JsonObject()
+                .put(Field.USERID, user.getUserId())
+                .put(Field.DISPLAYNAME, user.getUsername())));
 
         // Convertir reminderFrequency
-        List<Date> reminderFrequency = new ArrayList<>();
-        if (reminderFrontEndModel.reminder != null && reminderFrontEndModel.reminderFrequency != null) {
-            ReminderFrontEndModel.ReminderFrequency rf = reminderFrontEndModel.reminderFrequency;
-            Calendar calendar = Calendar.getInstance();
-            calendar.setTime(eventStartMoment);
-
-            if (rf.day) {
-                Calendar dayCal = (Calendar) calendar.clone();
-                dayCal.add(Calendar.DAY_OF_YEAR, -1);
-                reminderFrequency.add(dayCal.getTime());
+        List<String> reminderFrequency = new ArrayList<>();
+        ReminderFrequencyFrontEndModel reminderFrequencyFront = reminderFrontEndModel.getReminderFrequency();
+        if (reminderFrequencyFront != null) {
+            if (Boolean.TRUE.equals(reminderFrequencyFront.getMonth())) {
+                Date dateMinusMonth = subtractMonths(eventStartMoment, 1);
+                reminderFrequency.add(DateUtils.dateToString(dateMinusMonth));
             }
-            if (rf.week) {
-                Calendar weekCal = (Calendar) calendar.clone();
-                weekCal.add(Calendar.DAY_OF_YEAR, -7);
-                reminderFrequency.add(weekCal.getTime());
+            if (Boolean.TRUE.equals(reminderFrequencyFront.getWeek())) {
+                Date dateMinusWeek = new Date(eventStartMoment.getTime() - 7L * 24 * 60 * 60 * 1000); // 7 jours en millisecondes
+                reminderFrequency.add(DateUtils.dateToString(dateMinusWeek));
             }
-            if (rf.month) {
-                Calendar monthCal = (Calendar) calendar.clone();
-                monthCal.add(Calendar.MONTH, -1);
-                reminderFrequency.add(monthCal.getTime());
+            if (Boolean.TRUE.equals(reminderFrequencyFront.getDay())) {
+                Date dateMinusDay = new Date(eventStartMoment.getTime() - 24L * 60 * 60 * 1000); // 1 jour en millisecondes
+                reminderFrequency.add(DateUtils.dateToString(dateMinusDay));
             }
-            if (rf.hour) {
-                Calendar hourCal = (Calendar) calendar.clone();
-                hourCal.add(Calendar.HOUR_OF_DAY, -1);
-                reminderFrequency.add(hourCal.getTime());
+            if (Boolean.TRUE.equals(reminderFrequencyFront.getHour())) {
+                Date dateMinusHour = new Date(eventStartMoment.getTime() - 60L * 60 * 1000); // 1 heure en millisecondes
+                reminderFrequency.add(DateUtils.dateToString(dateMinusHour));
             }
         }
-        reminderModel.reminderFrequency = reminderFrequency;
+        reminderModel.setReminderFrequency(reminderFrequency);
 
         return reminderModel;
+    }
+
+    // Méthode pour soustraire des mois avec Date
+    private static Date subtractMonths(Date date, int months) {
+        Date clonedDate = new Date(date.getTime());
+        clonedDate.setMonth(clonedDate.getMonth() - months);
+
+        return clonedDate;
     }
 }
