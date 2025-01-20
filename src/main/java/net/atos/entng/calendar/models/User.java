@@ -1,6 +1,8 @@
 package net.atos.entng.calendar.models;
 
 import io.vertx.core.json.JsonObject;
+import net.atos.entng.calendar.core.constants.Field;
+import net.atos.entng.calendar.helpers.IModelHelper;
 
 public class User {
 
@@ -19,4 +21,14 @@ public class User {
     public String displayName() {
         return this.displayName;
     }
+
+    public JsonObject toJson() {
+        JsonObject userObject = new JsonObject();
+
+        userObject.put(Field.USERID, this.id);
+        userObject.put(Field.DISPLAYNAME, this.displayName);
+
+        return userObject;
+    }
+
 }
