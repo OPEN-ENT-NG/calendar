@@ -83,6 +83,7 @@ public class EventHelper extends MongoDbControllerHelper {
 
     private final TimelineHelper notification;
     private final org.entcore.common.events.EventHelper eventHelper;
+    private final ReminderHelper reminderHelper;
 
     private EventBus eb;
 
@@ -99,6 +100,7 @@ public class EventHelper extends MongoDbControllerHelper {
         this.mongo = MongoDb.getInstance();
         this.eb = eb;
         this.config = config;
+        this.reminderHelper = new ReminderHelper(serviceFactory);
     }
 
     @Override
@@ -112,12 +114,15 @@ public class EventHelper extends MongoDbControllerHelper {
                 eventService.list(calendarId, user, startDate, endDate)
                         .compose(eventList -> {
                             //add reminders if needed
+                            log.error("[Calendar@EventHelper::EventHelper] " + "before if");
                             if (Boolean.FALSE.equals(config.getBoolean(Field.ENABLEREMINDER))) {
-                                return Future.succeededFuture();
+                                return Future.succeededFuture(eventList);
                             }
-                            return Future.succeededFuture(eventList); //getEventsReminders
+                            log.error("[Calendar@EventHelper::EventHelper] " + "before getEventsReminders");
+                            return reminderHelper.getEventsReminders(eventList, user);
                         })
                         .onSuccess(finalEventList -> {
+                            log.error(String.format("[Calendar@EventHelper::EventHelper] " + "before renderJson %s"), finalEventList);
                             renderJson(request, new JsonObject().put("all", finalEventList));
                         })
                         .onFailure(err -> {

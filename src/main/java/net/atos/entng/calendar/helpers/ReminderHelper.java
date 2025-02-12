@@ -1,5 +1,6 @@
 package net.atos.entng.calendar.helpers;
 
+import fr.wseduc.webutils.I18n;
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
@@ -32,6 +33,7 @@ public class ReminderHelper {
 
     public Future<JsonArray> getEventsReminders(JsonArray calendarEvents, UserInfos user) {
         Promise<JsonArray> promise = Promise.promise();
+        log.error("[Calendar@ReminderHelper::getEventsReminders] " + "begin");
 
         //for each event id
 //        List<Future> duplicateFutures = new ArrayList<>();
@@ -55,11 +57,14 @@ public class ReminderHelper {
                     promise.fail(message);
                 });
 
+        log.error(String.format("[Calendar@ReminderHelper::getEventsReminders] " + "end %s"), promise.future());
         return promise.future();
     }
 
     private Future<JsonObject> addRemindersToEvent(JsonObject calendarEvent, UserInfos user) {
         Promise<JsonObject> promise = Promise.promise();
+        log.error("[Calendar@ReminderHelper::addRemindersToEvent] " + "begin");
+
 
         //get reminders
         reminderService.getEventReminders(calendarEvent.getString(Field._ID), user)
@@ -74,7 +79,7 @@ public class ReminderHelper {
                     promise.fail(message);
                 });
 
-
+        log.error("[Calendar@ReminderHelper::addRemindersToEvent] " + "end");
         return promise.future();
     }
 }
