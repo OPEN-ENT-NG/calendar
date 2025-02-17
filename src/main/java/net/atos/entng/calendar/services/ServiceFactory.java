@@ -9,6 +9,7 @@ import net.atos.entng.calendar.Calendar;
 import net.atos.entng.calendar.services.impl.CalendarServiceImpl;
 import net.atos.entng.calendar.services.impl.DefaultUserServiceImpl;
 import net.atos.entng.calendar.services.impl.PlatformServiceImpl;
+import net.atos.entng.calendar.services.impl.ReminderServiceImpl;
 import org.entcore.common.neo4j.Neo4j;
 import org.entcore.common.sql.Sql;
 
@@ -49,7 +50,11 @@ public class ServiceFactory {
     }
 
     public PlatformService platformService(){
-        return new PlatformServiceImpl(Calendar.PLATFORMS_COLLECTION,mongoDb);
+        return new PlatformServiceImpl(Calendar.PLATFORMS_COLLECTION, mongoDb);
+    }
+
+    public ReminderService reminderService(){
+        return new ReminderServiceImpl(Calendar.REMINDERS_COLLECTION, mongoDb);
     }
 
     public ServiceFactory setWebClient(WebClient webClient) {

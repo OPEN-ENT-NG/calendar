@@ -36,6 +36,8 @@ public interface EventServiceMongo {
 
     void list(String calendarId, UserInfos user,  String startDate, String endDate, Handler<Either<String, JsonArray>> handler);
 
+    Future<JsonArray> list(String calendarId, UserInfos user,  String startDate, String endDate);
+
     void create(String calendarId, JsonObject body, UserInfos user, Handler<Either<String, JsonObject>> handler);
 
     void create(String calendarId, JsonObject body, UserInfos user, String collection, Handler<Either<String, JsonObject>> handler);

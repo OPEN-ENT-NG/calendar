@@ -151,6 +151,12 @@ public class EventServiceMongoImpl extends MongoDbCrudService implements EventSe
         }));
     }
 
+    public Future<JsonArray> list(String calendarId, UserInfos user, String startDate, String endDate) {
+        Promise<JsonArray> promise = Promise.promise();
+        list(calendarId, user, startDate, endDate, FutureHelper.handlerJsonArray(promise));
+        return promise.future();
+    }
+
     public JsonArray fetchEventsWithDates(String startDate, String endDate) {
         JsonArray eventsFilterByDate = new JsonArray();
 
