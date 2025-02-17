@@ -53,6 +53,7 @@ public class Calendar extends BaseServer {
     public static final String CALENDAR_EVENT_COLLECTION = "calendarevent";
     public static final String PLATFORMS_COLLECTION = "calendar.platforms";
     public static final String DOCUMENTS_COLLECTION = "documents";
+    public static final String REMINDERS_COLLECTION = "calendar.reminders";
 
     public static final String MANAGE_RIGHT_ACTION = "net-atos-entng-calendar-controllers-CalendarController|updateCalendar";
 

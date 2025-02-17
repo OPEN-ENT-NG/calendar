@@ -86,7 +86,7 @@ public class CalendarController extends MongoDbControllerHelper {
         this.eventHelper = new org.entcore.common.events.EventHelper(eventStore);
         this.calendarHelper = new CalendarHelper(collection, serviceFactory, eb, config);
         this.platformHelper = new PlatformHelper(serviceFactory);
-        this.eventServiceMongo = new EventServiceMongoImpl(Field.CALENDAREVENT,eb,serviceFactory);
+        this.eventServiceMongo = new EventServiceMongoImpl(Field.CALENDAREVENT, eb, serviceFactory);
     }
 
     @Get("/config")
