@@ -27,6 +27,7 @@ import net.atos.entng.calendar.core.constants.Actions;
 import net.atos.entng.calendar.core.constants.Field;
 import net.atos.entng.calendar.helpers.EventHelper;
 
+import net.atos.entng.calendar.helpers.ReminderHelper;
 import net.atos.entng.calendar.security.CustomWidgetFilter;
 import net.atos.entng.calendar.security.ShareEventConf;
 import net.atos.entng.calendar.services.CalendarService;
