@@ -114,16 +114,13 @@ public class EventHelper extends MongoDbControllerHelper {
                 eventService.list(calendarId, user, startDate, endDate)
                         .compose(eventList -> {
                             //add reminders if needed
-                            log.error("[Calendar@EventHelper::EventHelper] " + "before if");
                             if (Boolean.FALSE.equals(config.getBoolean(Field.ENABLEREMINDER))) {
                                 return Future.succeededFuture(eventList);
                             }
-                            log.error("[Calendar@EventHelper::EventHelper] " + "before getEventsReminders");
                             return reminderHelper.getEventsReminders(eventList, user);
                         })
                         .onSuccess(finalEventList -> {
-                            log.error(String.format("[Calendar@EventHelper::EventHelper] " + "before renderJson %s"), finalEventList);
-                            renderJson(request, new JsonObject().put("all", finalEventList));
+                            renderJson(request, finalEventList);
                         })
                         .onFailure(err -> {
                             renderError(request);

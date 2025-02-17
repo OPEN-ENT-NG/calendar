@@ -31,9 +31,11 @@ public class ReminderServiceImpl implements ReminderService {
         Promise<JsonObject> promise = Promise.promise();
 
         final Bson query = and(
-                eq(Field.EVENTID, eventId),
-                eq(Field.USERID, user.getUserId())
+                eq(Field.EVENTID_CAMEL, eventId),
+                eq(String.format(Field.OWNER + "." + Field.USERID), user.getUserId())
         );
+
+        log.info(String.format("Service eventId:  %s", eventId));
 
         mongo.findOne(this.collection, MongoQueryBuilder.build(query), validResultHandler(events -> {
             if(events.isLeft()){

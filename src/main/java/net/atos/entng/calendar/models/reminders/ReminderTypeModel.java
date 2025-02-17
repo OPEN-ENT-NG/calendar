@@ -9,7 +9,7 @@ public class ReminderTypeModel implements IModel<ReminderTypeModel> {
     private boolean email;
     private boolean timeline;
 
-    public void ReminderType(JsonObject reminderType) {
+    public ReminderTypeModel(JsonObject reminderType) {
         this.email = reminderType.getBoolean(Field.EMAIL, false);
         this.timeline = reminderType.getBoolean(Field.TIMELINE,  false);
     }

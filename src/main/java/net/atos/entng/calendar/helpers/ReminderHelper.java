@@ -33,38 +33,25 @@ public class ReminderHelper {
 
     public Future<JsonArray> getEventsReminders(JsonArray calendarEvents, UserInfos user) {
         Promise<JsonArray> promise = Promise.promise();
-        log.error("[Calendar@ReminderHelper::getEventsReminders] " + "begin");
 
-        //for each event id
-//        List<Future> duplicateFutures = new ArrayList<>();
-
-//        for (JsonObject event : calendarEvents) {
-//            if (event.hasKey(Field._ID)) {
-//                duplicateFutures.add(addRemindersToEvent(event, user));
-//            }
-//        }
         List<Future> duplicateFutures = calendarEvents.stream()
-//                .filter(event -> event.containsKey(Field._ID))
                 .map(existingEvent -> new JsonObject(existingEvent.toString()))
                 .map(event -> addRemindersToEvent(event, user))
                 .collect(Collectors.toList());
 
         CompositeFuture.all(duplicateFutures)
-                .onSuccess(eventsWithReminders -> promise.complete((JsonArray) eventsWithReminders))
+                .onSuccess(eventsWithReminders -> promise.complete(new JsonArray(eventsWithReminders.list())))
                 .onFailure(fail -> {
                     String message = String.format("[Magneto@%s::addRemindersToEvent] Failed to integrate reminders into calendarEvents : %s",
                             this.getClass().getSimpleName(), fail.getMessage());
                     promise.fail(message);
                 });
 
-        log.error(String.format("[Calendar@ReminderHelper::getEventsReminders] " + "end %s"), promise.future());
         return promise.future();
     }
 
     private Future<JsonObject> addRemindersToEvent(JsonObject calendarEvent, UserInfos user) {
         Promise<JsonObject> promise = Promise.promise();
-        log.error("[Calendar@ReminderHelper::addRemindersToEvent] " + "begin");
-
 
         //get reminders
         reminderService.getEventReminders(calendarEvent.getString(Field._ID), user)
@@ -79,7 +66,6 @@ public class ReminderHelper {
                     promise.fail(message);
                 });
 
-        log.error("[Calendar@ReminderHelper::addRemindersToEvent] " + "end");
         return promise.future();
     }
 }

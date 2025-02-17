@@ -1,5 +1,6 @@
 package net.atos.entng.calendar.models.reminders;
 
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import net.atos.entng.calendar.core.constants.Field;
 import net.atos.entng.calendar.helpers.IModelHelper;
@@ -21,9 +22,9 @@ public class ReminderModel implements IModel<ReminderModel> {
     public ReminderModel(JsonObject reminder) {
         this.id = reminder.getString(Field._ID, "");
         this.eventId = reminder.getString(Field.EVENTID_CAMEL, "");
-        this.owner = (User) reminder.getValue(Field.OWNER, new JsonObject());
-        this.reminderType = (ReminderTypeModel) reminder.getValue(Field.REMINDERTYPE, new ReminderTypeModel());
-        this.reminderFrequency = (List<String>) reminder.getValue(Field.REMINDERFREQUENCY, new ArrayList<>());
+        this.owner =  new User((JsonObject) reminder.getValue(Field.OWNER, new JsonObject()));
+        this.reminderType = new ReminderTypeModel((JsonObject) reminder.getValue(Field.REMINDERTYPE, new JsonObject()));
+        this.reminderFrequency = reminder.getJsonArray(Field.REMINDERFREQUENCY, new JsonArray()).getList();;
     }
 
 
