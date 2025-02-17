@@ -35,6 +35,7 @@ public class Field {
     // event
     public static final String calendarEvent = "calendarEvent";
     public static final String EVENTID = "eventid";
+    public static final String EVENTID_CAMEL = "eventId";
 
     // event start moment
     public static final String STARTMOMENT = "startMoment";
@@ -170,6 +171,17 @@ public class Field {
     public static final String ZIMBRA = "Zimbra";
     public static final String HAS_PLATFORM_ICS = "hasPlatformIcs";
     public static final String PLATFORM_ICS = "platformIcs";
+    
+    //Reminders
+    public static final String REMINDERTYPE = "reminderType";
+    public static final String REMINDERFREQUENCY = "reminderFrequency";
+    public static final String EMAIL = "email";
+    public static final String TIMELINE = "timeline";
+    public static final String HOUR = "hour";
+    public static final String DAY = "day";
+    public static final String WEEK = "week";
+    public static final String MONTH = "month";
+    public static final String REMINDER = "reminder";
 
 
     //Http Methods
