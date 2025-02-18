@@ -94,8 +94,8 @@ public class Calendar extends BaseServer {
         // Calendar reminder service
         vertx.deployVerticle(CalendarReminderWorker.class, new DeploymentOptions().setConfig(config).setWorker(true));
 
-        if(Boolean.TRUE.equals(config.getBoolean(Field.ENABLECALENDARREMINDER))) {
-            ReminderCalendarEventCron reminderCalendarEventCron = new ReminderCalendarEventCron(vertx.eventBus());
+        if(Boolean.TRUE.equals(config.getBoolean(Field.ENABLEREMINDER, false))) {
+            ReminderCalendarEventCron reminderCalendarEventCron = new ReminderCalendarEventCron(serviceFactory.reminderService(), vertx.eventBus());
             new CronTrigger(vertx, config.getString(Field.CALENDARREMINDERCRON)).schedule(reminderCalendarEventCron);
             log.info("Calendar Reminder Cron enabled");
         }
