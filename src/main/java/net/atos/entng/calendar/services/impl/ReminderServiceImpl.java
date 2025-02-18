@@ -40,8 +40,6 @@ public class ReminderServiceImpl implements ReminderService {
                 eq(String.format(Field.OWNER + "." + Field.USERID), user.getUserId())
         );
 
-        log.info(String.format("Service eventId:  %s", eventId));
-
         mongo.findOne(this.collection, MongoQueryBuilder.build(query), validResultHandler(events -> {
             if(events.isLeft()){
                 String errMessage = String.format("[Calendar@%s::getEventReminders] An error has occurred while retrieving reminder: %s",

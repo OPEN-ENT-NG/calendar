@@ -9,13 +9,16 @@ import net.atos.entng.calendar.core.constants.Field;
 import net.atos.entng.calendar.core.enums.ReminderCalendarEventWorkerAction;
 import net.atos.entng.calendar.helpers.EventBusHelper;
 import net.atos.entng.calendar.ical.CalendarReminderWorker;
+import net.atos.entng.calendar.services.ReminderService;
 
 public class ReminderCalendarEventCron  implements Handler<Long> {
     private static final Logger log = LoggerFactory.getLogger(ReminderCalendarEventCron.class);
 
+    private final ReminderService reminderService;
     private final EventBus eb;
 
-    public ReminderCalendarEventCron(EventBus eb) {
+    public ReminderCalendarEventCron(ReminderService reminderService, EventBus eb) {
+        this.reminderService = reminderService;
         this.eb = eb;
     }
 

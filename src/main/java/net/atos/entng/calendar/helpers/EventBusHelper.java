@@ -10,6 +10,8 @@ import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import net.atos.entng.calendar.core.constants.Field;
 
+import static net.atos.entng.calendar.helpers.FutureHelper.*;
+
 public class EventBusHelper {
     private static final Logger log = LoggerFactory.getLogger(EventBusHelper.class);
 
@@ -20,7 +22,8 @@ public class EventBusHelper {
 
     public static Future<JsonObject> requestJsonObject(EventBus eb, String address, JsonObject action) {
         Promise<JsonObject> promise = Promise.promise();
-        eb.request(address, action, FutureHelper.messageJsonObjecyHandler(FutureHelper.handlerJsonObject(promise)));
+//        Handler<AsyncResult<Message<JsonObject>>> handler = FutureHelper.messageJsonObjectHandler(FutureHelper.handlerJsonObject(promise));
+        eb.request(address, action, FutureHelper.messageJsonObjectHandler(messagePromiseJsonObjectHandler(promise)));
         return promise.future();
     }
 
