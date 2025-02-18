@@ -5,6 +5,7 @@ import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Promise;
 import io.vertx.core.eventbus.Message;;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
@@ -27,7 +28,9 @@ import org.entcore.common.user.UserInfos;
 import org.entcore.common.user.UserUtils;
 import org.vertx.java.busmods.BusModBase;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 
 public class CalendarReminderWorker extends BusModBase implements Handler<Message<JsonObject>> {
@@ -66,7 +69,7 @@ public class CalendarReminderWorker extends BusModBase implements Handler<Messag
             String action = message.body().getString(Field.ACTION, "");
             switch (action) {
                 case Field.SEND_REMINDERS:
-                    findAndSendReminders();
+                    findAndSendReminders(message);
                     break;
                 default:
                     break;
@@ -74,17 +77,45 @@ public class CalendarReminderWorker extends BusModBase implements Handler<Messag
         });
     }
 
-    private void findAndSendReminders() {
-        //init email & notif lists
+    private void findAndSendReminders(Message<JsonObject> message) {
+        reminderService.fetchRemindersToSend()
+                .compose(this::sendReminders)
+                .onSuccess(message::reply)
+                .onFailure(err -> {
+                    String errMessage = String.format("[Calendar@%s::findAndSendReminders]:  " +
+                                    "an error has occurred while sending reminders: %s",
+                            this.getClass().getSimpleName(), err.getMessage());
+                    log.error(errMessage);
+                    message.reply(err);
+                });
+    }
 
-        //fetch this minute's reminders
-        ReminderService.fetchRemindersToSend()
-                .compose(remindersToSend -> sendReminders(remindersToSend))
-                .onSuccess()
-                .onFailure()
+    private Future<Void> sendReminders(JsonArray reminders) {
+        Promise<Void> promise = Promise.promise();
+        List<Future> reminderActions = new ArrayList<>();
 
+        reminders.stream()
+                .map(JsonObject.class::cast)
+                .map(ReminderModel::new)
+                .forEach(reminder -> reminderActions.add(sendReminder(reminder)));
 
-        //ONE SEND AT THE TIME
-        //send email &/or notif
+        return promise.future();
+    }
+
+    private Future<Void> sendReminder(ReminderModel reminder) {
+        Promise<Void> promise = Promise.promise();
+        List<Future> reminderActions;
+
+        if (reminder.getReminderType().isEmail()) {
+//            reminderActions.add(); //add send email action
+            log.info("CALENDAR send email action");
+        }
+
+        if (reminder.getReminderType().isTimeline()) {
+//            reminderActions.add(); //add send notification action
+            log.info("CALENDAR send notification action");
+        }
+
+        return promise.future();
     }
 }
