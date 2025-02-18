@@ -38,6 +38,7 @@
         <reflectionsVersion>0.10.2</reflectionsVersion>
         <web-utils.version>3.0-SNAPSHOT</web-utils.version>
         <mongodb-helper.version>3.0-SNAPSHOT</mongodb-helper.version>
+        <vertxCronTimerVersion>3.0-SNAPSHOT</vertxCronTimerVersion>
     </properties>
 
     <dependencies>
@@ -130,6 +131,12 @@
             <artifactId>reflections</artifactId>
             <version>${reflectionsVersion}</version>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>fr.wseduc</groupId>
+            <artifactId>vertx-cron-timer</artifactId>
+            <version>${vertxCronTimerVersion}</version>
+            <scope>compile</scope>
         </dependency>
     </dependencies>
 </project>
