@@ -63,26 +63,13 @@ public class ReminderServiceImpl implements ReminderService {
     public Future<JsonArray> fetchRemindersToSend() {
         Promise<JsonArray> promise = Promise.promise();
 
-
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:00.000'Z'")
-                .withZone(ZoneOffset.UTC);
-//        ZonedDateTime now = ZonedDateTime.now(ZoneOffset.UTC)
-//                .withSecond(0)
-//                .withNano(0);
-//        ZonedDateTime nextMinute = now.plusMinutes(1);
-
-        // Obtenir les bornes de la minute actuelle
-        Date dateNow = new Date();
-//        dateNow.setSeconds(0);
         String now = getCurrentMinuteISO();
         String nextMinute = getNextMinuteISO();
 
-        // Construction de la requête MongoDB
-        final Bson query =and(
-                        gte("reminderFrequency", now),
-                        lt("reminderFrequency", nextMinute)
+        final Bson query = and(
+                gte("reminderFrequency", now),
+                lt("reminderFrequency", nextMinute)
         );
-
 
         mongo.find(this.collection, MongoQueryBuilder.build(query), validResultsHandler(events -> {
             if (events.isLeft()) {
