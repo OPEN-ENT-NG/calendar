@@ -79,6 +79,17 @@ public class FutureHelper {
         };
     }
 
+    public static Handler<AsyncResult<Message<JsonObject>>> messageJsonObjecyHandler(Handler<Either<String, JsonObject>> handler) {
+        return event -> {
+            if (event.succeeded()) {
+                handler.handle(new Either.Right<>(event.result().body().getJsonObject(Field.RESULT)));
+            } else {
+                handler.handle(new Either.Left<>(event.cause().getMessage()));
+                return;
+            }
+        };
+    }
+
     public static Handler<AsyncResult<Message<JsonObject>>> messageJsonObjectHandler(Handler<AsyncResult<JsonObject>> handler) {
         return event -> {
             if (event.succeeded()) {
