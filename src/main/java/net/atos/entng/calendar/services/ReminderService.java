@@ -18,5 +18,5 @@ public interface ReminderService {
      * Return a platform by id
      * @return {@link Future<JsonArray>} Future containing the reminders that should be sent this minute
      */
-    static Future<JsonArray> fetchRemindersToSend();
+    Future<JsonArray> fetchRemindersToSend();
 }
