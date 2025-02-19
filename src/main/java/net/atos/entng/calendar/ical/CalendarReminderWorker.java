@@ -1,6 +1,7 @@
 package net.atos.entng.calendar.ical;
 
 import fr.wseduc.mongodb.MongoDb;
+import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Promise;
@@ -44,37 +45,23 @@ public class CalendarReminderWorker extends BusModBase implements Handler<Messag
     public void start() {
         super.start();
         WebClientOptions options = new WebClientOptions();
-//        options.setSsl(true);
-//        options.setTrustAll(true);
-//        if (System.getProperty("httpclient.proxyHost") != null) {
-//            ProxyOptions proxyOptions = new ProxyOptions();
-//            proxyOptions.setHost(System.getProperty("httpclient.proxyHost"));
-//            proxyOptions.setPort(Integer.parseInt(System.getProperty("httpclient.proxyPort")));
-//            proxyOptions.setUsername(System.getProperty("httpclient.proxyUsername"));
-//            proxyOptions.setPassword(System.getProperty("httpclient.proxyPassword"));
-//            proxyOptions.setType(ProxyType.HTTP);
-//            options.setProxyOptions(proxyOptions);
-//        }
         ServiceFactory serviceFactory = new ServiceFactory(vertx, Neo4j.getInstance(), Sql.getInstance(),
                 MongoDb.getInstance(), WebClient.create(vertx, options));
         this.reminderService = serviceFactory.reminderService();
-//        this.webClient = serviceFactory.webClient();
         eb.consumer(this.getClass().getName(), this);
     }
 
     @Override
     public void handle(Message<JsonObject> message) {
-        String userId = message.body().getString(Field.USERID);
-        UserUtils.getUserInfos(eb, userId, user -> {
-            String action = message.body().getString(Field.ACTION, "");
-            switch (action) {
-                case Field.SEND_REMINDERS:
-                    findAndSendReminders(message);
-                    break;
-                default:
-                    break;
-            }
-        });
+        String action = message.body().getString(Field.ACTION, "");
+        switch (action) {
+            case Field.SEND_REMINDERS:
+                findAndSendReminders(message);
+                break;
+            default:
+                break;
+        }
+
     }
 
     private void findAndSendReminders(Message<JsonObject> message) {
@@ -92,19 +79,29 @@ public class CalendarReminderWorker extends BusModBase implements Handler<Messag
 
     private Future<Void> sendReminders(JsonArray reminders) {
         Promise<Void> promise = Promise.promise();
-        List<Future> reminderActions = new ArrayList<>();
+        List<Future> remindersActions = new ArrayList<>();
 
         reminders.stream()
                 .map(JsonObject.class::cast)
                 .map(ReminderModel::new)
-                .forEach(reminder -> reminderActions.add(sendReminder(reminder)));
+                .forEach(reminder -> remindersActions.add(sendReminder(reminder)));
+
+        CompositeFuture.all(remindersActions)
+                .onSuccess(result -> promise.complete())
+                .onFailure(error -> {
+                    String errMessage = String.format("[Calendar@%s::sendReminders]:  " +
+                                    "an error has occurred while sending reminders: %s",
+                            this.getClass().getSimpleName(), error.getMessage());
+                    log.error(errMessage);
+                    promise.fail(errMessage);
+                });
 
         return promise.future();
     }
 
     private Future<Void> sendReminder(ReminderModel reminder) {
         Promise<Void> promise = Promise.promise();
-        List<Future> reminderActions;
+        List<Future> reminderActions =  new ArrayList<>();
 
         if (reminder.getReminderType().isEmail()) {
 //            reminderActions.add(); //add send email action
@@ -115,6 +112,16 @@ public class CalendarReminderWorker extends BusModBase implements Handler<Messag
 //            reminderActions.add(); //add send notification action
             log.info("CALENDAR send notification action");
         }
+
+        CompositeFuture.all(reminderActions)
+                .onSuccess(result -> promise.complete())
+                .onFailure(error -> {
+                    String errMessage = String.format("[Calendar@%s::sendReminder]:  " +
+                                    "an error has occurred while sending reminders: %s",
+                            this.getClass().getSimpleName(), error.getMessage());
+                    log.error(errMessage);
+                    promise.fail(errMessage);
+                });
 
         return promise.future();
     }

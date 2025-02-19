@@ -10,12 +10,14 @@ import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import net.atos.entng.calendar.core.constants.Field;
 import net.atos.entng.calendar.services.ReminderService;
+import net.atos.entng.calendar.utils.DateUtils;
 import org.bson.conversions.Bson;
 import org.entcore.common.user.UserInfos;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.TimeZone;
 
 import static com.mongodb.client.model.Filters.*;
 import static org.entcore.common.mongodb.MongoDbResult.validResultHandler;
@@ -61,13 +63,14 @@ public class ReminderServiceImpl implements ReminderService {
         // Obtenir les bornes de la minute actuelle
         Date dateNow = new Date();
         dateNow.setSeconds(0);
-        Date now = getTruncatedCurrentMinute();
-        Date nextMinute = new Date(now.getTime() + 59999);
+        String now = getCurrentMinuteISO();
+        String nextMinute = getNextMinuteISO();
 
         // Construction de la requête MongoDB
-        final Bson query = elemMatch("reminderFrequency", and(
-                        gte("$gte", now),
-                        lt("$lt", nextMinute)
+        final Bson query = elemMatch("reminderFrequency",
+                and(
+                        gte("", now),
+                        lt("", nextMinute)
                 )
         );
 
@@ -87,12 +90,16 @@ public class ReminderServiceImpl implements ReminderService {
         return promise.future();
     }
 
-    private Date getTruncatedCurrentMinute() {
-        Calendar calendar = Calendar.getInstance();
-        calendar.set(Calendar.SECOND, 0);
-        calendar.set(Calendar.MILLISECOND, 0);
+    private String getCurrentMinuteISO() {
+        SimpleDateFormat sdf = new SimpleDateFormat(DateUtils.DATE_FORMAT_UTC);
+        sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
+        return sdf.format(new Date());
+    }
 
-        return calendar.getTime();
+    private String getNextMinuteISO() {
+        SimpleDateFormat sdf = new SimpleDateFormat(DateUtils.DATE_FORMAT_UTC);
+        sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
+        return sdf.format(new Date(System.currentTimeMillis() + 60000));
     }
 
 }
