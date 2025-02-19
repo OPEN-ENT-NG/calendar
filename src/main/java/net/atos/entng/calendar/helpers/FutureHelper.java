@@ -10,6 +10,7 @@ import io.vertx.core.logging.LoggerFactory;
 import net.atos.entng.calendar.core.constants.Field;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class FutureHelper {
@@ -77,49 +78,6 @@ public class FutureHelper {
             }
         };
     }
-
-//    public static <T> Handler<Either<String, T>> messagePromiseJsonObjectHandler(Promise<T> promise, String errorMessage) {
-//        return event -> {
-//            if (event.isRight()) {
-//                promise.complete(event.right().getValue());
-//            } else {
-//                String message = String.format("[Calendar@%s::messagePromiseJsonObjectHandler]: %s",
-//                        EventHelper.class.getSimpleName(), event.left().getValue());
-//                log.error(message);
-//                promise.fail(event.left().getValue());
-//            }
-//        };
-//    }
-
-//    public static Future<JsonObject> messagePromiseJsonObjectHandler(Either<String, JsonObject> event, String errorMessage) {
-//        Promise<JsonObject> promise = Promise.promise();
-//
-//        if (event.isRight()) {
-//            promise.complete(event.right().getValue());
-//        } else {
-//            String message = String.format("[Calendar@%s::messagePromiseJsonObjectHandler]: %s",
-//                    EventHelper.class.getSimpleName(), event.left().getValue());
-//            log.error(message);
-//            promise.fail(event.left().getValue());
-//        }
-//
-//        return promise.future();
-//    }
-    public static Handler<AsyncResult<JsonObject>> messagePromiseJsonObjectHandler(Promise<JsonObject> promise) {
-        return event -> {
-            if (event.succeeded()) {
-                promise.complete(event.result());
-            } else {
-                promise.fail(event.cause());
-            }
-        };
-    }
-
-
-//    public static <T> Handler<AsyncResult<JsonObject>> messagePromiseJsonObjectHandler(Promise<JsonObject> promise) {
-//        return FutureHelper.messagePromiseJsonObjectHandler(promise, null);
-//    }
-
 
     public static Handler<AsyncResult<Message<JsonObject>>> messageJsonObjectHandler(Handler<AsyncResult<JsonObject>> handler) {
         return event -> {
