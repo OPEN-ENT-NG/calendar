@@ -3,6 +3,7 @@ package net.atos.entng.calendar.utils;
 import io.vertx.core.json.JsonObject;
 import net.atos.entng.calendar.core.constants.Field;
 
+import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -54,6 +55,13 @@ public final class DateUtils {
         return cal1.get(Calendar.YEAR) == cal2.get(Calendar.YEAR) &&
           cal1.get(Calendar.MONTH) == cal2.get(Calendar.MONTH) &&
           cal1.get(Calendar.DAY_OF_MONTH) == cal2.get(Calendar.DAY_OF_MONTH);
+    }
+
+    public static String dateToString(Date date) {
+        DateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT_UTC);
+        String dateString = dateFormat.format(date);
+
+        return dateString;
     }
 
     public static Date getRefEndDate(Date startDate) {
