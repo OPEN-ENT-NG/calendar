@@ -1451,7 +1451,7 @@ export const calendarController = ng.controller('CalendarController',
                             };
                             let itemCalendarEvent: any = items[count].calEvent;
                             let action: string = items[count].action;
-                            if (action === ACTIONS.save) {
+                            if (action === ACTIONS.save || action === ACTIONS.saveAll) {
                                 if (itemCalendarEvent.isRecurrent && count !== 0) {
                                     var parentId: string = items[0].calEvent._id;
                                     if (items[0].calEvent.parentId) {
@@ -1472,7 +1472,7 @@ export const calendarController = ng.controller('CalendarController',
                                     itemCalendarEvent.parentId = false;
                                     itemCalendarEvent.index = 0;
                                 }
-                                itemCalendarEvent.save()
+                                itemCalendarEvent[action === ACTIONS.saveAll? 'saveAll': 'save']()
                                     .then(() => {
                                         items[count].calEvent._id = itemCalendarEvent._id;
                                         count++;
@@ -1511,7 +1511,7 @@ export const calendarController = ng.controller('CalendarController',
                 if (recurrentCalendarEvents.length > 1) {
                     hasExistingRecurrence = true;
                 }
-                if (calendarEvent.isRecurrent && !calendarEvent.parentId && !hasExistingRecurrence) {
+                if (calendarEvent.isRecurrent && !calendarEvent.parentId) {
                     calendarEvent.recurrence.start_on = moment(calendarEvent.startMoment).hours(0).minutes(0).seconds(0).milliseconds(0);
                     if (calendarEvent.recurrence.end_on) {
                         calendarEvent.recurrence.end_on = moment(calendarEvent.recurrence.end_on).hours(0).minutes(0).seconds(0).milliseconds(0);
@@ -1534,7 +1534,7 @@ export const calendarController = ng.controller('CalendarController',
                 if (calendarEvent._id) {
                     parentAction = ACTIONS.update;
                 }
-                let item = {'calEvent': calendarEvent, 'action': ACTIONS.save};
+                let item = {'calEvent': calendarEvent, 'action': (calendarEvent.editAllRecurrence? ACTIONS.saveAll : ACTIONS.save)};
                 items.push(item);
                 if (calendarEvent.isRecurrent && !calendarEvent.parentId && !hasExistingRecurrence) {
                     Array.prototype.push.apply(items, $scope.handleRecurrence(calendarEvent));
@@ -1556,56 +1556,6 @@ export const calendarController = ng.controller('CalendarController',
                         if (cle._id !== calendarEvent._id) {
                             let item = {'calEvent': cle, 'action': ACTIONS.delete};
                             items.push(item);
-                        }
-                    });
-                }
-                if ((calendarEvent.detailToRecurrence ||
-                        calendarEvent.startDateToRecurrence ||
-                        calendarEvent.endDateToRecurrence) &&
-                    calendarEvent.parentId) {
-                    recurrentCalendarEvents.forEach(function (cle) {
-                        if (cle._id !== calendarEvent._id) {
-                            let save: boolean = false;
-                            if (calendarEvent.detailToRecurrence) {
-                                cle.title = calendarEvent.title;
-                                cle.description = calendarEvent.description;
-                                cle.location = calendarEvent.location;
-                                cle.attachments = calendarEvent.attachments;
-                                save = true;
-                            }
-                            if (calendarEvent.startDateToRecurrence
-                                && !calendarEvent.allday && !cle.allday
-                                && !moment(cle.startMoment).hours($scope.calendarEvent.startMoment.hours())
-                                    .minutes($scope.calendarEvent.startMoment.minutes()).isAfter(cle.endMoment, 'minute')) {
-                                cle.startMoment = moment(cle.startMoment)
-                                    .hours(moment(calendarEvent.startTime).hours())
-                                    .minutes(moment(calendarEvent.startTime).minutes());
-                                cle.startTime = calendarEvent.startTime;
-                                save = true;
-                            }
-                            if (calendarEvent.endDateToRecurrence
-                                && !calendarEvent.allday && !cle.allday
-                                && !moment(cle.endMoment).hours($scope.calendarEvent.endMoment.hours())
-                                    .minutes($scope.calendarEvent.endMoment.minutes()).isBefore(cle.startMoment, 'minute')) {
-                                cle.endMoment = moment(cle.endMoment)
-                                    .hours(moment(calendarEvent.endTime).hours())
-                                    .minutes(moment(calendarEvent.endTime).minutes());
-                                cle.endTime = calendarEvent.endTime;
-                                save = true;
-                            }
-                            if (calendarEvent.allday && calendarEvent.editAllRecurrence) {
-                                cle.allday = true;
-                                save = true;
-                            } else if (!calendarEvent.allday && calendarEvent.editAllRecurrence) {
-                                cle.allday = false;
-                                cle.startTime = calendarEvent.startTime;
-                                cle.endTime = calendarEvent.endTime;
-                                save = true;
-                            }
-                            if (save) {
-                                let item = {'calEvent': cle, 'action': ACTIONS.save};
-                                items.push(item);
-                            }
                         }
                     });
                 }
