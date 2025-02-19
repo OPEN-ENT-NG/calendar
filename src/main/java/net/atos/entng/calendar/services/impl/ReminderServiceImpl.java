@@ -15,6 +15,9 @@ import org.bson.conversions.Bson;
 import org.entcore.common.user.UserInfos;
 
 import java.text.SimpleDateFormat;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.TimeZone;
@@ -60,19 +63,28 @@ public class ReminderServiceImpl implements ReminderService {
     public Future<JsonArray> fetchRemindersToSend() {
         Promise<JsonArray> promise = Promise.promise();
 
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:00.000'Z'")
+                .withZone(ZoneOffset.UTC);
+//        ZonedDateTime now = ZonedDateTime.now(ZoneOffset.UTC)
+//                .withSecond(0)
+//                .withNano(0);
+//        ZonedDateTime nextMinute = now.plusMinutes(1);
+
         // Obtenir les bornes de la minute actuelle
         Date dateNow = new Date();
-        dateNow.setSeconds(0);
+//        dateNow.setSeconds(0);
         String now = getCurrentMinuteISO();
         String nextMinute = getNextMinuteISO();
 
         // Construction de la requête MongoDB
-        final Bson query = elemMatch("reminderFrequency",
+        final Bson query =elemMatch("reminderFrequency",
                 and(
                         gte("", now),
                         lt("", nextMinute)
                 )
         );
+
 
         mongo.find(this.collection, MongoQueryBuilder.build(query), validResultsHandler(events -> {
             if (events.isLeft()) {
@@ -91,15 +103,28 @@ public class ReminderServiceImpl implements ReminderService {
     }
 
     private String getCurrentMinuteISO() {
-        SimpleDateFormat sdf = new SimpleDateFormat(DateUtils.DATE_FORMAT_UTC);
-        sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
-        return sdf.format(new Date());
+        Calendar nowDate = Calendar.getInstance();
+        nowDate.setTime(new Date());
+        nowDate.set(Calendar.SECOND, 0);
+        nowDate.set(Calendar.MILLISECOND, 0);
+
+        SimpleDateFormat nowSdf = new SimpleDateFormat(DateUtils.DATE_FORMAT_UTC);
+        nowSdf.setTimeZone(TimeZone.getTimeZone("UTC"));
+        return nowSdf.format(nowDate.getTime());
     }
 
     private String getNextMinuteISO() {
+        Calendar nextMinuteDate = Calendar.getInstance();
+        nextMinuteDate.setTime(new Date());
+        nextMinuteDate.set(Calendar.SECOND, 0);
+        nextMinuteDate.set(Calendar.MILLISECOND, 0);
+        nextMinuteDate.add(Calendar.MINUTE, 1);
+
         SimpleDateFormat sdf = new SimpleDateFormat(DateUtils.DATE_FORMAT_UTC);
         sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
-        return sdf.format(new Date(System.currentTimeMillis() + 60000));
+        return sdf.format(nextMinuteDate.getTime());
     }
+
+
 
 }

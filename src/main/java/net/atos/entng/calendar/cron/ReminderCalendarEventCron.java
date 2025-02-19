@@ -34,7 +34,7 @@ public class ReminderCalendarEventCron  implements Handler<Long> {
                         result.cause().getMessage());
                 log.error(errMessage);
             } else {
-                log.info("[Calendar@ReminderCalendarEventCron]: Sync reminders");
+                log.info("[Calendar@ReminderCalendarEventCron]: Synchronized reminders");
             }
         });
     }
