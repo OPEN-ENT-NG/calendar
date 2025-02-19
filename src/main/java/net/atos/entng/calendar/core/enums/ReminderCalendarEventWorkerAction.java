@@ -4,13 +4,15 @@ public enum ReminderCalendarEventWorkerAction {
     SEND_REMINDERS("sendReminders");
 
 
-    private final String action;
+    private final String eventAction;
 
-    ReminderCalendarEventWorkerAction(String action) {
-        this.action = action;
+    ReminderCalendarEventWorkerAction(String eventAction) {
+        this.eventAction = eventAction;
     }
 
-    public String getValue() {
-        return action;
+    public String method() {
+        return eventAction;
     }
 }
+
+

@@ -9,6 +9,7 @@ import net.atos.entng.calendar.core.constants.Field;
 import net.atos.entng.calendar.core.enums.ReminderCalendarEventWorkerAction;
 import net.atos.entng.calendar.helpers.EventBusHelper;
 import net.atos.entng.calendar.ical.CalendarReminderWorker;
+import net.atos.entng.calendar.ical.ExternalImportICal;
 import net.atos.entng.calendar.services.ReminderService;
 
 public class ReminderCalendarEventCron  implements Handler<Long> {
@@ -26,9 +27,15 @@ public class ReminderCalendarEventCron  implements Handler<Long> {
     public void handle(Long event) {
         log.info("[Calendar@ReminderCalendarEventCron] ReminderCalendarEventCron started");
         final JsonObject message = new JsonObject();
-        message.put(Field.ACTION, ReminderCalendarEventWorkerAction.SEND_REMINDERS);
-        EventBusHelper.requestJsonObject(eb, CalendarReminderWorker.CALENDAR_REMINDER_HANDLER_ADDRESS, message)
-                .onSuccess(res -> log.info("[Calendar@ReminderCalendarEventCron] Sync reminders"))
-                .onFailure(err -> log.error("[Calendar@ReminderCalendarEventCron] Failed to sync reminders"));
+        message.put(Field.ACTION, ReminderCalendarEventWorkerAction.SEND_REMINDERS.method());
+        eb.request(CalendarReminderWorker.class.getName(), message, result -> {
+            if(result.failed()) {
+                String errMessage = String.format("[Calendar@ReminderCalendarEventCron]: Failed to sync reminders: %s",
+                        result.cause().getMessage());
+                log.error(errMessage);
+            } else {
+                log.info("[Calendar@ReminderCalendarEventCron]: Sync reminders");
+            }
+        });
     }
 }
