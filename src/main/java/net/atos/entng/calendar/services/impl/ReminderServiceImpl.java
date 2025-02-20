@@ -78,11 +78,9 @@ public class ReminderServiceImpl implements ReminderService {
         String nextMinute = getNextMinuteISO();
 
         // Construction de la requête MongoDB
-        final Bson query =elemMatch("reminderFrequency",
-                and(
-                        gte("", now),
-                        lt("", nextMinute)
-                )
+        final Bson query =and(
+                        gte("reminderFrequency", now),
+                        lt("reminderFrequency", nextMinute)
         );
 
 
