@@ -32,6 +32,7 @@ import org.vertx.java.busmods.BusModBase;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 
 public class CalendarReminderWorker extends BusModBase implements Handler<Message<JsonObject>> {
@@ -78,16 +79,22 @@ public class CalendarReminderWorker extends BusModBase implements Handler<Messag
     }
 
     private Future<Void> sendReminders(JsonArray reminders) {
+        log.info("entered sendReminders");
         Promise<Void> promise = Promise.promise();
         List<Future> remindersActions = new ArrayList<>();
 
         reminders.stream()
                 .map(JsonObject.class::cast)
                 .map(ReminderModel::new)
-                .forEach(reminder -> remindersActions.add(sendReminder(reminder)));
+//                .forEach(reminder -> remindersActions.add(sendReminder(reminder)));
+                .map(this::sendReminder)
+                .collect(Collectors.toList());
 
         CompositeFuture.all(remindersActions)
-                .onSuccess(result -> promise.complete())
+                .onSuccess(result -> {
+                    log.info("complete reminderS");
+                    promise.complete();
+                })
                 .onFailure(error -> {
                     String errMessage = String.format("[Calendar@%s::sendReminders]:  " +
                                     "an error has occurred while sending reminders: %s",
@@ -100,6 +107,7 @@ public class CalendarReminderWorker extends BusModBase implements Handler<Messag
     }
 
     private Future<Void> sendReminder(ReminderModel reminder) {
+        log.info(String.format("HELLO REMINDER %S", reminder.getId()));
         Promise<Void> promise = Promise.promise();
         List<Future> reminderActions =  new ArrayList<>();
 
@@ -112,9 +120,11 @@ public class CalendarReminderWorker extends BusModBase implements Handler<Messag
 //            reminderActions.add(); //add send notification action
             log.info("CALENDAR send notification action");
         }
-
         CompositeFuture.all(reminderActions)
-                .onSuccess(result -> promise.complete())
+                .onSuccess(result -> {
+                    log.info("complete reminder without s");
+                    promise.complete();
+                })
                 .onFailure(error -> {
                     String errMessage = String.format("[Calendar@%s::sendReminder]:  " +
                                     "an error has occurred while sending reminders: %s",
