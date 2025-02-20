@@ -93,7 +93,6 @@ public class ReminderServiceImpl implements ReminderService {
                 log.error(errMessage, events.left().getValue());
                 promise.fail(events.left().getValue());
             } else {
-                log.info(String.format("GOT REMINDRS %s", events.right().getValue()));
                 promise.complete(events.right().getValue());
             }
         }));

@@ -79,7 +79,6 @@ public class CalendarReminderWorker extends BusModBase implements Handler<Messag
     }
 
     private Future<Void> sendReminders(JsonArray reminders) {
-        log.info("entered sendReminders");
         Promise<Void> promise = Promise.promise();
         List<Future> remindersActions = new ArrayList<>();
 
@@ -91,10 +90,7 @@ public class CalendarReminderWorker extends BusModBase implements Handler<Messag
                 .collect(Collectors.toList());
 
         CompositeFuture.all(remindersActions)
-                .onSuccess(result -> {
-                    log.info("complete reminderS");
-                    promise.complete();
-                })
+                .onSuccess(result -> promise.complete())
                 .onFailure(error -> {
                     String errMessage = String.format("[Calendar@%s::sendReminders]:  " +
                                     "an error has occurred while sending reminders: %s",
@@ -107,7 +103,6 @@ public class CalendarReminderWorker extends BusModBase implements Handler<Messag
     }
 
     private Future<Void> sendReminder(ReminderModel reminder) {
-        log.info(String.format("HELLO REMINDER %S", reminder.getId()));
         Promise<Void> promise = Promise.promise();
         List<Future> reminderActions =  new ArrayList<>();
 
@@ -121,10 +116,7 @@ public class CalendarReminderWorker extends BusModBase implements Handler<Messag
             log.info("CALENDAR send notification action");
         }
         CompositeFuture.all(reminderActions)
-                .onSuccess(result -> {
-                    log.info("complete reminder without s");
-                    promise.complete();
-                })
+                .onSuccess(result -> promise.complete())
                 .onFailure(error -> {
                     String errMessage = String.format("[Calendar@%s::sendReminder]:  " +
                                     "an error has occurred while sending reminders: %s",
