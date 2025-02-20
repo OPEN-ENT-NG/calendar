@@ -1,11 +1,10 @@
 package net.atos.entng.calendar.ical;
 
 import fr.wseduc.mongodb.MongoDb;
-import io.vertx.core.CompositeFuture;
-import io.vertx.core.Future;
-import io.vertx.core.Handler;
-import io.vertx.core.Promise;
+import fr.wseduc.webutils.I18n;
+import io.vertx.core.*;
 import io.vertx.core.eventbus.Message;;
+import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
@@ -14,16 +13,20 @@ import io.vertx.core.net.ProxyOptions;
 import io.vertx.core.net.ProxyType;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.client.WebClientOptions;
+import net.atos.entng.calendar.controllers.CalendarController;
 import net.atos.entng.calendar.core.constants.Field;
 import net.atos.entng.calendar.core.constants.MongoField;
 import net.atos.entng.calendar.core.enums.ExternalICalEventBusActions;
 import net.atos.entng.calendar.core.enums.ReminderCalendarEventWorkerAction;
+import net.atos.entng.calendar.helpers.EventHelper;
 import net.atos.entng.calendar.models.reminders.ReminderModel;
 import net.atos.entng.calendar.services.EventServiceMongo;
 import net.atos.entng.calendar.services.ReminderService;
 import net.atos.entng.calendar.services.ServiceFactory;
 import net.atos.entng.calendar.services.impl.EventServiceMongoImpl;
+import org.entcore.common.controller.ControllerHelper;
 import org.entcore.common.neo4j.Neo4j;
+import org.entcore.common.notification.TimelineHelper;
 import org.entcore.common.sql.Sql;
 import org.entcore.common.user.UserInfos;
 import org.entcore.common.user.UserUtils;
@@ -34,13 +37,14 @@ import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static fr.wseduc.webutils.http.Renders.getHost;
+
 
 public class CalendarReminderWorker extends BusModBase implements Handler<Message<JsonObject>> {
     protected static final Logger log = LoggerFactory.getLogger(CalendarReminderWorker.class);
-    public static final String CALENDAR_REMINDER_HANDLER_ADDRESS = "calendar.reminder.handler";
     private ReminderService reminderService;
     private WebClient webClient;
-
+    private final TimelineHelper notification;
 
     @Override
     public void start() {
@@ -49,6 +53,7 @@ public class CalendarReminderWorker extends BusModBase implements Handler<Messag
         ServiceFactory serviceFactory = new ServiceFactory(vertx, Neo4j.getInstance(), Sql.getInstance(),
                 MongoDb.getInstance(), WebClient.create(vertx, options));
         this.reminderService = serviceFactory.reminderService();
+        notification = new TimelineHelper(Vertx.vertx(), eb, config);
         eb.consumer(this.getClass().getName(), this);
     }
 
@@ -112,6 +117,7 @@ public class CalendarReminderWorker extends BusModBase implements Handler<Messag
         }
 
         if (reminder.getReminderType().isTimeline()) {
+
 //            reminderActions.add(); //add send notification action
             log.info("CALENDAR send notification action");
         }
@@ -126,5 +132,34 @@ public class CalendarReminderWorker extends BusModBase implements Handler<Messag
                 });
 
         return promise.future();
+    }
+
+    private void sendTimelineNotification (ReminderModel reminder) {
+
+        HttpServerRequest request = ;
+        String template = "calendar.reminder";
+        UserInfos user = new UserInfos();
+        user.setUserId(reminder.getOwner().id());
+        user.setUsername(reminder.getOwner().displayName());
+        List<String> recipient = new JsonArray().add(reminder.getOwner().id()).getList();
+        String calendarId;
+        String calendarEventId = reminder.getEventId();
+        JsonObject notificationParameters = new JsonObject()
+                        .put("username", user.getUsername())
+                        .put("profilUri",
+                                "/userbook/annuaire#" + user.getUserId() + "#" + user.getType())
+                        .put("calendarUri",
+                                "/calendar#/view/" + calendarId)
+                        .put("resourceUri", "/calendar#/view/" + calendarId);
+
+        JsonObject pushNotif = new JsonObject()
+                .put("title", "push.notif.event.reminder")
+                .put("body", user.getUsername() + " " + I18n.getInstance().translate("calendar.reminder.push.notif.body",
+                        getHost(request), I18n.acceptLanguage(request)));
+        notificationParameters.put("pushNotif", pushNotif);
+
+        EventHelper.genericSendNotificationToUser(request, template, user, recipient, calendarId, calendarEventId,
+                notificationParameters, true);
+        };
     }
 }
