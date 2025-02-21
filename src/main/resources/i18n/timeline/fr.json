@@ -14,5 +14,9 @@
     "timeline.event.shared": "a partagé avec vous l'évènement",
     "push.notif.calendar.share": "Agenda: Nouvel agenda",
     "push.notif.event.created": "Agenda: Nouvel événement",
-    "push.notif.event.updated": "Agenda: Un événement à été modifié"
+    "push.notif.event.updated": "Agenda: Un événement à été modifié",
+    "timeline.calendar.event.reminder.start": "Rappel : l'événement",
+    "calendar.event.reminder.begin.in": "commence dans",
+    "timeline.calendar.event.reminder.see": "Consultez l'",
+    "timeline.calendar.event.reminder.more.info": "pour plus d'informations"
 }

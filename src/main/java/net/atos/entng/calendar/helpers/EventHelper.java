@@ -98,7 +98,7 @@ public class EventHelper extends MongoDbControllerHelper {
         this.crudService = eventService;
         this.calendarService = serviceFactory.calendarService();
         this.userService = serviceFactory.userService();
-        notification = timelineHelper;
+        this.notification = timelineHelper;
         final EventStore eventStore = EventStoreFactory.getFactory().getEventStore(Calendar.class.getSimpleName());
         this.eventHelper = new org.entcore.common.events.EventHelper(eventStore);
         this.mongo = MongoDb.getInstance();
@@ -618,38 +618,12 @@ public class EventHelper extends MongoDbControllerHelper {
     }
 
     @SuppressWarnings("unchecked")
-    public static void genericSendNotificationToUser(HttpServerRequest request, String template, UserInfos user, List<String> recipients, String calendarId, String calendarEventId, JsonObject notificationData, Boolean disableAntiFlood) {
-//        if (event != null) {
-//            List<String> recipients = (List<String>) event.get("recipients");
-//            String calendarTitle = (String) event.get("calendarTitle");
-//            if (recipients != null) {
-//
-//                JsonObject p = new JsonObject()
-//                        .put("uri",
-//                                "/userbook/annuaire#" + user.getUserId() + "#" + user.getType())
-//                        .put("username", user.getUsername())
-//                        .put("CalendarTitle", calendarTitle)
-//                        .put("postTitle", calendarEvent.getString("title"))
-//                        .put("profilUri",
-//                                "/userbook/annuaire#" + user.getUserId() + "#" + user.getType())
-//                        .put("calendarUri",
-//                                "/calendar#/view/" + calendarId)
-//                        .put("resourceUri", "/calendar#/view/" + calendarId)
-//                        .put("startMoment", calendarEvent.getString("notifStartMoment"))
-//                        .put("endMoment", calendarEvent.getString("notifEndMoment"))
-//                        .put("eventTitle", calendarEvent.getString("title"));
-//                JsonObject pushNotif = new JsonObject()
-//                        .put("title", isCreated ? "push.notif.event.created" : "push.notif.event.updated")
-//                        .put("body", user.getUsername() + " " + I18n.getInstance().translate(
-//                                isCreated ? "calendar.event.created.push.notif.body" : "calendar.event.updated.push.notif.body",
-//                                getHost(request), I18n.acceptLanguage(request)
-//                        ) + " " + calendarEvent.getString("title"));
-//
-//                p.put("pushNotif", pushNotif);
+    public void genericSendNotificationToUser(HttpServerRequest request, String template, UserInfos user,
+                                                     List<String> recipients, String calendarId, String calendarEventId, JsonObject notificationData, Boolean disableAntiFlood) {
+        if (recipients != null) {
                 notification.notifyTimeline(request, template, user, recipients, calendarId, calendarEventId,
                         notificationData, disableAntiFlood);
-//            }
-//        }
+                }
     }
 
     private void findRecipients(String collection, final Bson query, JsonObject keys, final JsonArray fetch,

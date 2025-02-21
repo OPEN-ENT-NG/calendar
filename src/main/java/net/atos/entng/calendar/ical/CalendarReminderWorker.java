@@ -142,29 +142,31 @@ public class CalendarReminderWorker extends BusModBase implements Handler<Messag
     private Future<Void> sendTimelineNotification (ReminderModel reminder) {
         Promise<Void> promise = Promise.promise();
 
-        getCalendarId(reminder.getEventId())
-                .compose(calendarId -> {
-                    HttpServerRequest request = new Http ;
+        getCalendarEvent(reminder.getEventId())
+                .compose(calendarEvent -> {
                     String template = "calendar.reminder";
                     UserInfos user = new UserInfos();
                     user.setUserId(reminder.getOwner().id());
                     user.setUsername(reminder.getOwner().displayName());
                     List<String> recipient = new JsonArray().add(reminder.getOwner().id()).getList();
                     String calendarEventId = reminder.getEventId();
+                    String calendarId = calendarEvent.getJsonArray(Field.CALENDARS, new JsonArray()).getString(0);
                     JsonObject notificationParameters = new JsonObject()
                             .put("username", user.getUsername())
                             .put("profilUri",
                                     "/userbook/annuaire#" + user.getUserId() + "#" + user.getType())
                             .put("calendarUri",
                                     "/calendar#/view/" + calendarId)
-                            .put("resourceUri", "/calendar#/view/" + calendarId);
+                            .put("resourceUri", "/calendar#/view/" + calendarId)
+                            .put("eventTitle", calendarEvent.getString(Field.TITLE, ""))
+                            .put("remainingTime", getRemainingTime(calendarEvent.getString(Field.STARTMOMENT, "")));
 
                     JsonObject pushNotif = new JsonObject()
                             .put("title", "push.notif.event.reminder")
                             .put("body", user.getUsername() + " " + I18n.getInstance().translate("calendar.reminder.push.notif.body",
                                     getHost(request), I18n.acceptLanguage(request)));
                     notificationParameters.put("pushNotif", pushNotif);
-                    EventHelper.genericSendNotificationToUser(request, template, user, recipient, calendarId, calendarEventId,
+                    genericSendNotificationToUser(null, template, user, recipient, calendarId, calendarEventId,
                             notificationParameters, true);
 
                     return Future.succeededFuture();
@@ -181,14 +183,11 @@ public class CalendarReminderWorker extends BusModBase implements Handler<Messag
         return promise.future();
     }
 
-    private Future<String> getCalendarId (String eventId) {
-        Promise<String> promise = Promise.promise();
+    private Future<JsonObject> getCalendarEvent (String eventId) {
+        Promise<JsonObject> promise = Promise.promise();
 
         getCalendarEventData(eventId)
-                .onSuccess(calendarEvent -> {
-                    String calendarId = calendarEvent.getJsonArray(Field.CALENDARS).getString(0);
-                    promise.complete(calendarId);
-                })
+                .onSuccess(promise::complete)
                 .onFailure(error -> {
                     String errMessage = String.format("[Calendar@%s::getCalendarId]:  " +
                                     "an error has occurred while fetching event data: %s",
