@@ -133,6 +133,8 @@ public class Field {
     public static final String ENABLEZIMBRA = "enableZimbra";
     public static final String ENABLE_ZIMBRA = "enable-zimbra";
     public static final String ENABLEREMINDER = "enableReminder";
+    public static final String ENABLECALENDARREMINDER = "enableCalendarReminder";
+    public static final String CALENDARREMINDERCRON = "calendarReminderCron";
 
     //Miscellaneous
     public static final String ALL = "all";
@@ -142,6 +144,7 @@ public class Field {
     public static final String DOMAIN = "domain";
     public static final String ACCEPTLANGUAGE = "acceptLanguage";
     public static final String REQUESTINFO = "requestInfo";
+    public static final String SEND_REMINDERS = "sendReminders";
 
     //ics calendar
     public static final String ICS = "ics";
