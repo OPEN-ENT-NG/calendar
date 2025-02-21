@@ -67,8 +67,8 @@ public class ReminderServiceImpl implements ReminderService {
         String nextMinute = getNextMinuteISO();
 
         final Bson query = and(
-                gte("reminderFrequency", now),
-                lt("reminderFrequency", nextMinute)
+                gte(Field.REMINDERFREQUENCY, now),
+                lt(Field.REMINDERFREQUENCY, nextMinute)
         );
 
         mongo.find(this.collection, MongoQueryBuilder.build(query), validResultsHandler(events -> {
@@ -94,7 +94,7 @@ public class ReminderServiceImpl implements ReminderService {
         nowDate.set(Calendar.MILLISECOND, 0);
 
         SimpleDateFormat nowSdf = new SimpleDateFormat(DateUtils.DATE_FORMAT_UTC);
-        nowSdf.setTimeZone(TimeZone.getTimeZone("UTC"));
+        nowSdf.setTimeZone(TimeZone.getTimeZone(DateUtils.UTC));
         return nowSdf.format(nowDate.getTime());
     }
 
@@ -106,7 +106,7 @@ public class ReminderServiceImpl implements ReminderService {
         nextMinuteDate.add(Calendar.MINUTE, 1);
 
         SimpleDateFormat sdf = new SimpleDateFormat(DateUtils.DATE_FORMAT_UTC);
-        sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
+        sdf.setTimeZone(TimeZone.getTimeZone(DateUtils.UTC));
         return sdf.format(nextMinuteDate.getTime());
     }
 

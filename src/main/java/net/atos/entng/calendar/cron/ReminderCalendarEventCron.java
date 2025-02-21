@@ -25,16 +25,16 @@ public class ReminderCalendarEventCron  implements Handler<Long> {
 
     @Override
     public void handle(Long event) {
-        log.info("[Calendar@ReminderCalendarEventCron] ReminderCalendarEventCron started");
+        log.info(String.format("[Calendar@%s::handle] ReminderCalendarEventCron started", this.getClass().getSimpleName()));
         final JsonObject message = new JsonObject();
         message.put(Field.ACTION, ReminderCalendarEventWorkerAction.SEND_REMINDERS.method());
         eb.request(CalendarReminderWorker.class.getName(), message, result -> {
             if(result.failed()) {
-                String errMessage = String.format("[Calendar@ReminderCalendarEventCron]: Failed to sync reminders: %s",
-                        result.cause().getMessage());
+                String errMessage = String.format("[Calendar@%s::handle]: Failed to sync reminders: %s",
+                        this.getClass().getSimpleName(), result.cause().getMessage());
                 log.error(errMessage);
             } else {
-                log.info("[Calendar@ReminderCalendarEventCron]: Synchronized reminders");
+                log.info(String.format("[Calendar@%s::handle]: Synchronized reminders", this.getClass().getSimpleName()));
             }
         });
     }

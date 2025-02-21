@@ -85,7 +85,6 @@ public class CalendarReminderWorker extends BusModBase implements Handler<Messag
         reminders.stream()
                 .map(JsonObject.class::cast)
                 .map(ReminderModel::new)
-//                .forEach(reminder -> remindersActions.add(sendReminder(reminder)));
                 .map(this::sendReminder)
                 .collect(Collectors.toList());
 
