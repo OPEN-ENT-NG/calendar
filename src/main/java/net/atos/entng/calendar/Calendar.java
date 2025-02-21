@@ -19,6 +19,7 @@
 
 package net.atos.entng.calendar;
 
+import fr.wseduc.cron.CronTrigger;
 import fr.wseduc.mongodb.MongoDb;
 import fr.wseduc.webutils.Server;
 import io.vertx.core.DeploymentOptions;
@@ -28,8 +29,11 @@ import io.vertx.ext.web.client.WebClientOptions;
 import net.atos.entng.calendar.controllers.CalendarController;
 import net.atos.entng.calendar.controllers.EventController;
 import net.atos.entng.calendar.controllers.PlatformController;
+import net.atos.entng.calendar.core.constants.Field;
+import net.atos.entng.calendar.cron.ReminderCalendarEventCron;
 import net.atos.entng.calendar.event.CalendarRepositoryEvents;
 import net.atos.entng.calendar.event.CalendarSearchingEvents;
+import net.atos.entng.calendar.ical.CalendarReminderWorker;
 import net.atos.entng.calendar.ical.ExternalImportICal;
 import net.atos.entng.calendar.ical.ICalHandler;
 import net.atos.entng.calendar.services.ServiceFactory;
@@ -87,6 +91,15 @@ public class Calendar extends BaseServer {
 
         // External Import Calendar services
         vertx.deployVerticle(ExternalImportICal.class, new DeploymentOptions().setConfig(config).setWorker(true));
+        // Calendar reminder service
+        vertx.deployVerticle(CalendarReminderWorker.class, new DeploymentOptions().setConfig(config).setWorker(true));
+
+        if(Boolean.TRUE.equals(config.getBoolean(Field.ENABLEREMINDER, false))) {
+            ReminderCalendarEventCron reminderCalendarEventCron = new ReminderCalendarEventCron(serviceFactory.reminderService(), vertx.eventBus());
+            new CronTrigger(vertx, config.getString(Field.CALENDARREMINDERCRON)).schedule(reminderCalendarEventCron);
+            log.info("Calendar Reminder Cron enabled");
+        }
+
         startPromise.tryComplete();
     }
 

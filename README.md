@@ -41,7 +41,9 @@ Déclarer l'application dans la liste :
         "entcore.port" : 8009,
         "enable-rbs": ${enableRbs}
         "enable-zimbra": ${enableZimbra},
+        "enableReminder": ${enableCalendarReminder},
         "calendarSyncTTL": ${calendarSyncTTL},
+        "calendarReminderCron": ${calendarReminderCron},
         "publicConf": {
           <% if ("true".equals(xitiSwitch)) { %>
             "xiti": {
@@ -60,6 +62,9 @@ Dans le conf.properties du springboard, déclarer la variable suivante :
     "enable-rbs": ${enableRbs}, // => remplacer par true si accès à RBS
     "enable-zimbra": ${enableZimbra}, // => remplacer par true si utilisation de Zimbra
     "calendarSyncTTL": ${calendarSyncTTL}, // => mettre 3600 (valeur par défaut)
+    "enableReminder": ${enableCalendarReminder}, // => mettre "true" pour mettre en place le système de rappel
+    "calendarReminderCron": ${calendarReminderCron}, // => mettre "0 */1 * * * ? *" (chaque minute, par défaut) 
+        pour définir la fréquence du cron
 </pre>
 
 Associer une route d'entée à la configuration du module proxy intégré (`"name": "net.atos~calendar~0.2.0"`) :
