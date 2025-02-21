@@ -18,6 +18,7 @@ public final class DateUtils {
     public static final String YEAR = "yyyy";
     public static final String ICAL_DATE_FORMAT = "yyyyMMdd'T'HHmmss'Z'";
     public static final String ICAL_ALLDAY_FORMAT = "yyyyMMdd";
+    public static final String UTC = "UTC";
 
     private DateUtils()  {}
 
