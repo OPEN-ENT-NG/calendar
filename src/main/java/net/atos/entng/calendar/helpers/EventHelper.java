@@ -617,13 +617,12 @@ public class EventHelper extends MongoDbControllerHelper {
         }
     }
 
-    @SuppressWarnings("unchecked")
     public void genericSendNotificationToUser(HttpServerRequest request, String template, UserInfos user,
                                                      List<String> recipients, String calendarId, String calendarEventId, JsonObject notificationData, Boolean disableAntiFlood) {
         if (recipients != null) {
                 notification.notifyTimeline(request, template, user, recipients, calendarId, calendarEventId,
                         notificationData, disableAntiFlood);
-                }
+        }
     }
 
     private void findRecipients(String collection, final Bson query, JsonObject keys, final JsonArray fetch,

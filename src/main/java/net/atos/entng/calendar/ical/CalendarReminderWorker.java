@@ -19,7 +19,9 @@ import net.atos.entng.calendar.core.constants.Field;
 import net.atos.entng.calendar.core.constants.MongoField;
 import net.atos.entng.calendar.core.enums.ExternalICalEventBusActions;
 import net.atos.entng.calendar.core.enums.ReminderCalendarEventWorkerAction;
+import net.atos.entng.calendar.enums.I18nKeys;
 import net.atos.entng.calendar.helpers.EventHelper;
+import net.atos.entng.calendar.helpers.I18nHelper;
 import net.atos.entng.calendar.models.reminders.ReminderModel;
 import net.atos.entng.calendar.services.CalendarService;
 import net.atos.entng.calendar.services.EventServiceMongo;
@@ -37,6 +39,7 @@ import org.vertx.java.busmods.BusModBase;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.stream.Collectors;
 
 import static fr.wseduc.webutils.http.Renders.getHost;
@@ -47,6 +50,8 @@ public class CalendarReminderWorker extends BusModBase implements Handler<Messag
     private ReminderService reminderService;
     private CalendarService calendarService;
     private EventServiceMongo eventServiceMongo;
+    private TimelineHelper timelineHelper;
+    private EventHelper eventHelper;
     private WebClient webClient;
     private TimelineHelper notification;
 
@@ -59,6 +64,10 @@ public class CalendarReminderWorker extends BusModBase implements Handler<Messag
         this.reminderService = serviceFactory.reminderService();
         this.calendarService = serviceFactory.calendarService();
         this.eventServiceMongo = new EventServiceMongoImpl(Calendar.CALENDAR_EVENT_COLLECTION, eb, serviceFactory);
+        this.timelineHelper = new TimelineHelper(vertx, eb, config);
+        this.eventHelper = new EventHelper(Calendar.CALENDAR_EVENT_COLLECTION,
+                new EventServiceMongoImpl(Calendar.CALENDAR_EVENT_COLLECTION, vertx.eventBus(), serviceFactory),
+                serviceFactory, timelineHelper, eb, config);
         notification = new TimelineHelper(Vertx.vertx(), eb, config);
         eb.consumer(this.getClass().getName(), this);
     }
@@ -163,10 +172,10 @@ public class CalendarReminderWorker extends BusModBase implements Handler<Messag
 
                     JsonObject pushNotif = new JsonObject()
                             .put("title", "push.notif.event.reminder")
-                            .put("body", user.getUsername() + " " + I18n.getInstance().translate("calendar.reminder.push.notif.body",
-                                    getHost(request), I18n.acceptLanguage(request)));
+                            .put("body", user.getUsername() + " " + I18nHelper.getI18nValue(I18nKeys.CALENDAR_REMINDER_PUSH_NOTIF,
+                                    Locale.getDefault().toString()));
                     notificationParameters.put("pushNotif", pushNotif);
-                    genericSendNotificationToUser(null, template, user, recipient, calendarId, calendarEventId,
+                    eventHelper.genericSendNotificationToUser(null, template, user, recipient, calendarId, calendarEventId,
                             notificationParameters, true);
 
                     return Future.succeededFuture();
