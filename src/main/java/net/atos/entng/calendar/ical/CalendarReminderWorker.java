@@ -19,7 +19,7 @@ import net.atos.entng.calendar.core.constants.Field;
 import net.atos.entng.calendar.core.constants.MongoField;
 import net.atos.entng.calendar.core.enums.ExternalICalEventBusActions;
 import net.atos.entng.calendar.core.enums.ReminderCalendarEventWorkerAction;
-import net.atos.entng.calendar.enums.I18nKeys;
+import net.atos.entng.calendar.core.enums.I18nKeys;
 import net.atos.entng.calendar.helpers.EventHelper;
 import net.atos.entng.calendar.helpers.I18nHelper;
 import net.atos.entng.calendar.models.reminders.ReminderModel;
@@ -28,6 +28,7 @@ import net.atos.entng.calendar.services.EventServiceMongo;
 import net.atos.entng.calendar.services.ReminderService;
 import net.atos.entng.calendar.services.ServiceFactory;
 import net.atos.entng.calendar.services.impl.EventServiceMongoImpl;
+import net.atos.entng.calendar.utils.DateUtils;
 import org.entcore.common.controller.ControllerHelper;
 import org.entcore.common.neo4j.Neo4j;
 import org.entcore.common.notification.TimelineHelper;
@@ -36,10 +37,12 @@ import org.entcore.common.user.UserInfos;
 import org.entcore.common.user.UserUtils;
 import org.vertx.java.busmods.BusModBase;
 
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static fr.wseduc.webutils.http.Renders.getHost;
@@ -160,15 +163,20 @@ public class CalendarReminderWorker extends BusModBase implements Handler<Messag
                     List<String> recipient = new JsonArray().add(reminder.getOwner().id()).getList();
                     String calendarEventId = reminder.getEventId();
                     String calendarId = calendarEvent.getJsonArray(Field.CALENDARS, new JsonArray()).getString(0);
-                    JsonObject notificationParameters = new JsonObject()
-                            .put("username", user.getUsername())
-                            .put("profilUri",
-                                    "/userbook/annuaire#" + user.getUserId() + "#" + user.getType())
-                            .put("calendarUri",
-                                    "/calendar#/view/" + calendarId)
-                            .put("resourceUri", "/calendar#/view/" + calendarId)
-                            .put("eventTitle", calendarEvent.getString(Field.TITLE, ""))
-                            .put("remainingTime", getRemainingTime(calendarEvent.getString(Field.STARTMOMENT, "")));
+                    JsonObject notificationParameters = null;
+                    try {
+                        notificationParameters = new JsonObject()
+                                .put("username", user.getUsername())
+                                .put("profilUri",
+                                        "/userbook/annuaire#" + user.getUserId() + "#" + user.getType())
+                                .put("calendarUri",
+                                        "/calendar#/view/" + calendarId)
+                                .put("resourceUri", "/calendar#/view/" + calendarId)
+                                .put("eventTitle", calendarEvent.getString(Field.TITLE, ""))
+                                .put("remainingTime", getRemainingTime(reminder.getReminderFrequency().get(0), calendarEvent.getString(Field.STARTMOMENT)));
+                    } catch (ParseException e) {
+                        throw new RuntimeException(e);
+                    }
 
                     JsonObject pushNotif = new JsonObject()
                             .put("title", "push.notif.event.reminder")
@@ -223,5 +231,22 @@ public class CalendarReminderWorker extends BusModBase implements Handler<Messag
 
         return promise.future();
     }
+
+    private String getRemainingTime( String reminderTime, String calendarEventTime) throws ParseException {
+        long diffInMillis = DateUtils.getTimeDifference(reminderTime, calendarEventTime);
+
+        long months = diffInMillis / (30L * 24 * 60 * 60 * 1000);
+        if (months > 0) return months + (months == 1 ? " month" : " months");
+
+        long weeks = diffInMillis / (7L * 24 * 60 * 60 * 1000);
+        if (weeks > 0) return weeks + (weeks == 1 ? " week" : " weeks");
+
+        long days = TimeUnit.MILLISECONDS.toDays(diffInMillis);
+        if (days > 0) return days + (days == 1 ? " day" : " days");
+
+        long hours = TimeUnit.MILLISECONDS.toHours(diffInMillis);
+        return hours + (hours == 1 ? " hour" : " hours");
+    }
+
 
 }

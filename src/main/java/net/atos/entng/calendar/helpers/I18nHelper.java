@@ -1,6 +1,6 @@
 package net.atos.entng.calendar.helpers;
 
-import net.atos.entng.calendar.enums.I18nKeys;
+import net.atos.entng.calendar.core.enums.I18nKeys;
 import fr.wseduc.webutils.I18n;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.logging.Logger;

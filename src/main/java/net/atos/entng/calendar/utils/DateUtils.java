@@ -9,6 +9,7 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.concurrent.TimeUnit;
 
 
 public final class DateUtils {
@@ -95,6 +96,12 @@ public final class DateUtils {
         return cal.getTime();
     }
 
+    public static long getTimeDifference(String date1, String date2) throws ParseException {
+        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
 
+        Date d1 = formatter.parse(date1);
+        Date d2 = formatter.parse(date2);
 
+        return Math.abs(d2.getTime() - d1.getTime());
+    }
 }

@@ -1,4 +1,4 @@
-package net.atos.entng.calendar.enums;
+package net.atos.entng.calendar.core.enums;
 
 import java.util.Arrays;
 

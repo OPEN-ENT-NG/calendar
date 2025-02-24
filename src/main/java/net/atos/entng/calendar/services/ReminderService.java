@@ -17,6 +17,7 @@ public interface ReminderService {
     /**
      * Return all reminders between the current minute and next minute
      * @return {@link Future<JsonArray>} Future containing the reminders that should be sent this minute
+     * WITH ONLY THE FITTING DATES IN REMINDERFREQUENCY
      */
     Future<JsonArray> fetchRemindersToSend();
 }
