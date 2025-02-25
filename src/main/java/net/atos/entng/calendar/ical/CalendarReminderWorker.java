@@ -53,10 +53,10 @@ public class CalendarReminderWorker extends BusModBase implements Handler<Messag
     private ReminderService reminderService;
     private CalendarService calendarService;
     private EventServiceMongo eventServiceMongo;
-    private TimelineHelper timelineHelper;
+    private TimelineHelper notification;
     private EventHelper eventHelper;
     private WebClient webClient;
-    private TimelineHelper notification;
+
 
     @Override
     public void start() {
@@ -67,11 +67,10 @@ public class CalendarReminderWorker extends BusModBase implements Handler<Messag
         this.reminderService = serviceFactory.reminderService();
         this.calendarService = serviceFactory.calendarService();
         this.eventServiceMongo = new EventServiceMongoImpl(Calendar.CALENDAR_EVENT_COLLECTION, eb, serviceFactory);
-        this.timelineHelper = new TimelineHelper(vertx, eb, config);
+        notification = new TimelineHelper(vertx, eb, config);
         this.eventHelper = new EventHelper(Calendar.CALENDAR_EVENT_COLLECTION,
                 new EventServiceMongoImpl(Calendar.CALENDAR_EVENT_COLLECTION, vertx.eventBus(), serviceFactory),
-                serviceFactory, timelineHelper, eb, config);
-        notification = new TimelineHelper(Vertx.vertx(), eb, config);
+                serviceFactory, notification, eb, config);
         eb.consumer(this.getClass().getName(), this);
     }
 
