@@ -51,11 +51,8 @@ import static fr.wseduc.webutils.http.Renders.getHost;
 public class CalendarReminderWorker extends BusModBase implements Handler<Message<JsonObject>> {
     protected static final Logger log = LoggerFactory.getLogger(CalendarReminderWorker.class);
     private ReminderService reminderService;
-    private CalendarService calendarService;
     private EventServiceMongo eventServiceMongo;
     private TimelineHelper notification;
-    private EventHelper eventHelper;
-    private WebClient webClient;
 
 
     @Override
@@ -65,12 +62,8 @@ public class CalendarReminderWorker extends BusModBase implements Handler<Messag
         ServiceFactory serviceFactory = new ServiceFactory(vertx, Neo4j.getInstance(), Sql.getInstance(),
                 MongoDb.getInstance(), WebClient.create(vertx, options));
         this.reminderService = serviceFactory.reminderService();
-        this.calendarService = serviceFactory.calendarService();
         this.eventServiceMongo = new EventServiceMongoImpl(Calendar.CALENDAR_EVENT_COLLECTION, eb, serviceFactory);
         notification = new TimelineHelper(vertx, eb, config);
-        this.eventHelper = new EventHelper(Calendar.CALENDAR_EVENT_COLLECTION,
-                new EventServiceMongoImpl(Calendar.CALENDAR_EVENT_COLLECTION, vertx.eventBus(), serviceFactory),
-                serviceFactory, notification, eb, config);
         eb.consumer(this.getClass().getName(), this);
     }
 
@@ -103,12 +96,13 @@ public class CalendarReminderWorker extends BusModBase implements Handler<Messag
     private Future<Void> sendReminders(JsonArray reminders) {
         Promise<Void> promise = Promise.promise();
         List<Future> remindersActions = new ArrayList<>();
+        log.info(String.format("REMINDERS %s", reminders.toString()));
 
         reminders.stream()
                 .map(JsonObject.class::cast)
                 .map(ReminderModel::new)
-//                .forEach(reminder -> remindersActions.add(sendReminder(reminder)));
                 .map(this::sendReminder)
+                .map(remindersActions::add)
                 .collect(Collectors.toList());
 
         CompositeFuture.all(remindersActions)
@@ -160,8 +154,7 @@ public class CalendarReminderWorker extends BusModBase implements Handler<Messag
                     user.setUserId(reminder.getOwner().id());
                     user.setUsername(reminder.getOwner().displayName());
                     List<String> recipient = new JsonArray().add(reminder.getOwner().id()).getList();
-                    String calendarEventId = reminder.getEventId();
-                    String calendarId = calendarEvent.getJsonArray(Field.CALENDARS, new JsonArray()).getString(0);
+                    String calendarId = calendarEvent.getJsonArray(Field.CALENDAR, new JsonArray()).getString(0);
                     JsonObject notificationParameters = null;
                     try {
                         notificationParameters = new JsonObject()
@@ -182,8 +175,8 @@ public class CalendarReminderWorker extends BusModBase implements Handler<Messag
                             .put("body", user.getUsername() + " " + I18nHelper.getI18nValue(I18nKeys.CALENDAR_REMINDER_PUSH_NOTIF,
                                     Locale.getDefault().toString()));
                     notificationParameters.put("pushNotif", pushNotif);
-                    eventHelper.genericSendNotificationToUser(null, template, user, recipient, calendarId, calendarEventId,
-                            notificationParameters, true);
+                    notification.notifyTimeline(null, template, user, recipient, null, null,
+                            notificationParameters, false);
 
                     return Future.succeededFuture();
                 })
