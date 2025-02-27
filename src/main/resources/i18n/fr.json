@@ -58,6 +58,7 @@
     "calendar.hour": "heure",
     "calendar.day": "jour",
     "calendar.week": "semaine",
+    "calendar.month": "mois",
     "calendar.recurrence.every": "Tous les",
     "calendar.recurrence.every.female": "Toutes les",
     "calendar.recurrence.every.day": "Tous les jours",

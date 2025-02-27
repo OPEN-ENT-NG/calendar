@@ -3,7 +3,15 @@ package net.atos.entng.calendar.core.enums;
 import java.util.Arrays;
 
 public enum I18nKeys {
-    CALENDAR_REMINDER_PUSH_NOTIF("calendar.reminder.push.notif.body");
+    CALENDAR_REMINDER_PUSH_NOTIF("calendar.reminder.push.notif.body"),
+    CALENDAR_HOUR("calendar.hour"),
+    CALENDAR_HOURS("calendar.hours.lc"),
+    CALENDAR_DAY("calendar.day"),
+    CALENDAR_DAYS("calendar.recurrence.days"),
+    CALENDAR_WEEK("calendar.week"),
+    CALENDAR_WEEKS("calendar.recurrence.weeks"),
+    CALENDAR_MONTH("calendar.month"),
+    CALENDAR_MONTHS("calendar.recurrence.monthes");
 
     private final String value;
 

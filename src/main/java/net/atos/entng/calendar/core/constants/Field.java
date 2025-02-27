@@ -158,6 +158,7 @@ public class Field {
     public static final String USERNAME = "username";
     public static final String CALENDARURI = "calendarUri";
     public static final String RESOURCEURI = "resourceUri";
+    public static final String EVENTURI = "eventUri";
     public static final String TITLE = "title";
     public static final String BODY = "body";
     public static final String PUSHNOTIF = "pushNotif";

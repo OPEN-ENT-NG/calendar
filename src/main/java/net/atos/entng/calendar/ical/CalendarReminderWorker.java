@@ -151,19 +151,19 @@ public class CalendarReminderWorker extends BusModBase implements Handler<Messag
                 .compose(calendarEvent -> {
                     String template = "calendar.reminder";
                     UserInfos user = new UserInfos();
-                    user.setUserId(reminder.getOwner().id());
+                    user.setUserId(reminder.getOwner().userId());
                     user.setUsername(reminder.getOwner().displayName());
-                    List<String> recipient = new JsonArray().add(reminder.getOwner().id()).getList();
+                    List<String> recipient = new JsonArray().add(reminder.getOwner().userId()).getList();
                     String calendarId = calendarEvent.getJsonArray(Field.CALENDAR, new JsonArray()).getString(0);
                     JsonObject notificationParameters = null;
                     try {
                         notificationParameters = new JsonObject()
-                                .put("username", user.getUsername())
-                                .put("profilUri",
-                                        "/userbook/annuaire#" + user.getUserId() + "#" + user.getType())
-                                .put("calendarUri",
+                                .put(Field.PROFILURI,
+                                        "/userbook/annuaire#" + reminder.getOwner().userId())
+                                .put(Field.CALENDARURI,
                                         "/calendar#/view/" + calendarId)
-                                .put("resourceUri", "/calendar#/view/" + calendarId)
+                                .put(Field.RESOURCEURI, "/calendar#/view/" + calendarId)
+                                .put(Field.EVENTURI, "/calendar#/view/" + calendarId)
                                 .put("eventTitle", calendarEvent.getString(Field.TITLE, ""))
                                 .put("remainingTime", getRemainingTime(reminder.getReminderFrequency().get(0), calendarEvent.getString(Field.STARTMOMENT)));
                     } catch (ParseException e) {
@@ -171,13 +171,12 @@ public class CalendarReminderWorker extends BusModBase implements Handler<Messag
                     }
 
                     JsonObject pushNotif = new JsonObject()
-                            .put("title", "push.notif.event.reminder")
-                            .put("body", user.getUsername() + " " + I18nHelper.getI18nValue(I18nKeys.CALENDAR_REMINDER_PUSH_NOTIF,
+                            .put(Field.TITLE, "push.notif.event.reminder")
+                            .put(Field.BODY, user.getUsername() + " " + I18nHelper.getI18nValue(I18nKeys.CALENDAR_REMINDER_PUSH_NOTIF,
                                     Locale.getDefault().toString()));
-                    notificationParameters.put("pushNotif", pushNotif);
+                notificationParameters.put(Field.PUSHNOTIF, pushNotif);
                     notification.notifyTimeline(null, template, user, recipient, null, null,
                             notificationParameters, false);
-
                     return Future.succeededFuture();
                 })
                 .onSuccess(result -> promise.complete())
@@ -228,16 +227,20 @@ public class CalendarReminderWorker extends BusModBase implements Handler<Messag
         long diffInMillis = DateUtils.getTimeDifference(reminderTime, calendarEventTime);
 
         long months = diffInMillis / (30L * 24 * 60 * 60 * 1000);
-        if (months > 0) return months + (months == 1 ? " month" : " months");
+        if (months > 0) return months + " " + I18nHelper.getI18nValue(months == 1 ? I18nKeys.CALENDAR_MONTH : I18nKeys.CALENDAR_MONTHS,
+                Locale.getDefault().toString());
 
         long weeks = diffInMillis / (7L * 24 * 60 * 60 * 1000);
-        if (weeks > 0) return weeks + (weeks == 1 ? " week" : " weeks");
+        if (weeks > 0) return weeks + " " + I18nHelper.getI18nValue(weeks == 1 ? I18nKeys.CALENDAR_WEEK : I18nKeys.CALENDAR_WEEKS,
+                Locale.getDefault().toString());
 
         long days = TimeUnit.MILLISECONDS.toDays(diffInMillis);
-        if (days > 0) return days + (days == 1 ? " day" : " days");
+        if (days > 0) return days + " " + I18nHelper.getI18nValue(days == 1 ? I18nKeys.CALENDAR_DAY : I18nKeys.CALENDAR_DAYS,
+                Locale.getDefault().toString());
 
         long hours = TimeUnit.MILLISECONDS.toHours(diffInMillis);
-        return hours + (hours == 1 ? " hour" : " hours");
+        return hours + " " + I18nHelper.getI18nValue(hours == 1 ? I18nKeys.CALENDAR_HOUR : I18nKeys.CALENDAR_HOURS,
+                Locale.getDefault().toString());
     }
 
 
