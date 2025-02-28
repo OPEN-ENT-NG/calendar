@@ -38,5 +38,14 @@ public interface UserService {
      * @return {@link Future} of {@link List<User>} containing list of user fetched
      */
     Future<List<User>> fetchUser(List<String> ids, UserInfos user, boolean keepUserFromSession);
+
+    /**
+     * fetch user with id
+     *
+     * @param userId             the user's id {@link String}
+     *
+     * @return {@link Future} of {@link User} containing the user fetched
+     */
+    Future<User> fetchUserById(String userId);
 }
 

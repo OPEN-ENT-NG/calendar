@@ -55,6 +55,7 @@ public class Field {
     // Start and end dates
     public static final String START_DATE = "start_date";
     public static final String END_DATE = "end_date";
+    public static final String ALLDAY_LC = "allday";
     // start date from range
     public static final String STARTDATE = "startDate";
     // end date from range
@@ -186,7 +187,10 @@ public class Field {
     public static final String WEEK = "week";
     public static final String MONTH = "month";
     public static final String REMINDER = "reminder";
-
+    public static final String SUBJECT = "subject";
+    public static final String TO = "to";
+    public static final String CCI = "cci";
+    public static final String SEND = "send";
 
     //Http Methods
     public static final String POST = "post";

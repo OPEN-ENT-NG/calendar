@@ -40,7 +40,7 @@ public class DefaultUserServiceImpl implements UserService {
         JsonObject params = new JsonObject().put(Field.USERID, user.getUserId()).put(Field.IDS, ids);
         neo4j.execute(getShareIdUserGroupInfoQuery(keepUserFromSession), params, Neo4jResult.validResultHandler(res -> {
             if (res.isLeft()) {
-                String message = String.format("[Calendar@%s::fetchUser] An error has occured" +
+                String message = String.format("[Calendar@%s::fetchUser] An error has occurred" +
                         " during fetch users from its id/groups: %s", this.getClass().getSimpleName(), res.left().getValue());
                 log.error(message);
                 promise.fail(res.left().getValue());
@@ -68,6 +68,33 @@ public class DefaultUserServiceImpl implements UserService {
                 "MATCH (n:Group )<-[:IN]-(u:User) " +
                 "WHERE n.id IN {ids} " + (keepUserFromSession ? "" : "AND u.id <> {userId} ") +
                 "RETURN distinct u.id as id, u.displayName as displayName";
+    }
+
+
+    /**
+     * fetch user with id
+     *
+     * @param userId             the user's id {@link String}
+     *
+     * @return {@link Future} of {@link User} containing the user fetched
+     */
+    @Override
+    public Future<User> fetchUserById(String userId) {
+        Promise<User> promise = Promise.promise();
+        JsonObject params = new JsonObject().put(Field.USERID, userId);
+
+        String query = "MATCH (U: User) WHERE U.id = {userId} RETURN U";
+        neo4j.execute(query, params, Neo4jResult.validUniqueResultHandler(res -> {
+            if (res.isLeft()) {
+                String message = String.format("[Calendar@%s::fetchUserById] An error has occurred" +
+                        " during fetch user from its id: %s", this.getClass().getSimpleName(), res.left().getValue());
+                log.error(message);
+                promise.fail(res.left().getValue());
+            } else {
+                promise.complete(new User(res.right().getValue()));
+            }
+        }));
+        return promise.future();
     }
 
 }

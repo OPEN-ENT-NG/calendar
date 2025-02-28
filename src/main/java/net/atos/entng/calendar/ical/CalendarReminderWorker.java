@@ -17,16 +17,14 @@ import net.atos.entng.calendar.Calendar;
 import net.atos.entng.calendar.controllers.CalendarController;
 import net.atos.entng.calendar.core.constants.Field;
 import net.atos.entng.calendar.core.constants.MongoField;
+import net.atos.entng.calendar.core.enums.EventBusAction;
 import net.atos.entng.calendar.core.enums.ExternalICalEventBusActions;
 import net.atos.entng.calendar.core.enums.ReminderCalendarEventWorkerAction;
 import net.atos.entng.calendar.core.enums.I18nKeys;
 import net.atos.entng.calendar.helpers.EventHelper;
 import net.atos.entng.calendar.helpers.I18nHelper;
 import net.atos.entng.calendar.models.reminders.ReminderModel;
-import net.atos.entng.calendar.services.CalendarService;
-import net.atos.entng.calendar.services.EventServiceMongo;
-import net.atos.entng.calendar.services.ReminderService;
-import net.atos.entng.calendar.services.ServiceFactory;
+import net.atos.entng.calendar.services.*;
 import net.atos.entng.calendar.services.impl.EventServiceMongoImpl;
 import net.atos.entng.calendar.utils.DateUtils;
 import org.entcore.common.controller.ControllerHelper;
@@ -52,6 +50,7 @@ public class CalendarReminderWorker extends BusModBase implements Handler<Messag
     protected static final Logger log = LoggerFactory.getLogger(CalendarReminderWorker.class);
     private ReminderService reminderService;
     private EventServiceMongo eventServiceMongo;
+    private UserService userService;
     private TimelineHelper notification;
 
 
@@ -63,6 +62,7 @@ public class CalendarReminderWorker extends BusModBase implements Handler<Messag
                 MongoDb.getInstance(), WebClient.create(vertx, options));
         this.reminderService = serviceFactory.reminderService();
         this.eventServiceMongo = new EventServiceMongoImpl(Calendar.CALENDAR_EVENT_COLLECTION, eb, serviceFactory);
+        this.userService = serviceFactory.userService();
         notification = new TimelineHelper(vertx, eb, config);
         eb.consumer(this.getClass().getName(), this);
     }
@@ -123,13 +123,12 @@ public class CalendarReminderWorker extends BusModBase implements Handler<Messag
         List<Future> reminderActions =  new ArrayList<>();
 
         if (reminder.getReminderType().isEmail()) {
-//            reminderActions.add(); //add send email action
+            reminderActions.add(sendReminderEmail(reminder)); //add send email action
             log.info("CALENDAR send email action");
         }
 
         if (reminder.getReminderType().isTimeline()) {
             reminderActions.add(sendTimelineNotification(reminder)); //add send notification action
-            log.info("CALENDAR send notification action");
         }
         CompositeFuture.all(reminderActions)
                 .onSuccess(result -> promise.complete())
@@ -243,5 +242,62 @@ public class CalendarReminderWorker extends BusModBase implements Handler<Messag
                 Locale.getDefault().toString());
     }
 
+    private Future<Void> sendReminderEmail(ReminderModel reminder) {
+        Promise<Void> promise = Promise.promise();
 
+        getCalendarEvent(reminder.getEventId())
+                .compose(calendarEvent -> sendEmail(reminder, calendarEvent))
+                .onSuccess(promise::complete)
+                .onFailure(error -> {
+                    String errMessage = String.format("[Calendar@%s::sendReminderEmail]:  " +
+                                    "an error has occurred while sending email reminder: %s",
+                            this.getClass().getSimpleName(), error.getMessage());
+                    log.error(errMessage);
+                    promise.fail(errMessage);
+                });
+
+        return promise.future();
+    }
+
+    private Future<JsonObject> sendEmail(ReminderModel reminder, JsonObject calendarEvent) {
+        Promise<JsonObject> promise = Promise.promise();
+
+        StringBuilder body = new StringBuilder("Bonjour, <br /> <br />"
+                + "Nous vous rappelons que l’événement \"" + calendarEvent.getString(Field.TITLE, "") + "\" commence dans 1 jour."
+                + "<br/>" + "Détails de l’événement :"
+                + "<ul>"
+                + (calendarEvent.containsKey(Field.DESCRIPTION) ? ("<br/>" + calendarEvent.getString(Field.DESCRIPTION)) : "")
+                + (calendarEvent.containsKey(Field.LOCATION) ? ("<br/>" + calendarEvent.getString(Field.LOCATION)) : "")
+                + "<br/>" +  "Du " + DateUtils.getStringDate(calendarEvent.getString(Field.STARTMOMENT, ""), DateUtils.DATE_FORMAT_UTC, DateUtils.DATE_MONTH_YEAR)
+                + (Boolean.FALSE.equals(calendarEvent.getBoolean(Field.ALLDAY_LC)) ? (" à " + DateUtils.getStringDate(calendarEvent.getString(Field.STARTMOMENT, ""), DateUtils.DATE_FORMAT_UTC, DateUtils.HOURS_MINUTES)) : "")
+                + " au " + DateUtils.getStringDate(calendarEvent.getString(Field.ENDMOMENT, ""), DateUtils.DATE_FORMAT_UTC, DateUtils.DATE_MONTH_YEAR)
+                + (Boolean.FALSE.equals(calendarEvent.getBoolean(Field.ALLDAY_LC)) ? (" à " + DateUtils.getStringDate(calendarEvent.getString(Field.ENDMOMENT, ""), DateUtils.DATE_FORMAT_UTC, DateUtils.HOURS_MINUTES)) : "")
+                + (Boolean.TRUE.equals(calendarEvent.getBoolean(Field.ALLDAY_LC)) ? (" à " + DateUtils.getStringDate(calendarEvent.getString(Field.STARTMOMENT, ""), DateUtils.DATE_FORMAT_UTC, DateUtils.HOURS_MINUTES)) : "")
+                + "<br/>" +  "Consultez l’application " + "Agenda" + " pour en savoir plus."
+                );
+
+        JsonObject message = new JsonObject()
+                .put(Field.SUBJECT,  "Rappel : Votre événement approche !")
+                .put(Field.BODY, body)
+                .put(Field.TO, new JsonArray())
+                .put(Field.CCI, reminder.getOwner().userId());
+
+        JsonObject action = new JsonObject()
+                .put(Field.ACTION, Field.SEND)
+                .put(Field.USERID, reminder.getOwner().userId())
+                .put(Field.USERNAME, reminder.getOwner().displayName())
+                .put(Field.MESSAGE, message);
+
+
+        eb.request(EventBusAction.CONVERSATION_ADDRESS, action, (Handler<AsyncResult<Message<JsonObject>>>) messageEvt -> {
+            if (!messageEvt.result().body().getString(Field.STATUS).equals(Field.OK)) {
+                log.error("[Formulaire@FormController::sendReminder] Failed to send reminder : " + messageEvt.cause());
+                promise.fail(messageEvt.cause());
+            } else {
+                promise.complete(messageEvt.result().body());
+            }
+        });
+
+        return promise.future();
+    }
 }

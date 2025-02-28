@@ -6,9 +6,8 @@ import net.atos.entng.calendar.core.constants.Field;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.GregorianCalendar;
+import java.time.ZoneId;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 
@@ -19,6 +18,8 @@ public final class DateUtils {
     public static final String YEAR = "yyyy";
     public static final String ICAL_DATE_FORMAT = "yyyyMMdd'T'HHmmss'Z'";
     public static final String ICAL_ALLDAY_FORMAT = "yyyyMMdd";
+    public static final String DATE_MONTH_YEAR = "yyyyMMdd";
+    public static final String HOURS_MINUTES = "HH:mm";
     public static final String UTC = "UTC";
 
     private DateUtils()  {}
@@ -104,4 +105,30 @@ public final class DateUtils {
 
         return Math.abs(d2.getTime() - d1.getTime());
     }
+
+    /**
+     * converts a date string to another format
+     * @param dateString the initial date
+     * @param inputFormat the initial format of the date
+     * @param outputFormat the format we want
+     * @return the date in the output format
+     */
+    public static String getStringDate(String dateString, String inputFormat, String outputFormat) {
+
+        try {
+            SimpleDateFormat inputDate = new SimpleDateFormat(inputFormat);
+            inputDate.setTimeZone(TimeZone.getTimeZone(ZoneId.of(UTC)));
+
+            SimpleDateFormat outputDate = new SimpleDateFormat(outputFormat);
+            outputDate.setTimeZone(TimeZone.getTimeZone(ZoneId.of(Locale.getDefault().toString())));
+
+            Date date = inputDate.parse(dateString);
+
+            return outputDate.format(date);
+        } catch (ParseException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
 }
