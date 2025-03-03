@@ -1,50 +1,35 @@
 package net.atos.entng.calendar.ical;
 
 import fr.wseduc.mongodb.MongoDb;
-import fr.wseduc.webutils.I18n;
 import io.vertx.core.*;
-import io.vertx.core.eventbus.Message;;
-import io.vertx.core.http.HttpServerRequest;
+import io.vertx.core.eventbus.Message;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
-import io.vertx.core.net.ProxyOptions;
-import io.vertx.core.net.ProxyType;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.client.WebClientOptions;
 import net.atos.entng.calendar.Calendar;
-import net.atos.entng.calendar.controllers.CalendarController;
 import net.atos.entng.calendar.core.constants.Field;
-import net.atos.entng.calendar.core.constants.MongoField;
 import net.atos.entng.calendar.core.enums.EventBusAction;
-import net.atos.entng.calendar.core.enums.ExternalICalEventBusActions;
-import net.atos.entng.calendar.core.enums.ReminderCalendarEventWorkerAction;
 import net.atos.entng.calendar.core.enums.I18nKeys;
-import net.atos.entng.calendar.helpers.EventHelper;
 import net.atos.entng.calendar.helpers.I18nHelper;
 import net.atos.entng.calendar.models.reminders.ReminderModel;
 import net.atos.entng.calendar.services.*;
 import net.atos.entng.calendar.services.impl.EventServiceMongoImpl;
 import net.atos.entng.calendar.utils.DateUtils;
-import org.entcore.common.controller.ControllerHelper;
 import org.entcore.common.neo4j.Neo4j;
 import org.entcore.common.notification.TimelineHelper;
 import org.entcore.common.sql.Sql;
 import org.entcore.common.user.UserInfos;
-import org.entcore.common.user.UserUtils;
 import org.vertx.java.busmods.BusModBase;
 
 import java.text.ParseException;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
-
-import static fr.wseduc.webutils.http.Renders.getHost;
-
 
 public class CalendarReminderWorker extends BusModBase implements Handler<Message<JsonObject>> {
     protected static final Logger log = LoggerFactory.getLogger(CalendarReminderWorker.class);
@@ -77,7 +62,6 @@ public class CalendarReminderWorker extends BusModBase implements Handler<Messag
             default:
                 break;
         }
-
     }
 
     private void findAndSendReminders(Message<JsonObject> message) {
@@ -247,7 +231,7 @@ public class CalendarReminderWorker extends BusModBase implements Handler<Messag
 
         getCalendarEvent(reminder.getEventId())
                 .compose(calendarEvent -> sendEmail(reminder, calendarEvent))
-                .onSuccess(promise::complete)
+                .onSuccess(result -> promise.complete())
                 .onFailure(error -> {
                     String errMessage = String.format("[Calendar@%s::sendReminderEmail]:  " +
                                     "an error has occurred while sending email reminder: %s",
@@ -264,15 +248,15 @@ public class CalendarReminderWorker extends BusModBase implements Handler<Messag
 
         StringBuilder body = new StringBuilder("Bonjour, <br /> <br />"
                 + "Nous vous rappelons que l’événement \"" + calendarEvent.getString(Field.TITLE, "") + "\" commence dans 1 jour."
-                + "<br/>" + "Détails de l’événement :"
                 + "<ul>"
-                + (calendarEvent.containsKey(Field.DESCRIPTION) ? ("<br/>" + calendarEvent.getString(Field.DESCRIPTION)) : "")
-                + (calendarEvent.containsKey(Field.LOCATION) ? ("<br/>" + calendarEvent.getString(Field.LOCATION)) : "")
-                + "<br/>" +  "Du " + DateUtils.getStringDate(calendarEvent.getString(Field.STARTMOMENT, ""), DateUtils.DATE_FORMAT_UTC, DateUtils.DATE_MONTH_YEAR)
+                + (calendarEvent.containsKey(Field.DESCRIPTION) ? ("<br/>" + "<li>" + "Détails de l’événement :" + "<br/>" + calendarEvent.getString(Field.DESCRIPTION) + "</li>") : "")
+                + (calendarEvent.containsKey(Field.LOCATION) ? ("<br/>" + "<li>" + "Lieu :" + calendarEvent.getString(Field.LOCATION) + "</li>") : "")
+                + "<br/>" + "<li>" +  "Du " + DateUtils.getStringDate(calendarEvent.getString(Field.STARTMOMENT, ""), DateUtils.DATE_FORMAT_UTC, DateUtils.DATE_MONTH_YEAR)
                 + (Boolean.FALSE.equals(calendarEvent.getBoolean(Field.ALLDAY_LC)) ? (" à " + DateUtils.getStringDate(calendarEvent.getString(Field.STARTMOMENT, ""), DateUtils.DATE_FORMAT_UTC, DateUtils.HOURS_MINUTES)) : "")
                 + " au " + DateUtils.getStringDate(calendarEvent.getString(Field.ENDMOMENT, ""), DateUtils.DATE_FORMAT_UTC, DateUtils.DATE_MONTH_YEAR)
-                + (Boolean.FALSE.equals(calendarEvent.getBoolean(Field.ALLDAY_LC)) ? (" à " + DateUtils.getStringDate(calendarEvent.getString(Field.ENDMOMENT, ""), DateUtils.DATE_FORMAT_UTC, DateUtils.HOURS_MINUTES)) : "")
-                + (Boolean.TRUE.equals(calendarEvent.getBoolean(Field.ALLDAY_LC)) ? (" à " + DateUtils.getStringDate(calendarEvent.getString(Field.STARTMOMENT, ""), DateUtils.DATE_FORMAT_UTC, DateUtils.HOURS_MINUTES)) : "")
+                + (Boolean.FALSE.equals(calendarEvent.getBoolean(Field.ALLDAY_LC)) ? (" à " + DateUtils.getStringDate(calendarEvent.getString(Field.ENDMOMENT, ""), DateUtils.DATE_FORMAT_UTC, DateUtils.HOURS_MINUTES)  + "</li>") : "")
+                + (Boolean.TRUE.equals(calendarEvent.getBoolean(Field.ALLDAY_LC)) ? (" à " + DateUtils.getStringDate(calendarEvent.getString(Field.STARTMOMENT, ""), DateUtils.DATE_FORMAT_UTC, DateUtils.HOURS_MINUTES) + "</li>") : "")
+                + "</ul>"
                 + "<br/>" +  "Consultez l’application " + "Agenda" + " pour en savoir plus."
                 );
 
@@ -289,9 +273,9 @@ public class CalendarReminderWorker extends BusModBase implements Handler<Messag
                 .put(Field.MESSAGE, message);
 
 
-        eb.request(EventBusAction.CONVERSATION_ADDRESS, action, (Handler<AsyncResult<Message<JsonObject>>>) messageEvt -> {
+        eb.request(EventBusAction.CONVERSATION_ADDRESS.method(), action, (Handler<AsyncResult<Message<JsonObject>>>) messageEvt -> {
             if (!messageEvt.result().body().getString(Field.STATUS).equals(Field.OK)) {
-                log.error("[Formulaire@FormController::sendReminder] Failed to send reminder : " + messageEvt.cause());
+                log.error("[Formulaire@FormController::sendReminder] Failed to send email reminder : " + messageEvt.cause());
                 promise.fail(messageEvt.cause());
             } else {
                 promise.complete(messageEvt.result().body());

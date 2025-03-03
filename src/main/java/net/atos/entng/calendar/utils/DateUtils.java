@@ -120,7 +120,7 @@ public final class DateUtils {
             inputDate.setTimeZone(TimeZone.getTimeZone(ZoneId.of(UTC)));
 
             SimpleDateFormat outputDate = new SimpleDateFormat(outputFormat);
-            outputDate.setTimeZone(TimeZone.getTimeZone(ZoneId.of(Locale.getDefault().toString())));
+            outputDate.setTimeZone(TimeZone.getTimeZone(ZoneId.systemDefault()));
 
             Date date = inputDate.parse(dateString);
 
