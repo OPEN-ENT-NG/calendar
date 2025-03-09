@@ -88,6 +88,7 @@ public class Calendar extends BaseServer {
         addController(new CalendarController(CALENDAR_COLLECTION, serviceFactory, eb, config));
         addController(new EventController(CALENDAR_EVENT_COLLECTION, eventService, serviceFactory, timelineHelper, storage, eb, config));
         addController(new PlatformController(PLATFORMS_COLLECTION, serviceFactory));
+        addController(new PlatformController(REMINDERS_COLLECTION, serviceFactory));
 
         // External Import Calendar services
         vertx.deployVerticle(ExternalImportICal.class, new DeploymentOptions().setConfig(config).setWorker(true));

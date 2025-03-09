@@ -17,7 +17,6 @@ public class Field {
     public static final String REQUEST = "request";
     public static final String USERID = "userId";
     public static final String DISPLAYNAME = "displayName";
-    public static final String DOLLAR_DATE = "$date";
 
     //Calendar infos
 
@@ -26,7 +25,6 @@ public class Field {
     public static final String UPDATED = "updated";
     public static final String ISUPDATING = "isUpdating";
     public static final String COLOR = "color";
-
 
     //Event infos
 
