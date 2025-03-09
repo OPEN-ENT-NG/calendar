@@ -29,17 +29,19 @@ public interface ReminderService {
     Future<Void> create(JsonObject body);
 
     /**
-     * Update reminder
+     * Update reminder.* @param eventId The reminder's event id
+     * @param eventId The reminder's event id
      * @param id the id of the reminder to update
      * @param body the fields to change
      * @return {@link Future<Void>} Future response
      */
-    Future<Void> update(String id, JsonObject body);
+    Future<Void> update(String eventId, String id, JsonObject body);
 
     /**
      * Delete reminder
+     * @param eventId The reminder's event id
      * @param id the id of the reminder we want to delete
      * @return {@link Future<Void>} Future response
      */
-    Future<Void> delete(String id);
+    Future<Void> delete(String eventId, String id);
 }

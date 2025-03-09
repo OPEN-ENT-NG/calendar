@@ -154,7 +154,7 @@ public class ReminderServiceImpl implements ReminderService {
     }
 
     @Override
-    public Future<Void> update(String id, JsonObject body) {
+    public Future<Void> update(String eventId, String id, JsonObject body) {
         Promise<Void> promise = Promise.promise();
 
         final Bson query = eq(Field._ID, id);
@@ -179,10 +179,10 @@ public class ReminderServiceImpl implements ReminderService {
     }
 
     @Override
-    public Future<Void> delete(String id) {
+    public Future<Void> delete(String eventId, String id) {
         Promise<Void> promise = Promise.promise();
 
-        final Bson query = eq(Field._ID, id);
+        final Bson query = and(eq(Field._ID, id), eq(Field.EVENTID, eventId));
 
         mongo.delete(this.collection, MongoQueryBuilder.build(query), validResultHandler(event -> {
             if(event.isLeft()){

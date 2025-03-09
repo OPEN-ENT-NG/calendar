@@ -192,6 +192,7 @@ public class Field {
     public static final String TO = "to";
     public static final String CCI = "cci";
     public static final String SEND = "send";
+    public static final String REMINDERID = "reminderId";
 
     //Http Methods
     public static final String POST = "post";
