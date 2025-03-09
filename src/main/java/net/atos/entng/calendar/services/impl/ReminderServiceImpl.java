@@ -2,6 +2,7 @@ package net.atos.entng.calendar.services.impl;
 
 import fr.wseduc.mongodb.MongoDb;
 import fr.wseduc.mongodb.MongoQueryBuilder;
+import fr.wseduc.mongodb.MongoUpdateBuilder;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.core.json.JsonArray;
@@ -132,6 +133,68 @@ public class ReminderServiceImpl implements ReminderService {
         SimpleDateFormat sdf = new SimpleDateFormat(DateUtils.DATE_FORMAT_UTC);
         sdf.setTimeZone(TimeZone.getTimeZone(DateUtils.UTC));
         return sdf.format(nextMinuteDate.getTime());
+    }
+
+    @Override
+    public Future<Void> create(JsonObject body) {
+        Promise<Void> promise = Promise.promise();
+
+        mongo.insert(this.collection, body, validResultHandler(event -> {
+            if (event.isLeft()){
+                String errMessage = String.format("[Calendar@%s::create] An error has occurred while creating a new reminder: %s",
+                        this.getClass().getSimpleName(), event.left().getValue());
+                log.error(errMessage, event.left().getValue());
+                promise.fail(event.left().getValue());
+            }else{
+                promise.complete();
+            }
+        }));
+
+        return promise.future();
+    }
+
+    @Override
+    public Future<Void> update(String id, JsonObject body) {
+        Promise<Void> promise = Promise.promise();
+
+        final Bson query = eq(Field._ID, id);
+
+        MongoUpdateBuilder modifier = new MongoUpdateBuilder();
+        for (String attribute : body.fieldNames()) {
+            modifier.set(attribute, body.getValue(attribute));
+        }
+
+        mongo.update(this.collection, MongoQueryBuilder.build(query), modifier.build(), validResultHandler(event -> {
+            if(event.isLeft()){
+                String errMessage = String.format("[Calendar@%s::update] An error has occurred while deleting a reminder: %s",
+                        this.getClass().getSimpleName(), event.left().getValue());
+                log.error(errMessage, event.left().getValue());
+                promise.fail(event.left().getValue());
+            }else{
+                promise.complete();
+            }
+        }));
+
+        return promise.future();
+    }
+
+    @Override
+    public Future<Void> delete(String id) {
+        Promise<Void> promise = Promise.promise();
+
+        final Bson query = eq(Field._ID, id);
+
+        mongo.delete(this.collection, MongoQueryBuilder.build(query), validResultHandler(event -> {
+            if(event.isLeft()){
+                String errMessage = String.format("[Calendar@%s::delete] An error has occurred while deleting a reminder: %s",
+                        this.getClass().getSimpleName(), event.left().getValue());
+                log.error(errMessage, event.left().getValue());
+                promise.fail(event.left().getValue());
+            }else{
+                promise.complete();
+            }
+        }));
+        return promise.future();
     }
 
 

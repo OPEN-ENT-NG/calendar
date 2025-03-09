@@ -20,4 +20,26 @@ public interface ReminderService {
      * WITH ONLY THE FITTING DATES IN REMINDERFREQUENCY
      */
     Future<JsonArray> fetchRemindersToSend();
+
+    /**
+     * Create a reminder
+     * @param body The fields of the new reminder
+     * @return {@link Future<Void>} Future response
+     */
+    Future<Void> create(JsonObject body);
+
+    /**
+     * Update reminder
+     * @param id the id of the reminder to update
+     * @param body the fields to change
+     * @return {@link Future<Void>} Future response
+     */
+    Future<Void> update(String id, JsonObject body);
+
+    /**
+     * Delete reminder
+     * @param id the id of the reminder we want to delete
+     * @return {@link Future<Void>} Future response
+     */
+    Future<Void> delete(String id);
 }
