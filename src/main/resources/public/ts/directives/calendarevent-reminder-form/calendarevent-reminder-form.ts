@@ -6,7 +6,7 @@ import {CalendarForm} from "../../model/calendar-form.model";
 import {idiom as lang} from "entcore";
 import {I18nUtils} from "../../utils/i18n.utils";
 import { CalendarEvent } from "../../model";
-import {CalendarEventReminder, CalendarEventReminderFrequency, CalendarEventReminderType } from "../../model/reminder";
+import {CalendarEventReminder, CalendarEventReminderFrequency, CalendarEventReminderType } from "../../model/reminder.model";
 
 
 interface ICalendareventReminderFormProps {

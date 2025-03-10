@@ -3,7 +3,7 @@ import {
     Calendar,
     Calendars,
     CalendarEvent,
-    CalendarEvents, CalendarEventRecurrence, Preference,
+    CalendarEvents, CalendarEventRecurrence, Preference, CalendarEventReminder,
 } from "../model";
 import {
     defaultColor,
@@ -1860,12 +1860,13 @@ export const calendarController = ng.controller('CalendarController',
             }
 
             $scope.saveCalendarEventReminder = async (): Promise<void> => {
-                if ($scope.isEventReminderValid($scope.calendarEvent.reminders) && !!$scope.calendarEvent.reminders?.id) {
-                    await reminderService.updateCalendarEventReminder($scope.calendarEvent._id, $scope.calendarEvent.reminders, $scope.calendarEvent.reminders.id);
-                } else if ($scope.isEventReminderValid($scope.calendarEvent.reminders) && !$scope.calendarEvent.reminders?.id) {
-                    await reminderService.createCalendarEventReminder($scope.calendarEvent._id, $scope.calendarEvent.reminders);
-                } else if ($scope.isEventReminderFormEmpty && !!$scope.calendarEvent.reminders?.id) {
-                    await reminderService.deleteReminder($scope.calendarEvent._id, $scope.calendarEvent.reminders.id);
+                let calendarEventReminders: CalendarEventReminder = new CalendarEventReminder($scope.calendarEvent.reminders);
+                if ($scope.isEventReminderValid(calendarEventReminders) && !!calendarEventReminders?.id) {
+                    await reminderService.updateCalendarEventReminder($scope.calendarEvent._id, calendarEventReminders, calendarEventReminders.id);
+                } else if ($scope.isEventReminderValid(calendarEventReminders) && !calendarEventReminders?.id) {
+                    await reminderService.createCalendarEventReminder($scope.calendarEvent._id, calendarEventReminders);
+                } else if ($scope.isEventReminderFormEmpty && !!calendarEventReminders?.id) {
+                    await reminderService.deleteReminder($scope.calendarEvent._id, calendarEventReminders.id);
                 }
             }
 
