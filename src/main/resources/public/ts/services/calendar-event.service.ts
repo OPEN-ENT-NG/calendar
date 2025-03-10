@@ -1,7 +1,5 @@
 import {ng} from 'entcore'
 import http, {AxiosResponse} from "axios";
-import {Calendar, CalendarEvent} from "../model";
-import { CalendarEventReminder } from '../model/reminder';
 
 export interface ICalendarEventService {
     fetchCalendarEvents(calendarId: string, startDate?: string, endDate?: string): Promise<AxiosResponse>;

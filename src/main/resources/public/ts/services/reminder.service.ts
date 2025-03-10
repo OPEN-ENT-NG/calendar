@@ -1,7 +1,6 @@
 import {ng} from 'entcore'
 import http, {AxiosResponse} from "axios";
-import {Calendar, CalendarEvent} from "../model";
-import { CalendarEventReminder } from '../model/reminder';
+import { CalendarEventReminder } from '../model/reminder.model';
 
 export interface IReminderService {
     createCalendarEventReminder(eventId: string, reminderData: CalendarEventReminder): Promise<AxiosResponse>;
@@ -11,11 +10,11 @@ export interface IReminderService {
 
 export const reminderService: IReminderService = {
     async createCalendarEventReminder(eventId: string, reminderData: CalendarEventReminder): Promise<AxiosResponse> {
-        return http.put(`/event/${eventId}/reminder`, reminderData.toJson());
+        return http.post(`/event/${eventId}/reminder`, reminderData.toJSON());
     },
 
     async updateCalendarEventReminder(eventId: string, reminderData: CalendarEventReminder, reminderId: string): Promise<AxiosResponse> {
-        return http.put(`/event/${eventId}/reminder/${reminderId}`, reminderData.toJson());
+        return http.put(`/event/${eventId}/reminder/${reminderId}`, reminderData.toJSON());
     },
 
     async deleteReminder(eventId: string, reminderId: string): Promise<AxiosResponse> {

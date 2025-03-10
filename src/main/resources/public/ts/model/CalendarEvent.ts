@@ -9,7 +9,7 @@ import {FORMAT} from "../core/const/date-format";
 import {calendarEventService, CalendarEventService} from "../services/calendar-event.service";
 import {SavedBooking} from "./rbs/booking.model";
 import {externalCalendarUtils} from "../utils/externalCalendarUtils";
-import { CalendarEventReminder } from "./reminder";
+import { CalendarEventReminder } from "./reminder.model";
 
 export class CalendarEvent implements Selectable, Shareable{
     _id: string;

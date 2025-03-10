@@ -1,4 +1,5 @@
 import {CalendarEvents} from "./CalendarEvent";
+import {ICalendarPayload} from "./calendar-form.model";
 
 export class CalendarEventReminder {
     private _id?: string;
@@ -65,13 +66,35 @@ export class CalendarEventReminder {
         };
     }
 
-    toJson() {
-        return {
-            id: this._id,
-            eventId: this._eventId,
+    // toJSON(): ICalendarPayload {
+    //     let json: ICalendarPayload = {
+    //         color: this._color,
+    //         title: this._title
+    //     };
+    //
+    //     if (this.isExternalCalendar) {
+    //         json.isExternal = this._isExternal;
+    //
+    //         if(this._icsLink) {
+    //             json.icsLink = this._icsLink;
+    //         }
+    //
+    //         if(this._platform) {
+    //             json.platform = this._platform;
+    //         }
+    //
+    //     }
+    //     return json;
+    // }
+
+    toJSON(): any  {
+        let json: any = {
+            id: this._id ?? "",
+            eventId: this._eventId ?? "",
             reminderType: this._reminderType,
             reminderFrequency: this._reminderFrequency,
         };
+        return json;
     }
 }
 
