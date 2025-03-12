@@ -17,7 +17,7 @@ public final class ReminderConverter {
     private ReminderConverter()  {}
 
     public static ReminderFrontEndModel convertToReminderFrontEndModel(ReminderModel reminderModel, Date eventStartMoment) {
-        ReminderFrontEndModel reminderFrontEndModel = new ReminderFrontEndModel();
+        ReminderFrontEndModel reminderFrontEndModel = new ReminderFrontEndModel(new JsonObject());
         reminderFrontEndModel.setId(reminderModel.getId());
         reminderFrontEndModel.setEventId(reminderModel.getEventId());
         reminderFrontEndModel.setReminderType(reminderModel.getReminderType());

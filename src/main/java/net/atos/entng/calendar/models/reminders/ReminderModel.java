@@ -13,14 +13,14 @@ import java.util.List;
 
 public class ReminderModel implements IModel<ReminderModel> {
 
-    private String id;
+    private String _id;
     private String eventId;
     private User owner;
     private ReminderTypeModel reminderType;
     private List<String> reminderFrequency;
 
     public ReminderModel(JsonObject reminder) {
-        this.id = reminder.getString(Field._ID, "");
+        if (reminder.containsKey(Field._ID))  this._id = reminder.getString(Field._ID);
         this.eventId = reminder.getString(Field.EVENTID_CAMEL, "");
         this.owner =  new User((JsonObject) reminder.getValue(Field.OWNER, new JsonObject()));
         this.reminderType = new ReminderTypeModel((JsonObject) reminder.getValue(Field.REMINDERTYPE, new JsonObject()));
@@ -29,11 +29,11 @@ public class ReminderModel implements IModel<ReminderModel> {
 
 
     public String getId() {
-        return id;
+        return _id;
     }
 
     public void setId(String id) {
-        this.id = id;
+        this._id = id;
     }
 
     public String getEventId() {

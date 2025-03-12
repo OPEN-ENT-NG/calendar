@@ -1861,6 +1861,7 @@ export const calendarController = ng.controller('CalendarController',
 
             $scope.saveCalendarEventReminder = async (): Promise<void> => {
                 let calendarEventReminders: CalendarEventReminder = new CalendarEventReminder($scope.calendarEvent.reminders);
+                calendarEventReminders.eventId = $scope.calendarEvent._id;
                 if ($scope.isEventReminderValid(calendarEventReminders) && !!calendarEventReminders?.id) {
                     await reminderService.updateCalendarEventReminder($scope.calendarEvent._id, calendarEventReminders, calendarEventReminders.id);
                 } else if ($scope.isEventReminderValid(calendarEventReminders) && !calendarEventReminders?.id) {

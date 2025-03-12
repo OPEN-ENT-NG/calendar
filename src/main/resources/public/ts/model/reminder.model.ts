@@ -7,22 +7,11 @@ export class CalendarEventReminder {
     private _reminderType: CalendarEventReminderType;
     private _reminderFrequency: CalendarEventReminderFrequency;
 
-    constructor(
-        eventId: string,
-        _id?: string
-    ) {        
-        if (!!_id) {
-            this._id = _id;
-        }
-
-        if (!eventId) {
-            throw new Error("eventId is required");
-        }
-        this._eventId = eventId;
-
-        this._reminderType = new CalendarEventReminderType();
-
-        this._reminderFrequency = new CalendarEventReminderFrequency();
+    constructor(reminder?: any) {
+        this._id = reminder?._id ?? "";
+        this._eventId = reminder?.eventId ?? "";
+        this._reminderType = reminder?.reminderType ?? new CalendarEventReminderType();
+        this._reminderFrequency = reminder?.reminderFrequency ?? new CalendarEventReminderFrequency();
     }
 
     // Getters and Setters
@@ -89,11 +78,12 @@ export class CalendarEventReminder {
 
     toJSON(): any  {
         let json: any = {
-            id: this._id ?? "",
             eventId: this._eventId ?? "",
             reminderType: this._reminderType,
             reminderFrequency: this._reminderFrequency,
         };
+        if (this._id) json.id = this._id;
+
         return json;
     }
 }
