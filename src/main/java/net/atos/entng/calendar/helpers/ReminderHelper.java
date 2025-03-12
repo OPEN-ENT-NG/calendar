@@ -1,5 +1,6 @@
 package net.atos.entng.calendar.helpers;
 
+import fr.wseduc.webutils.http.Renders;
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
@@ -9,6 +10,7 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import net.atos.entng.calendar.Calendar;
+import net.atos.entng.calendar.core.constants.Actions;
 import net.atos.entng.calendar.core.constants.Field;
 import net.atos.entng.calendar.models.reminders.ReminderFrontEndModel;
 import net.atos.entng.calendar.models.reminders.ReminderModel;
@@ -70,6 +72,51 @@ public class ReminderHelper {
                             this.getClass().getSimpleName(), fail.getMessage());
                     promise.fail(message);
                 });
+
+        return promise.future();
+    }
+
+
+    //post/put
+    public Future<Void> remindersEventFormActions(String action, String eventId, UserInfos user, JsonObject body) {
+        return remindersEventFormActions(action, eventId, user, body, null);
+    }
+
+    //delete
+    public Future<Void> remindersEventFormActions(String action, String eventId, String reminderId) {
+        return remindersEventFormActions(action, eventId, null, null, reminderId);
+    }
+
+    /**
+     * Propagate calendarEvent action to its reminders
+     * @param action the action made on the event
+     * @param eventId the event
+     * @param user the user
+     * @param body the reminder body
+     */
+    private Future<Void> remindersEventFormActions(String action, String eventId, UserInfos user, JsonObject body, String reminderId) {
+        Promise<Void> promise = Promise.promise();
+
+        switch (action) {
+            case (Actions.CREATE_REMINDER):
+                getFormattedReminder(body, eventId, user)
+                        .compose(reminder ->  reminderService.create(reminder))
+                        .onSuccess(promise::complete)
+                        .onFailure(promise::fail);
+                break;
+            case (Actions.UPDATE_REMINDER):
+                getFormattedReminder(body, eventId, user)
+                        .compose(reminder ->  reminderService.update(eventId, reminder.getString(Field._ID, ""), reminder))
+                        .onSuccess(promise::complete)
+                        .onFailure(promise::fail);
+                break;
+            case (Actions.DELETE_REMINDER):
+                reminderService.delete(eventId, (reminderId != null) ? reminderId : body.getString(Field.ID, ""))
+                        .onSuccess(promise::complete)
+                        .onFailure(promise::fail);
+                break;
+
+        }
 
         return promise.future();
     }

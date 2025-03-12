@@ -44,6 +44,7 @@ import fr.wseduc.webutils.I18n;
 import fr.wseduc.webutils.collections.Joiner;
 import io.vertx.core.*;
 import net.atos.entng.calendar.Calendar;
+import net.atos.entng.calendar.core.constants.Actions;
 import net.atos.entng.calendar.core.constants.Field;
 import net.atos.entng.calendar.models.User;
 import net.atos.entng.calendar.services.CalendarService;
@@ -157,6 +158,7 @@ public class EventHelper extends MongoDbControllerHelper {
                                                         message.put(Field.END_DATE, (String) null);
                                                         message.put(Field.SENDNOTIF, object.getBoolean(Field.SENDNOTIF, null));
                                                         notifyEventCreatedOrUpdated(request, user, message, true);
+
                                                         renderJson(request, event.right().getValue(), 200);
                                                         eventHelper.onCreateResource(request, RESOURCE_NAME);
                                                     } else if (event.isLeft()) {
