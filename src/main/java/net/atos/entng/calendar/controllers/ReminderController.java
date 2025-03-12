@@ -66,7 +66,7 @@ public class ReminderController extends MongoDbControllerHelper {
         UserUtils.getAuthenticatedUserInfos(eb, request).onSuccess(user -> {
             RequestUtils.bodyToJson(request, body -> {
                 reminderHelper.getFormattedReminder(body, eventId, user)
-                        .compose(reminder ->  reminderService.update(eventId, id, body))
+                        .compose(reminder ->  reminderService.update(eventId, id, reminder))
                     .onSuccess(res -> {
                         Renders.ok(request);
                     })
