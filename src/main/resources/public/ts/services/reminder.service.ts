@@ -10,15 +10,15 @@ export interface IReminderService {
 
 export const reminderService: IReminderService = {
     async createCalendarEventReminder(eventId: string, reminderData: CalendarEventReminder): Promise<AxiosResponse> {
-        return http.post(`/event/${eventId}/reminder`, reminderData.toJSON());
+        return http.post(`/calendar/event/${eventId}/reminder`, reminderData.toJSON());
     },
 
     async updateCalendarEventReminder(eventId: string, reminderData: CalendarEventReminder, reminderId: string): Promise<AxiosResponse> {
-        return http.put(`/event/${eventId}/reminder/${reminderId}`, reminderData.toJSON());
+        return http.put(`/calendar/event/${eventId}/reminder/${reminderId}`, reminderData.toJSON());
     },
 
     async deleteReminder(eventId: string, reminderId: string): Promise<AxiosResponse> {
-        return http.delete(`/event/${eventId}/reminder/${reminderId}`);
+        return http.delete(`/calendar/event/${eventId}/reminder/${reminderId}`);
     }
 };
 

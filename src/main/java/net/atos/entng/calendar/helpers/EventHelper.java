@@ -104,7 +104,7 @@ public class EventHelper extends MongoDbControllerHelper {
         this.mongo = MongoDb.getInstance();
         this.eb = eb;
         this.config = config;
-        this.reminderHelper = new ReminderHelper(serviceFactory);
+        this.reminderHelper = new ReminderHelper(serviceFactory, eb);
     }
 
     @Override
