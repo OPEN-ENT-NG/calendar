@@ -89,7 +89,7 @@ public class ReminderHelper {
                         user)))
                 .onSuccess(formattedEvent -> promise.complete(formattedEvent.toJson()))
                 .onFailure(fail -> {
-                    String message = String.format("[Magneto@%s::addRemindersToEvent] Failed to integrate reminders into calendarEvents : %s",
+                    String message = String.format("[Magneto@%s::getFormattedReminder] Failed to format reminders into back end model : %s",
                             this.getClass().getSimpleName(), fail.getMessage());
                     promise.fail(message);
                 });
