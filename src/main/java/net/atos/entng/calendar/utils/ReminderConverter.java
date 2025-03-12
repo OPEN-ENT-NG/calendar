@@ -5,6 +5,7 @@ import java.util.*;
 
 import io.vertx.core.json.JsonObject;
 import net.atos.entng.calendar.core.constants.Field;
+import net.atos.entng.calendar.models.OwnerModel;
 import net.atos.entng.calendar.models.User;
 import net.atos.entng.calendar.models.reminders.ReminderFrequencyFrontEndModel;
 import net.atos.entng.calendar.models.reminders.ReminderFrontEndModel;
@@ -54,7 +55,7 @@ public final class ReminderConverter {
         reminderModel.setId(reminderFrontEndModel.getId());
         reminderModel.setEventId(reminderFrontEndModel.getEventId());
         reminderModel.setReminderType(reminderFrontEndModel.getReminderType());
-        reminderModel.setOwner(new User(new JsonObject()
+        reminderModel.setOwner(new OwnerModel(new JsonObject()
                 .put(Field.USERID, user.getUserId())
                 .put(Field.DISPLAYNAME, user.getUsername())));
 
