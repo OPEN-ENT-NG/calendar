@@ -182,7 +182,7 @@ public class ReminderServiceImpl implements ReminderService {
     public Future<Void> delete(String eventId, String id) {
         Promise<Void> promise = Promise.promise();
 
-        final Bson query = and(eq(Field._ID, id), eq(Field.EVENTID, eventId));
+        final Bson query = and(eq(Field._ID, id), eq(Field.EVENTID_CAMEL, eventId));
 
         mongo.delete(this.collection, MongoQueryBuilder.build(query), validResultHandler(event -> {
             if(event.isLeft()){
