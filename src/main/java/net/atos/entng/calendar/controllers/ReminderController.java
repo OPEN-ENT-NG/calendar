@@ -44,8 +44,9 @@ public class ReminderController extends MongoDbControllerHelper {
         final String eventId =  request.params().get(Field.EVENTID);
         UserUtils.getAuthenticatedUserInfos(eb, request).onSuccess(user -> {
             RequestUtils.bodyToJson(request, body -> {
-                reminderHelper.getFormattedReminder(body, eventId, user)
-                        .compose(reminder ->  reminderService.create(reminder))
+//                reminderHelper.getFormattedReminder(body, eventId, user)
+//                        .compose(reminder ->  reminderService.create(reminder))
+                reminderHelper.remindersEventFormActions(Actions.CREATE_REMINDER, eventId, user, body)
                         .onSuccess(res -> {
                             Renders.ok(request);
                         })
@@ -65,8 +66,9 @@ public class ReminderController extends MongoDbControllerHelper {
         final String id = request.params().get(Field.REMINDERID);
         UserUtils.getAuthenticatedUserInfos(eb, request).onSuccess(user -> {
             RequestUtils.bodyToJson(request, body -> {
-                reminderHelper.getFormattedReminder(body, eventId, user)
-                        .compose(reminder ->  reminderService.update(eventId, id, reminder))
+//                reminderHelper.getFormattedReminder(body, eventId, user)
+//                        .compose(reminder ->  reminderService.update(eventId, id, reminder))
+                reminderHelper.remindersEventFormActions(Actions.UPDATE_REMINDER, eventId, user, body)
                     .onSuccess(res -> {
                         Renders.ok(request);
                     })
@@ -84,7 +86,8 @@ public class ReminderController extends MongoDbControllerHelper {
     public void deleteReminder(HttpServerRequest request) {
         final String eventId =  request.params().get(Field.EVENTID);
         final String id = request.params().get(Field.REMINDERID);
-        reminderService.delete(eventId, id)
+//        reminderService.delete(eventId, id)
+        reminderHelper.remindersEventFormActions(Actions.DELETE_REMINDER, eventId, id)
                 .onSuccess(res -> {
                     Renders.ok(request);
                 })

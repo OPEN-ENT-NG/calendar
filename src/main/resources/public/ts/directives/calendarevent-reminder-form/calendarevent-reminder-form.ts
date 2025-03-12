@@ -30,11 +30,23 @@ interface ICalendareventReminderFormScope extends IScope {
 class Controller implements IViewModel {
     calendarEvent: CalendarEvent;
 
-    constructor(private $scope: ICalendareventReminderFormScope, private $parse: any, private $timeout: ITimeoutService) {
+    constructor(private $scope: ICalendareventReminderFormScope) {
     }
 
     $onInit() {
         this.$scope.vm.i18nUtils = new I18nUtils();
+    //     this.$scope.vm.$watch(() => this.calendarEvent.reminders, (newValue) => {
+    //         if (newValue) {
+    //             safeApply(this.$scope.vm);
+    //         }
+    //     }, true);
+        if (!!this.$scope.vm.calendarEvent.reminders.id) {
+            console.log("no reminder yet");
+            this.$scope.vm.calendarEvent.reminders = new CalendarEventReminder();
+        }
+        this.$scope.vm.$watch(() => this.calendarEvent, (newValue) => {
+            console.log('Updated reminders:', newValue);
+        }, true);
     }
 
 
@@ -43,14 +55,6 @@ class Controller implements IViewModel {
 
     getTranslate = (key: string, params?: string[]) => {
         return !!params ? this.$scope.vm.i18nUtils.getWithParams(key, params) : this.$scope.vm.i18nUtils.translate(key);
-    }
-    
-    private addOrRemoveReminder = (timeMeasurement: number[]): void => {
-        if (!!timeMeasurement.length) {
-            timeMeasurement = [];
-        } else {
-            timeMeasurement = [1];
-        }
     }
 
     hasEmailOrZimbra(): boolean {
