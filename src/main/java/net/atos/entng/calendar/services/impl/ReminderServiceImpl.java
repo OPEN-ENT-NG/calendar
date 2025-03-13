@@ -197,6 +197,25 @@ public class ReminderServiceImpl implements ReminderService {
         return promise.future();
     }
 
+    @Override
+    public Future<Void> deleteUserEventReminders(String eventId, UserInfos user) {
+        Promise<Void> promise = Promise.promise();
+
+        final Bson query = and(eq(Field.OWNER + "." + Field.USERID, user.getUserId()), eq(Field.EVENTID_CAMEL, eventId));
+
+        mongo.delete(this.collection, MongoQueryBuilder.build(query), validResultHandler(event -> {
+            if(event.isLeft()){
+                String errMessage = String.format("[Calendar@%s::delete] An error has occurred while deleting a reminder: %s",
+                        this.getClass().getSimpleName(), event.left().getValue());
+                log.error(errMessage, event.left().getValue());
+                promise.fail(event.left().getValue());
+            }else{
+                promise.complete();
+            }
+        }));
+        return promise.future();
+    }
+
 
 
 }

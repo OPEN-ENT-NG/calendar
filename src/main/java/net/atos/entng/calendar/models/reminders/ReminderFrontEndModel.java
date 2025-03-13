@@ -14,7 +14,7 @@ public class ReminderFrontEndModel implements IModel<ReminderFrontEndModel> {
     private ReminderFrequencyFrontEndModel reminderFrequency;
 
     public ReminderFrontEndModel (JsonObject reminder) {
-        if (reminder.containsKey(Field._ID)) this._id = reminder.getString(Field._ID);
+        if (Boolean.TRUE.equals(reminder.containsKey(Field._ID))) this._id = reminder.getString(Field._ID);
         this.eventId = reminder.getString(Field.EVENTID_CAMEL, "");
         this.reminderType = new ReminderTypeModel((JsonObject) reminder.getValue(Field.REMINDERTYPE, new JsonObject()));
         this.reminderFrequency = new ReminderFrequencyFrontEndModel((JsonObject) reminder.getValue(Field.REMINDERFREQUENCY, new JsonObject()));

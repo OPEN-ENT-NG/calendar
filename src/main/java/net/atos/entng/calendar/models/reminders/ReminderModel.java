@@ -73,6 +73,8 @@ public class ReminderModel implements IModel<ReminderModel> {
         JsonObject reminderObject = IModelHelper.toJson(this, true, false);
 
         reminderObject.put(Field.OWNER, this.getOwner().toJson());
+        reminderObject.put(Field._ID, this._id);
+        reminderObject.remove(Field.ID);
 
         return reminderObject;
     }

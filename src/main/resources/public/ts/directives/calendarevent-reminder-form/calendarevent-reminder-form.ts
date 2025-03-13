@@ -35,18 +35,6 @@ class Controller implements IViewModel {
 
     $onInit() {
         this.$scope.vm.i18nUtils = new I18nUtils();
-    //     this.$scope.vm.$watch(() => this.calendarEvent.reminders, (newValue) => {
-    //         if (newValue) {
-    //             safeApply(this.$scope.vm);
-    //         }
-    //     }, true);
-        if (!!this.$scope.vm.calendarEvent.reminders.id) {
-            console.log("no reminder yet");
-            this.$scope.vm.calendarEvent.reminders = new CalendarEventReminder();
-        }
-        this.$scope.vm.$watch(() => this.calendarEvent, (newValue) => {
-            console.log('Updated reminders:', newValue);
-        }, true);
     }
 
 
