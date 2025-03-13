@@ -26,7 +26,6 @@ public final class ReminderConverter {
         // Convert reminderFrequency
         ReminderFrequencyFrontEndModel frontEndReminderFrequency = new ReminderFrequencyFrontEndModel(new JsonObject());
 
-
         reminderModel.getReminderFrequency().stream()
                 .map(stringDate -> DateUtils.parseDate(stringDate, DateUtils.DATE_FORMAT_UTC))
                 .map(date -> (eventStartMoment.getTime() - date.getTime()) / (1000 * 60 * 60))

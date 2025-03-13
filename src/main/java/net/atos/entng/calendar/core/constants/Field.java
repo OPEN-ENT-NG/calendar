@@ -188,6 +188,7 @@ public class Field {
     public static final String WEEK = "week";
     public static final String MONTH = "month";
     public static final String REMINDER = "reminder";
+    public static final String REMINDERS = "reminders";
     public static final String SUBJECT = "subject";
     public static final String TO = "to";
     public static final String CCI = "cci";

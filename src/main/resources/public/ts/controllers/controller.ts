@@ -1869,6 +1869,8 @@ export const calendarController = ng.controller('CalendarController',
                 } else if ($scope.isEventReminderFormEmpty && !!calendarEventReminders?.id) {
                     await reminderService.deleteReminder($scope.calendarEvent._id, calendarEventReminders.id);
                 }
+
+                $scope.closeCalendarEvent();
             }
 
 

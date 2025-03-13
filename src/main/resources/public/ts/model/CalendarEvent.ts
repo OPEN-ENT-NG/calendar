@@ -161,10 +161,13 @@ export class CalendarEvent implements Selectable, Shareable{
             notifEndMoment: this.notifEndMoment.format("DD/MM/YYYY HH:mm"),
             attachments : this.attachments ? this.attachments.map((attachment: Document) => new Document(attachment).toJSON()) : [],
             bookings: this.bookings,
-            hasBooking: this.hasBooking,
+            hasBooking: this.hasBooking
         }
         if (!this._id) {
             body.calendar = this.getCalendarId();
+            if (this.reminders && this.reminders.id) body.reminders = new CalendarEventReminder(this.reminders).toJSON();
+        } else {
+            if (this.reminders && this.reminders.id) body.reminders = new CalendarEventReminder(this.reminders, this._id).toJSON();
         }
         if (this.sendNotif === false){
             body.sendNotif = this.sendNotif;

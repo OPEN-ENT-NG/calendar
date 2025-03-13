@@ -158,7 +158,10 @@ public class EventHelper extends MongoDbControllerHelper {
                                                         message.put(Field.END_DATE, (String) null);
                                                         message.put(Field.SENDNOTIF, object.getBoolean(Field.SENDNOTIF, null));
                                                         notifyEventCreatedOrUpdated(request, user, message, true);
-
+                                                        if (object.containsKey(Field.REMINDERS)) {
+                                                            reminderHelper.remindersEventFormActions(Actions.CREATE_REMINDER,
+                                                                    eventId.getString(Field._ID), user, object.getJsonObject(Field.REMINDERS));
+                                                        }
                                                         renderJson(request, event.right().getValue(), 200);
                                                         eventHelper.onCreateResource(request, RESOURCE_NAME);
                                                     } else if (event.isLeft()) {
@@ -208,6 +211,11 @@ public class EventHelper extends MongoDbControllerHelper {
                                                 message.put("end_date", (String) null);
                                                 message.put("sendNotif", object.containsKey("sendNotif") ? object.getBoolean("sendNotif") : null);
                                                 notifyEventCreatedOrUpdated(request, user, message, false);
+                                                if (object.containsKey(Field.REMINDERS)) {
+                                                    reminderHelper.remindersEventFormActions(object.getJsonObject(Field.REMINDERS).containsKey(Field.ID)
+                                                            ? Actions.UPDATE_REMINDER : Actions.CREATE_REMINDER,
+                                                            eventId, user, object.getJsonObject(Field.REMINDERS));
+                                                }
                                                 renderJson(request, event.right().getValue(), 200);
                                             } else if (event.isLeft()) {
                                                 log.error("Error when getting notification informations.");
@@ -419,6 +427,10 @@ public class EventHelper extends MongoDbControllerHelper {
                                         } else {
                                             return Future.succeededFuture(new JsonArray());
                                         }
+                                    })
+                                    .compose(myresult -> {
+                                        reminderHelper.remindersEventFormActions(Actions.DELETE_ALL_EVENT_REMINDERS, eventId, user);
+                                        return Future.succeededFuture(myresult);
                                     })
                                     .onSuccess(res -> {
                                         if (!res.isEmpty()) {

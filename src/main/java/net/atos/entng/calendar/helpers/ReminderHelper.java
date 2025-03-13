@@ -63,10 +63,15 @@ public class ReminderHelper {
         //get reminders
         reminderService.getEventReminders(calendarEvent.getString(Field._ID), user)
                 //convert reminders
-                .compose(reminder -> Future.succeededFuture(ReminderConverter.convertToReminderFrontEndModel(new ReminderModel(reminder),
+                .compose(reminder ->  Future.succeededFuture(ReminderConverter.convertToReminderFrontEndModel(new ReminderModel(reminder),
                         DateUtils.parseDate(calendarEvent.getString(Field.STARTMOMENT), DateUtils.DATE_FORMAT_UTC))))
                 //put reminders in event
-                .onSuccess(eventReminders -> promise.complete(calendarEvent.put(Field.REMINDER, eventReminders)))
+                .onSuccess(eventReminders -> {
+                    if (eventReminders.getId() != null) {
+                        calendarEvent.put(Field.REMINDERS, eventReminders);
+                    }
+                    promise.complete(calendarEvent);
+                })
                 .onFailure(fail -> {
                     String message = String.format("[Magneto@%s::addRemindersToEvent] Failed to integrate reminders into calendarEvents : %s",
                             this.getClass().getSimpleName(), fail.getMessage());
@@ -85,6 +90,11 @@ public class ReminderHelper {
     //delete
     public Future<Void> remindersEventFormActions(String action, String eventId, String reminderId) {
         return remindersEventFormActions(action, eventId, null, null, reminderId);
+    }
+
+    //delete user reminders
+    public Future<Void> remindersEventFormActions(String action, String eventId, UserInfos user) {
+        return remindersEventFormActions(action, eventId, user, null, null);
     }
 
     /**
@@ -106,7 +116,8 @@ public class ReminderHelper {
                 break;
             case (Actions.UPDATE_REMINDER):
                 getFormattedReminder(body, eventId, user)
-                        .compose(reminder ->  reminderService.update(eventId, reminder.getString(Field._ID, ""), reminder))
+                        .compose(reminder ->
+                                reminderService.update(eventId, reminder.getString(Field._ID, ""), reminder))
                         .onSuccess(promise::complete)
                         .onFailure(promise::fail);
                 break;
@@ -115,7 +126,11 @@ public class ReminderHelper {
                         .onSuccess(promise::complete)
                         .onFailure(promise::fail);
                 break;
-
+            case (Actions.DELETE_ALL_EVENT_REMINDERS):
+                reminderService.deleteUserEventReminders(eventId, user)
+                        .onSuccess(promise::complete)
+                        .onFailure(promise::fail);
+                break;
         }
 
         return promise.future();
