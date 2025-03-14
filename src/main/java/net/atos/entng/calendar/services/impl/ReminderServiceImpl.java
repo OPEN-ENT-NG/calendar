@@ -3,6 +3,7 @@ package net.atos.entng.calendar.services.impl;
 import fr.wseduc.mongodb.MongoDb;
 import fr.wseduc.mongodb.MongoQueryBuilder;
 import fr.wseduc.mongodb.MongoUpdateBuilder;
+import fr.wseduc.webutils.http.Renders;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.core.json.JsonArray;
@@ -10,6 +11,7 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import net.atos.entng.calendar.core.constants.Field;
+import net.atos.entng.calendar.core.constants.MongoField;
 import net.atos.entng.calendar.services.ReminderService;
 import net.atos.entng.calendar.utils.DateUtils;
 import org.bson.conversions.Bson;
@@ -197,22 +199,52 @@ public class ReminderServiceImpl implements ReminderService {
         return promise.future();
     }
 
+//    @Override
+//    public Future<Void> deleteRemindersByEvent(String eventId) {
+//        Promise<Void> promise = Promise.promise();
+//
+//        Bson query = in(Field.EVENTID_CAMEL, new JsonArray().add(eventId));
+////        JsonObject query = new JsonObject()
+////                .put(Field.BOARDID, new JsonObject().put(Mongo.IN, boardIds));
+//        JsonArray pipeline = new JsonArray()
+//                .add(new JsonObject().put("$match", new JsonObject().put("eventId", "123"))) // Filter
+//                .add(new JsonObject().put("$project", new JsonObject().put("_id", 1)));
+//
+//        mongo.delete(this.collection, MongoQueryBuilder.build(query), validResultHandler(event -> {
+//            if(event.isLeft()){
+//                String errMessage = String.format("[Calendar@%s::deleteRemindersByEvent] An error has occurred while deleting event reminders: %s",
+//                        this.getClass().getSimpleName(), event.left().getValue());
+//                log.error(errMessage, event.left().getValue());
+//                promise.fail(event.left().getValue());
+//            }else{
+//                promise.complete();
+//            }
+//        }));
+//        return promise.future();
+//    }
+
     @Override
-    public Future<Void> deleteUserEventReminders(String eventId, UserInfos user) {
-        Promise<Void> promise = Promise.promise();
+    public Future<List<String>> getEventIdReminders(String eventId) {
+        Promise<List<String>> promise = Promise.promise();
 
-        final Bson query = and(eq(Field.OWNER + "." + Field.USERID, user.getUserId()), eq(Field.EVENTID_CAMEL, eventId));
+        JsonArray pipeline = new JsonArray()
+                .add(new JsonObject().put(MongoField.$MATCH, new JsonObject().put(Field.EVENTID_CAMEL, eventId))) // Filter
+                .add(new JsonObject().put(MongoField.$PROJECT, new JsonObject().put(Field._ID, 1)));
 
-        mongo.delete(this.collection, MongoQueryBuilder.build(query), validResultHandler(event -> {
-            if(event.isLeft()){
-                String errMessage = String.format("[Calendar@%s::delete] An error has occurred while deleting a reminder: %s",
-                        this.getClass().getSimpleName(), event.left().getValue());
-                log.error(errMessage, event.left().getValue());
-                promise.fail(event.left().getValue());
-            }else{
-                promise.complete();
-            }
-        }));
+        mongo.aggregate(this.collection, pipeline)
+                .onFailure(err -> {
+                    log.error(String.format("[Calendar@%s::getEventIdReminders] An error occurred while getting event reminders: %s", this.getClass(), err.getMessage()));
+                    promise.fail(err);
+                })
+                .onSuccess(result -> {
+                    List<String> reminderIds = result
+                            .stream()
+                            .map(JsonObject.class::cast)
+                            .map(idObject -> idObject.getString(Field._ID))
+                            .collect(Collectors.toList());
+                    promise.complete(reminderIds);
+                });
+
         return promise.future();
     }
 

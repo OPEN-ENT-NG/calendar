@@ -433,16 +433,13 @@ public class EventHelper extends MongoDbControllerHelper {
 
                             getCalendarEventInfos
                                     .compose(event -> eventService.delete(calendarId, eventId, user))
+                                    .compose(res -> reminderHelper.remindersEventFormActions(Actions.DELETE_ALL_EVENT_REMINDERS, eventId))
                                     .compose(result -> {
                                         if (!getCalendarEventInfos.result().isEmpty()) {
                                             return RbsHelper.checkAndDeleteBookingRights(user, getCalendarEventInfos.result(), eb);
                                         } else {
                                             return Future.succeededFuture(new JsonArray());
                                         }
-                                    })
-                                    .compose(myresult -> {
-                                        reminderHelper.remindersEventFormActions(Actions.DELETE_ALL_EVENT_REMINDERS, eventId, user);
-                                        return Future.succeededFuture(myresult);
                                     })
                                     .onSuccess(res -> {
                                         if (!res.isEmpty()) {

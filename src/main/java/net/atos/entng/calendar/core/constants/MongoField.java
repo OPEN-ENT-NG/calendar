@@ -13,5 +13,7 @@ public class MongoField {
     public static final String $GREATER_OR_EQUAL = "$gte";
     public static final String $LESSER_THAN = "$lt";
     public static final String $LESSER_OR_EQUAL = "$lte";
+    public static final String $MATCH = "$match";
+    public static final String $PROJECT = "$project";
 
 }
