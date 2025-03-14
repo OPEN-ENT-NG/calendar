@@ -93,8 +93,8 @@ public class ReminderHelper {
     }
 
     //delete user reminders
-    public Future<Void> remindersEventFormActions(String action, String eventId, UserInfos user) {
-        return remindersEventFormActions(action, eventId, user, null, null);
+    public Future<Void> remindersEventFormActions(String action, String eventId) {
+        return remindersEventFormActions(action, eventId, null, null, null);
     }
 
     /**
@@ -127,11 +127,30 @@ public class ReminderHelper {
                         .onFailure(promise::fail);
                 break;
             case (Actions.DELETE_ALL_EVENT_REMINDERS):
-                reminderService.deleteUserEventReminders(eventId, user)
+                reminderService.getEventIdReminders(eventId)
+                        .compose(eventReminderIds -> deleteEventReminders(eventReminderIds, eventId))
                         .onSuccess(promise::complete)
                         .onFailure(promise::fail);
                 break;
         }
+
+        return promise.future();
+    }
+
+    public Future<Void> deleteEventReminders(List<String> reminderIds, String eventId) {
+        Promise<Void> promise = Promise.promise();
+
+        List<Future> duplicateFutures = reminderIds.stream()
+                .map(reminderId -> reminderService.delete(eventId, reminderId))
+                .collect(Collectors.toList());
+
+        CompositeFuture.all(duplicateFutures)
+                .onSuccess(eventsWithReminders -> promise.complete())
+                .onFailure(fail -> {
+                    String message = String.format("[Magneto@%s::deleteEventReminders] Failed to relete event reminders: %s",
+                            this.getClass().getSimpleName(), fail.getMessage());
+                    promise.fail(message);
+                });
 
         return promise.future();
     }

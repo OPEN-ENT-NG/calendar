@@ -5,6 +5,8 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import org.entcore.common.user.UserInfos;
 
+import java.util.List;
+
 public interface ReminderService {
     /**
      * Return event reminders
@@ -45,11 +47,17 @@ public interface ReminderService {
      */
     Future<Void> delete(String eventId, String id);
 
+//    /**
+//     * Delete reminder
+//     * @param eventId The reminder's event id
+//     * @return {@link Future<Void>} Future response
+//     */
+//    Future<Void> deleteRemindersByEvent(String eventId);
+
     /**
-     * Delete reminder
+     * Get reminders by event id
      * @param eventId The reminder's event id
-     * @param user the user that wants to delete reminders
-     * @return {@link Future<Void>} Future response
+     * @return {@link Future<List<String>>} Future response
      */
-    Future<Void> deleteUserEventReminders(String eventId, UserInfos user);
+    Future<List<String>> getEventIdReminders(String eventId);
 }
