@@ -204,10 +204,15 @@ public class EventHelper extends MongoDbControllerHelper {
             RequestUtils.bodyToJson(request, object -> {
                 final String eventId = request.params().get(EVENT_ID_PARAMETER);
                 final String calendarId = request.params().get(CALENDAR_ID_PARAMETER);
+                AtomicReference<JsonObject> remindersObject = new AtomicReference<>(new JsonObject());
                 isExternalCalendarEventImmutable(eventId)
                         .onSuccess(isExternal -> {
                             if(Boolean.FALSE.equals(isExternal)) {
                                 if (isEventValid(object)) {
+                                    if (object.containsKey(Field.REMINDERS)) {
+                                        remindersObject.set(object.getJsonObject(Field.REMINDERS));
+                                        object.remove(Field.REMINDERS);
+                                    }
                                     crudService.update(eventId, object, user, new Handler<Either<String, JsonObject>>() {
                                         public void handle(Either<String, JsonObject> event) {
                                             if (event.isRight()) {
@@ -218,10 +223,10 @@ public class EventHelper extends MongoDbControllerHelper {
                                                 message.put("end_date", (String) null);
                                                 message.put("sendNotif", object.containsKey("sendNotif") ? object.getBoolean("sendNotif") : null);
                                                 notifyEventCreatedOrUpdated(request, user, message, false);
-                                                if (object.containsKey(Field.REMINDERS)) {
-                                                    reminderHelper.remindersEventFormActions(object.getJsonObject(Field.REMINDERS).containsKey(Field.ID)
+                                                if (!remindersObject.equals(new JsonObject())) {
+                                                    reminderHelper.remindersEventFormActions(remindersObject.get().containsKey(Field._ID)
                                                             ? Actions.UPDATE_REMINDER : Actions.CREATE_REMINDER,
-                                                            eventId, user, object.getJsonObject(Field.REMINDERS));
+                                                            eventId, user, remindersObject.get());
                                                 }
                                                 renderJson(request, event.right().getValue(), 200);
                                             } else if (event.isLeft()) {
