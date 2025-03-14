@@ -47,13 +47,6 @@ public interface ReminderService {
      */
     Future<Void> delete(String eventId, String id);
 
-//    /**
-//     * Delete reminder
-//     * @param eventId The reminder's event id
-//     * @return {@link Future<Void>} Future response
-//     */
-//    Future<Void> deleteRemindersByEvent(String eventId);
-
     /**
      * Get reminders by event id
      * @param eventId The reminder's event id
