@@ -165,7 +165,7 @@ export class CalendarEvent implements Selectable, Shareable{
         }
         if (!this._id) {
             body.calendar = this.getCalendarId();
-            if (this.reminders && this.reminders.id) body.reminders = new CalendarEventReminder(this.reminders).toJSON();
+            if (this.reminders) body.reminders = new CalendarEventReminder(this.reminders).toJSON();
         } else {
             if (this.reminders && this.reminders.id) body.reminders = new CalendarEventReminder(this.reminders, this._id).toJSON();
         }

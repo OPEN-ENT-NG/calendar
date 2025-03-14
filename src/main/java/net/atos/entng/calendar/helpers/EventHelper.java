@@ -35,6 +35,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.*;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 import fr.wseduc.mongodb.MongoDb;
@@ -139,6 +140,7 @@ public class EventHelper extends MongoDbControllerHelper {
     public void create(final HttpServerRequest request) {
         UserUtils.getUserInfos(eb, request, user -> {
             final String calendarId = request.params().get(CALENDAR_ID_PARAMETER);
+            AtomicReference<JsonObject> remindersObject = new AtomicReference<>(new JsonObject());
             if (user != null) {
                 RequestUtils.bodyToJson(request, object -> {
                     calendarService.hasExternalCalendarId(object.getJsonArray("calendar")
@@ -147,27 +149,32 @@ public class EventHelper extends MongoDbControllerHelper {
                             .onSuccess(isExternal -> {
                                 if(Boolean.FALSE.equals(isExternal)) {
                                     if (isEventValid(object)) {
-                                        RbsHelper.saveBookingsInRbs(request, object, user, config, eb).onComplete(e ->
-                                                eventService.create(calendarId, object, user, event -> {
-                                                    if (event.isRight()) {
-                                                        JsonObject eventId = event.right().getValue();
-                                                        final JsonObject message = new JsonObject();
-                                                        message.put(Field._ID, calendarId);
-                                                        message.put(Field.EVENTID, eventId.getString("_id"));
-                                                        message.put(Field.START_DATE, (String) null);
-                                                        message.put(Field.END_DATE, (String) null);
-                                                        message.put(Field.SENDNOTIF, object.getBoolean(Field.SENDNOTIF, null));
-                                                        notifyEventCreatedOrUpdated(request, user, message, true);
-                                                        if (object.containsKey(Field.REMINDERS)) {
-                                                            reminderHelper.remindersEventFormActions(Actions.CREATE_REMINDER,
-                                                                    eventId.getString(Field._ID), user, object.getJsonObject(Field.REMINDERS));
-                                                        }
-                                                        renderJson(request, event.right().getValue(), 200);
-                                                        eventHelper.onCreateResource(request, RESOURCE_NAME);
-                                                    } else if (event.isLeft()) {
-                                                        log.error("[Calendar@EventHelper::create] Error when getting notification informations.");
+                                        RbsHelper.saveBookingsInRbs(request, object, user, config, eb).onComplete(e -> {
+                                                    if (object.containsKey(Field.REMINDERS)) {
+                                                        remindersObject.set(object.getJsonObject(Field.REMINDERS));
+                                                        object.remove(Field.REMINDERS);
                                                     }
-                                                })
+                                                    eventService.create(calendarId, object, user, event -> {
+                                                        if (event.isRight()) {
+                                                            JsonObject eventId = event.right().getValue();
+                                                            final JsonObject message = new JsonObject();
+                                                            message.put(Field._ID, calendarId);
+                                                            message.put(Field.EVENTID, eventId.getString("_id"));
+                                                            message.put(Field.START_DATE, (String) null);
+                                                            message.put(Field.END_DATE, (String) null);
+                                                            message.put(Field.SENDNOTIF, object.getBoolean(Field.SENDNOTIF, null));
+                                                            notifyEventCreatedOrUpdated(request, user, message, true);
+                                                            if (!remindersObject.equals(new JsonObject())) {
+                                                                reminderHelper.remindersEventFormActions(Actions.CREATE_REMINDER,
+                                                                        eventId.getString(Field._ID), user, remindersObject.get());
+                                                            }
+                                                            renderJson(request, event.right().getValue(), 200);
+                                                            eventHelper.onCreateResource(request, RESOURCE_NAME);
+                                                        } else if (event.isLeft()) {
+                                                            log.error("[Calendar@EventHelper::create] Error when getting notification informations.");
+                                                        }
+                                                    });
+                                                }
                                         );
 
                                     } else {
