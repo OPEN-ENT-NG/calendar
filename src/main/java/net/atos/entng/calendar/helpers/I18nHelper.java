@@ -30,6 +30,14 @@ public class I18nHelper {
         return i18n;
     }
 
+    public static <T> String getWithParams(I18nKeys key, List<T> params, String locale) {
+        String i18n = getI18nValue(key, locale);
+        for(int i = 0; i < params.size(); i ++){
+            i18n = i18n.replace("{" + i + "}", params.get(i).toString());
+        }
+        return i18n;
+    }
+
     public static <T> String getWithParam(I18nKeys key, T param, HttpServerRequest request){
         List<T> finalParam = Collections.singletonList(param);
         return getWithParams(key, finalParam, request);

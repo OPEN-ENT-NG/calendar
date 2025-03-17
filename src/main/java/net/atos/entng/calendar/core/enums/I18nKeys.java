@@ -11,7 +11,10 @@ public enum I18nKeys {
     CALENDAR_WEEK("calendar.week"),
     CALENDAR_WEEKS("calendar.recurrence.weeks"),
     CALENDAR_MONTH("calendar.month"),
-    CALENDAR_MONTHS("calendar.recurrence.monthes");
+    CALENDAR_MONTHS("calendar.recurrence.monthes"),
+    CALENDAR_REMINDER_EMAIl_TITLE("calendar.event.reminder.email.title"),
+    CALENDAR_HELLO("calendar.hello")
+    ;
 
     private final String value;
 
