@@ -230,7 +230,10 @@ public class CalendarReminderWorker extends BusModBase implements Handler<Messag
         Promise<Void> promise = Promise.promise();
 
         getCalendarEvent(reminder.getEventId())
-                .compose(calendarEvent -> sendEmail(reminder, calendarEvent))
+                .compose(calendarEvent -> {
+                    log.info(String.format("Calevent : %s", calendarEvent.toString()));
+                    return sendEmail(reminder, calendarEvent);
+                })
                 .onSuccess(result -> promise.complete())
                 .onFailure(error -> {
                     String errMessage = String.format("[Calendar@%s::sendReminderEmail]:  " +
@@ -259,6 +262,8 @@ public class CalendarReminderWorker extends BusModBase implements Handler<Messag
                 + "</ul>"
                 + "<br/>" +  "Consultez l’application " + "Agenda" + " pour en savoir plus."
                 );
+
+        log.info(String.format("sendEmail body : %s", body));
 
         JsonObject message = new JsonObject()
                 .put(Field.SUBJECT,  "Rappel : Votre événement approche !")
