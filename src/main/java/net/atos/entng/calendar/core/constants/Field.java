@@ -136,6 +136,7 @@ public class Field {
     public static final String ENABLEREMINDER = "enableReminder";
     public static final String ENABLECALENDARREMINDER = "enableCalendarReminder";
     public static final String CALENDARREMINDERCRON = "calendarReminderCron";
+    public static final String HOST = "host";
 
     //Miscellaneous
     public static final String ALL = "all";

@@ -15,8 +15,6 @@ import io.vertx.ext.web.client.WebClientOptions;
 import net.atos.entng.calendar.Calendar;
 import net.atos.entng.calendar.core.constants.Field;
 import net.atos.entng.calendar.core.enums.EventBusAction;
-import net.atos.entng.calendar.core.enums.I18nKeys;
-import net.atos.entng.calendar.helpers.I18nHelper;
 import net.atos.entng.calendar.models.reminders.ReminderModel;
 import net.atos.entng.calendar.services.*;
 import net.atos.entng.calendar.services.impl.EventServiceMongoImpl;
@@ -115,7 +113,7 @@ public class CalendarReminderWorker extends BusModBase implements Handler<Messag
         log.info(I18n.acceptLanguage(request));
 
         if (reminder.getReminderType().isEmail()) {
-//            reminderActions.add(sendReminderEmail(reminder)); //add send email action
+            reminderActions.add(sendReminderEmail(reminder, request)); //add send email action
             log.info("CALENDAR send email action");
         }
 
@@ -165,8 +163,6 @@ public class CalendarReminderWorker extends BusModBase implements Handler<Messag
                             .put(Field.TITLE, "push.notif.event.reminder")
                             .put(Field.BODY, user.getUsername() + " " + I18n.getInstance().translate("calendar.reminder.push.notif.body",
                                     I18n.DEFAULT_DOMAIN, I18n.acceptLanguage(request)));
-//                                    I18nHelper.getI18nValue(I18nKeys.CALENDAR_REMINDER_PUSH_NOTIF,
-//                                    Locale.getDefault().toString()));
                 notificationParameters.put(Field.PUSHNOTIF, pushNotif);
                     notification.notifyTimeline(request, template, user, recipient, null, null,
                             notificationParameters, false);
@@ -240,14 +236,14 @@ public class CalendarReminderWorker extends BusModBase implements Handler<Messag
 //                Locale.getDefault().toString());
     }
 
-    private Future<Void> sendReminderEmail(ReminderModel reminder) {
+    private Future<Void> sendReminderEmail(ReminderModel reminder, HttpServerRequest request) {
         Promise<Void> promise = Promise.promise();
 
         getCalendarEvent(reminder.getEventId())
                 .compose(calendarEvent -> {
                     log.info(String.format("Calevent : %s", calendarEvent.toString()));
                     try {
-                        return sendEmail(reminder, calendarEvent);
+                        return sendEmail(reminder, calendarEvent, request);
                     } catch (ParseException e) {
                         throw new RuntimeException(e);
                     }
@@ -264,67 +260,54 @@ public class CalendarReminderWorker extends BusModBase implements Handler<Messag
         return promise.future();
     }
 
-    private Future<JsonObject> sendEmail(ReminderModel reminder, JsonObject calendarEvent) throws ParseException {
+    private Future<JsonObject> sendEmail(ReminderModel reminder, JsonObject calendarEvent, HttpServerRequest request) throws ParseException {
         Promise<JsonObject> promise = Promise.promise();
 
-//        EXAMPLE
-//        Bonjour,
-//        Nous vous rappelons que l’événement “[Nom de l'événement]”commence dans [durer].
-//
+//        Agenda = lien vers l'application Agenda / Calendar
+        StringBuilder calendarLink = new StringBuilder("<a href=\"" + config.getString(Field.HOST) + "/calendar#/\">" +
+                I18n.getInstance().translate("calendar.title", I18n.DEFAULT_DOMAIN, I18n.acceptLanguage(request)) + "</a>");
+
+        StringBuilder body = new StringBuilder(
+//         Bonjour,
+                "<div>" + I18n.getInstance().translate("calendar.hello", I18n.DEFAULT_DOMAIN, I18n.acceptLanguage(request))
+                + ",</div> <br/>"
+//        Nous vous rappelons que l’événement “[Nom de l'événement]” commence dans [durée].
+                + "<div>" + I18n.getInstance().translate("calendar.event.reminder.email.start",
+                I18n.DEFAULT_DOMAIN, I18n.acceptLanguage(request),
+                calendarEvent.getString(Field.TITLE, ""), getRemainingTime(reminder.getReminderFrequency().get(0), calendarEvent.getString(Field.STARTMOMENT), request)) + "</div>"
+                + "<ul>"
 //        Détails de l’événement :
 //        [Description]
+                + (calendarEvent.containsKey(Field.DESCRIPTION) ? ("<li>"
+                        +  I18n.getInstance().translate("calendar.event.reminder.email.details", I18n.DEFAULT_DOMAIN, I18n.acceptLanguage(request))
+                        + " : " + "<br/>" + calendarEvent.getString(Field.DESCRIPTION) + "</li>") : "")
 //        Lieu : [Lieu]
-//        Du dd/mm/yyyy à hh:mm au dd/mm/yyyy à hh:mm
-//        Consultez l’application Agenda pour en savoir plus.
-//
-//        Avec :
-//        Si pas de description on n'affiche pas la ligne dans la liste à puces
-//        Si pas de lieu on n'affiche pas la ligne dans la liste à puces
-//        Si l'événement dure toute la journée, on affiche juste "Du dd/mm/yyyy au dd/mm/yyyy"
-//        Agenda = lien vers l'application Agenda / Calendar
+                + (calendarEvent.containsKey(Field.LOCATION) ? ("<li>"
+                        + I18n.getInstance().translate("calendar.event.location", I18n.DEFAULT_DOMAIN, I18n.acceptLanguage(request))
+                        + " : " + calendarEvent.getString(Field.LOCATION) + "</li>") : "")
+                + "<li>"
+//        Du dd/mm/yyyy à hh:mm au dd/mm/yyyy à hh:mm (hours only if event is not full day)
+                        + I18n.getInstance().translate("calendar.filters.date.from", I18n.DEFAULT_DOMAIN, I18n.acceptLanguage(request))
+                + " " + DateUtils.getStringDate(calendarEvent.getString(Field.STARTMOMENT, ""), DateUtils.DATE_FORMAT_UTC, DateUtils.DATE_MONTH_YEAR)
+                + (Boolean.FALSE.equals(calendarEvent.getBoolean(Field.ALLDAY_LC)) ? (" " +
+                        I18n.getInstance().translate("calendar.search.date.to", I18n.DEFAULT_DOMAIN, I18n.acceptLanguage(request))
+                        + " " + DateUtils.getStringDate(calendarEvent.getString(Field.STARTMOMENT, ""), DateUtils.DATE_FORMAT_UTC, DateUtils.HOURS_MINUTES)) : "")
 
-//        "calendar.search.date.to": "à",
-//        "calendar.filters.date.from": "Du",
-//        "calendar.filters.date.to": "au",
-
-
-//        StringBuilder body = new StringBuilder(I18nHelper.getI18nValue(I18nKeys.CALENDAR_HELLO, Locale.getDefault().toString())
-//                + ", <br /> <br />"
-//                + "Nous vous rappelons que l’événement \"" + calendarEvent.getString(Field.TITLE, "") + "\" commence dans "
-//                + getRemainingTime(reminder.getReminderFrequency().get(0), calendarEvent.getString(Field.STARTMOMENT)) + "."
-//                + "<ul>"
-//                + (calendarEvent.containsKey(Field.DESCRIPTION) ? ("<br/>" + "<li>" + "Détails de l’événement" + " :" + "<br/>" + calendarEvent.getString(Field.DESCRIPTION) + "</li>") : "")
-//                + (calendarEvent.containsKey(Field.LOCATION) ? ("<br/>" + "<li>" + "Lieu :" + calendarEvent.getString(Field.LOCATION) + "</li>") : "")
-//                + "<br/>" + "<li>" +  "Du " + DateUtils.getStringDate(calendarEvent.getString(Field.STARTMOMENT, ""), DateUtils.DATE_FORMAT_UTC, DateUtils.DATE_MONTH_YEAR)
-//                + (Boolean.FALSE.equals(calendarEvent.getBoolean(Field.ALLDAY_LC)) ? (" à " + DateUtils.getStringDate(calendarEvent.getString(Field.STARTMOMENT, ""), DateUtils.DATE_FORMAT_UTC, DateUtils.HOURS_MINUTES)) : "")
-//                + " au " + DateUtils.getStringDate(calendarEvent.getString(Field.ENDMOMENT, ""), DateUtils.DATE_FORMAT_UTC, DateUtils.DATE_MONTH_YEAR)
-//                + (Boolean.FALSE.equals(calendarEvent.getBoolean(Field.ALLDAY_LC)) ? (" à " + DateUtils.getStringDate(calendarEvent.getString(Field.ENDMOMENT, ""), DateUtils.DATE_FORMAT_UTC, DateUtils.HOURS_MINUTES)  + "</li>") : "")
-//                + (Boolean.TRUE.equals(calendarEvent.getBoolean(Field.ALLDAY_LC)) ? (" à " + DateUtils.getStringDate(calendarEvent.getString(Field.STARTMOMENT, ""), DateUtils.DATE_FORMAT_UTC, DateUtils.HOURS_MINUTES) + "</li>") : "")
-//                + "</ul>"
-//                + "<br/>" +  I18nHelper.getI18nValue(I18nKeys.CALENDAR_REMINDER_PUSH_NOTIF,
-//                Locale.getDefault().toString()) //"Consultez l’application " + "Agenda" + " pour en savoir plus."
-//                );
-
-        StringBuilder body = new StringBuilder("Bonjour, <br /> <br />"
-                + "Nous vous rappelons que l’événement \"" + calendarEvent.getString(Field.TITLE, "") + "\" commence dans 1 jour."
-                + "<ul>"
-                + (calendarEvent.containsKey(Field.DESCRIPTION) ? ("<br/>" + "<li>" + "Détails de l’événement :" + "<br/>" + calendarEvent.getString(Field.DESCRIPTION) + "</li>") : "")
-                + (calendarEvent.containsKey(Field.LOCATION) ? ("<br/>" + "<li>" + "Lieu :" + calendarEvent.getString(Field.LOCATION) + "</li>") : "")
-                + "<br/>" + "<li>" +  "Du " + DateUtils.getStringDate(calendarEvent.getString(Field.STARTMOMENT, ""), DateUtils.DATE_FORMAT_UTC, DateUtils.DATE_MONTH_YEAR)
-                + (Boolean.FALSE.equals(calendarEvent.getBoolean(Field.ALLDAY_LC)) ? (" à " + DateUtils.getStringDate(calendarEvent.getString(Field.STARTMOMENT, ""), DateUtils.DATE_FORMAT_UTC, DateUtils.HOURS_MINUTES)) : "")
-                + " au " + DateUtils.getStringDate(calendarEvent.getString(Field.ENDMOMENT, ""), DateUtils.DATE_FORMAT_UTC, DateUtils.DATE_MONTH_YEAR)
-                + (Boolean.FALSE.equals(calendarEvent.getBoolean(Field.ALLDAY_LC)) ? (" à " + DateUtils.getStringDate(calendarEvent.getString(Field.ENDMOMENT, ""), DateUtils.DATE_FORMAT_UTC, DateUtils.HOURS_MINUTES)  + "</li>") : "")
-                + (Boolean.TRUE.equals(calendarEvent.getBoolean(Field.ALLDAY_LC)) ? (" à " + DateUtils.getStringDate(calendarEvent.getString(Field.STARTMOMENT, ""), DateUtils.DATE_FORMAT_UTC, DateUtils.HOURS_MINUTES) + "</li>") : "")
+                        + " " + I18n.getInstance().translate("calendar.filters.date.to", I18n.DEFAULT_DOMAIN, I18n.acceptLanguage(request))
+                        + " " + DateUtils.getStringDate(calendarEvent.getString(Field.ENDMOMENT, ""), DateUtils.DATE_FORMAT_UTC, DateUtils.DATE_MONTH_YEAR)
+                + (Boolean.FALSE.equals(calendarEvent.getBoolean(Field.ALLDAY_LC)) ? (" " +
+                        I18n.getInstance().translate("calendar.search.date.to", I18n.DEFAULT_DOMAIN, I18n.acceptLanguage(request))
+                        + " " + DateUtils.getStringDate(calendarEvent.getString(Field.ENDMOMENT, ""), DateUtils.DATE_FORMAT_UTC, DateUtils.HOURS_MINUTES)  + "</li>") : "")
                 + "</ul>"
-                + "<br/>" +  "Consultez l’application " + "Agenda" + " pour en savoir plus."
-        );
-
-
+//        Consultez l’application Agenda pour en savoir plus.
+                + "<br/>" + "<div>"  + I18n.getInstance().translate("calendar.event.reminder.email.end", I18n.DEFAULT_DOMAIN, I18n.acceptLanguage(request), calendarLink.toString()) + "</div>"
+                );
 
         log.info(String.format("sendEmail body : %s", body));
 
         JsonObject message = new JsonObject()
-                .put(Field.SUBJECT, I18nHelper.getI18nValue(I18nKeys.CALENDAR_REMINDER_EMAIl_TITLE, Locale.getDefault().toString()))
+                .put(Field.SUBJECT, I18n.getInstance().translate("calendar.event.reminder.email.title",
+                                I18n.DEFAULT_DOMAIN, I18n.acceptLanguage(request)))
                 .put(Field.BODY, body)
                 .put(Field.TO, new JsonArray())
                 .put(Field.CCI, reminder.getOwner().userId());
