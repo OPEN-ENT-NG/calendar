@@ -63,7 +63,7 @@ public class ReminderHelper {
         //get reminders
         reminderService.getEventReminders(calendarEvent.getString(Field._ID), user)
                 //convert reminders
-                .compose(reminder ->  Future.succeededFuture(ReminderConverter.convertToReminderFrontEndModel(new ReminderModel(reminder),
+                .compose(reminder -> Future.succeededFuture(ReminderConverter.convertToReminderFrontEndModel(new ReminderModel(reminder),
                         DateUtils.parseDate(calendarEvent.getString(Field.STARTMOMENT), DateUtils.DATE_FORMAT_UTC))))
                 //put reminders in event
                 .onSuccess(eventReminders -> {
@@ -92,7 +92,7 @@ public class ReminderHelper {
         return remindersEventFormActions(action, eventId, null, null, reminderId);
     }
 
-    //delete user reminders
+    //delete reminders by event
     public Future<Void> remindersEventFormActions(String action, String eventId) {
         return remindersEventFormActions(action, eventId, null, null, null);
     }
