@@ -218,22 +218,18 @@ public class CalendarReminderWorker extends BusModBase implements Handler<Messag
         long months = diffInMillis / (30L * 24 * 60 * 60 * 1000);
         if (months > 0) return months + " " + I18n.getInstance().translate(months == 1 ? "calendar.month" : "calendar.recurrence.monthes",
                 Renders.getHost(request), I18n.acceptLanguage(request));
-//                Locale.getDefault().toString()));
 
         long weeks = diffInMillis / (7L * 24 * 60 * 60 * 1000);
         if (weeks > 0) return weeks + " " +I18n.getInstance().translate(weeks == 1 ? "calendar.week" : "calendar.recurrence.weeks",
                 Renders.getHost(request), I18n.acceptLanguage(request));
-//                Locale.getDefault().toString());
 
         long days = TimeUnit.MILLISECONDS.toDays(diffInMillis);
         if (days > 0) return days + " " + I18n.getInstance().translate(days == 1 ? "calendar.day" : "calendar.recurrence.days",
-                Renders.getHost(request), I18n.acceptLanguage(request));
-//                Locale.getDefault().toString());
+                Renders.getHost(request), I18n.acceptLanguage(request));;
 
         long hours = TimeUnit.MILLISECONDS.toHours(diffInMillis);
         return hours + " " + I18n.getInstance().translate(hours == 1 ? "calendar.hour" : "calendar.hours.lc",
                 Renders.getHost(request), I18n.acceptLanguage(request));
-//                Locale.getDefault().toString());
     }
 
     private Future<Void> sendReminderEmail(ReminderModel reminder, HttpServerRequest request) {
