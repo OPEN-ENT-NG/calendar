@@ -309,15 +309,14 @@ public class CalendarReminderWorker extends BusModBase implements Handler<Messag
                 .put(Field.SUBJECT, I18n.getInstance().translate("calendar.event.reminder.email.title",
                                 I18n.DEFAULT_DOMAIN, I18n.acceptLanguage(request)))
                 .put(Field.BODY, body)
-                .put(Field.TO, new JsonArray())
-                .put(Field.CCI, reminder.getOwner().userId());
+                .put(Field.TO, new JsonArray().add(reminder.getOwner().userId()))
+                .put(Field.CCI, new JsonArray());
 
         JsonObject action = new JsonObject()
                 .put(Field.ACTION, Field.SEND)
                 .put(Field.USERID, reminder.getOwner().userId())
                 .put(Field.USERNAME, reminder.getOwner().displayName())
                 .put(Field.MESSAGE, message);
-
 
         eb.request(EventBusAction.CONVERSATION_ADDRESS.method(), action, (Handler<AsyncResult<Message<JsonObject>>>) messageEvt -> {
             if (!messageEvt.result().body().getString(Field.STATUS).equals(Field.OK)) {
