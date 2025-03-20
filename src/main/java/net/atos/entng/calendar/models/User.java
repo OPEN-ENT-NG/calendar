@@ -7,15 +7,21 @@ import net.atos.entng.calendar.helpers.IModelHelper;
 public class User {
 
     private final String id;
+    private final String userId;
     private final String displayName;
 
     public User(JsonObject user) {
-        this.id = user.getString("id", "");
-        this.displayName = user.getString("displayName", "");
+        this.id = user.getString(Field.ID, "");
+        this.userId = user.getString(Field.USERID, "");
+        this.displayName = user.getString(Field.DISPLAYNAME, "");
     }
 
     public String id() {
         return this.id;
+    }
+
+    public String userId() {
+        return this.userId;
     }
 
     public String displayName() {

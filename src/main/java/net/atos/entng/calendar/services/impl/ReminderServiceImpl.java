@@ -20,7 +20,9 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 import java.util.TimeZone;
+import java.util.stream.Collectors;
 
 import static com.mongodb.client.model.Filters.*;
 import static org.entcore.common.mongodb.MongoDbResult.validResultHandler;
@@ -80,7 +82,29 @@ public class ReminderServiceImpl implements ReminderService {
                 log.error(errMessage, events.left().getValue());
                 promise.fail(events.left().getValue());
             } else {
-                promise.complete(events.right().getValue());
+                JsonArray reminders = events.right().getValue();
+                JsonArray filteredReminders = new JsonArray();
+
+                // only keep relevant frequency in reminder list
+                reminders
+                        .stream()
+                        .map(JsonObject.class::cast)
+                        .forEach(reminder -> {
+                            JsonArray frequencyList = reminder.getJsonArray(Field.REMINDERFREQUENCY, new JsonArray());
+
+                            if (!frequencyList.isEmpty()) {
+                                List<String> filteredList = frequencyList.stream()
+                                        .map(Object::toString)
+                                        .filter(time -> time.compareTo(now) >= 0 && time.compareTo(nextMinute) < 0)
+                                        .limit(1) // Ensure only one item
+                                        .collect(Collectors.toList());
+
+                                reminder.put(Field.REMINDERFREQUENCY, new JsonArray(filteredList));
+                            }
+                            filteredReminders.add(reminder);
+                        });
+
+                promise.complete(filteredReminders);
             }
         }));
 
