@@ -55,6 +55,10 @@
     "calendar.recurrence.weeks": "semaines",
     "calendar.recurrence.monthes": "mois",
     "calendar.recurrence.years": "ans",
+    "calendar.hour": "heure",
+    "calendar.day": "jour",
+    "calendar.week": "semaine",
+    "calendar.month": "mois",
     "calendar.recurrence.every": "Tous les",
     "calendar.recurrence.every.female": "Toutes les",
     "calendar.recurrence.every.day": "Tous les jours",
@@ -220,5 +224,10 @@
     "calendar.event.reminder.week": "{0} semaine avant",
     "calendar.event.reminder.month": "{0} mois avant",
     "calendar.event.reminder.save": "Enregistrer le rappel",
-    "calendar.event.reminder.form.not.valid" : "Veuillez remplir toutes les informations du rappel avant d'enregistrer."
+    "calendar.event.reminder.form.not.valid": "Veuillez remplir toutes les informations du rappel avant d'enregistrer.",
+    "calendar.event.reminder.email.title": "Rappel : Votre événement approche !",
+    "calendar.hello": "Bonjour",
+    "calendar.event.reminder.email.start": "Nous vous rappelons que l'événement \"{0}\" commence dans {1}.",
+    "calendar.event.reminder.email.details": "Détails de l'événement",
+    "calendar.event.reminder.email.end": "Consultez l’application {0} pour en savoir plus."
 }

@@ -53,8 +53,12 @@
     "calendar.reccurent": "Recurrent",
     "calendar.recurrence.days": "days",
     "calendar.recurrence.weeks": "weeks",
-    "calendar.recurrence.monthes": "monthes",
+    "calendar.recurrence.monthes": "months",
     "calendar.recurrence.years": "years",
+    "calendar.hour": "heure",
+    "calendar.day": "jour",
+    "calendar.week": "semaine",
+    "calendar.month": "month",
     "calendar.recurrence.every": "Every",
     "calendar.recurrence.every.female": "Every",
     "calendar.recurrence.every.day": "Every day",
@@ -223,5 +227,10 @@
     "calendar.event.reminder.week": "{0} week before",
     "calendar.event.reminder.month": "{0} month before",
     "calendar.event.reminder.save": "Save reminder",
-    "calendar.event.reminder.form.not.valid" : "Please fill all the reminder information before saving."
+    "calendar.event.reminder.form.not.valid" : "Please fill all the reminder information before saving.",
+    "calendar.event.reminder.email.title": "Reminder : Your event starts soon !",
+    "calendar.hello": "Hello",
+    "calendar.event.reminder.email.start": "Your event \"{0}\" begins in {1}.",
+    "calendar.event.reminder.email.details": "Details of the event",
+    "calendar.event.reminder.email.end": "Check the {0} app for more information."
 }

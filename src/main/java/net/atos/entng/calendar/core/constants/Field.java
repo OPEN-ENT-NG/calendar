@@ -55,6 +55,7 @@ public class Field {
     // Start and end dates
     public static final String START_DATE = "start_date";
     public static final String END_DATE = "end_date";
+    public static final String ALLDAY_LC = "allday";
     // start date from range
     public static final String STARTDATE = "startDate";
     // end date from range
@@ -66,6 +67,8 @@ public class Field {
 
     // Notification
     public static final String SENDNOTIF = "sendNotif";
+    public static final String EVENTTITLE = "eventTitle";
+    public static final String REMAININGTIME = "remainingTime";
 
     // Attachments
     public static final String ATTACHMENTS = "attachments";
@@ -135,6 +138,7 @@ public class Field {
     public static final String ENABLEREMINDER = "enableReminder";
     public static final String ENABLECALENDARREMINDER = "enableCalendarReminder";
     public static final String CALENDARREMINDERCRON = "calendarReminderCron";
+    public static final String HOST = "host";
 
     //Miscellaneous
     public static final String ALL = "all";
@@ -158,6 +162,7 @@ public class Field {
     public static final String USERNAME = "username";
     public static final String CALENDARURI = "calendarUri";
     public static final String RESOURCEURI = "resourceUri";
+    public static final String EVENTURI = "eventUri";
     public static final String TITLE = "title";
     public static final String BODY = "body";
     public static final String PUSHNOTIF = "pushNotif";
@@ -185,7 +190,10 @@ public class Field {
     public static final String WEEK = "week";
     public static final String MONTH = "month";
     public static final String REMINDER = "reminder";
-
+    public static final String SUBJECT = "subject";
+    public static final String TO = "to";
+    public static final String CCI = "cci";
+    public static final String SEND = "send";
 
     //Http Methods
     public static final String POST = "post";

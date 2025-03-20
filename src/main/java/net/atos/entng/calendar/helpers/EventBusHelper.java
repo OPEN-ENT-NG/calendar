@@ -14,5 +14,4 @@ public class EventBusHelper {
         message.reply(new JsonObject().put(Field.STATUS, Field.ERROR).put(Field.MESSAGE, replayErrorMessage));
     }
 
-
 }

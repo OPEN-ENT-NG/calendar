@@ -98,7 +98,7 @@ public class EventHelper extends MongoDbControllerHelper {
         this.crudService = eventService;
         this.calendarService = serviceFactory.calendarService();
         this.userService = serviceFactory.userService();
-        notification = timelineHelper;
+        this.notification = timelineHelper;
         final EventStore eventStore = EventStoreFactory.getFactory().getEventStore(Calendar.class.getSimpleName());
         this.eventHelper = new org.entcore.common.events.EventHelper(eventStore);
         this.mongo = MongoDb.getInstance();
