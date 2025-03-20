@@ -67,6 +67,8 @@ public class Field {
 
     // Notification
     public static final String SENDNOTIF = "sendNotif";
+    public static final String EVENTTITLE = "eventTitle";
+    public static final String REMAININGTIME = "remainingTime";
 
     // Attachments
     public static final String ATTACHMENTS = "attachments";

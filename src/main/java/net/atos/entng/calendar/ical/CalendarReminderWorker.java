@@ -144,12 +144,13 @@ public class CalendarReminderWorker extends BusModBase implements Handler<Messag
                         notificationParameters = new JsonObject()
                                 .put(Field.PROFILURI,
                                         "/userbook/annuaire#" + reminder.getOwner().userId())
+                                .put(Field.USERNAME, user.getUsername())
                                 .put(Field.CALENDARURI,
                                         "/calendar#/view/" + calendarId)
                                 .put(Field.RESOURCEURI, "/calendar#/view/" + calendarId)
                                 .put(Field.EVENTURI, "/calendar#/view/" + calendarId)
-                                .put("eventTitle", calendarEvent.getString(Field.TITLE, ""))
-                                .put("remainingTime", getRemainingTime(reminder.getReminderFrequency().get(0), calendarEvent.getString(Field.STARTMOMENT), request));
+                                .put(Field.EVENTTITLE, calendarEvent.getString(Field.TITLE, ""))
+                                .put(Field.REMAININGTIME, getRemainingTime(reminder.getReminderFrequency().get(0), calendarEvent.getString(Field.STARTMOMENT), request));
                     } catch (ParseException e) {
                         throw new RuntimeException(e);
                     }
@@ -178,26 +179,10 @@ public class CalendarReminderWorker extends BusModBase implements Handler<Messag
     private Future<JsonObject> getCalendarEvent (String eventId) {
         Promise<JsonObject> promise = Promise.promise();
 
-        getCalendarEventData(eventId)
-                .onSuccess(promise::complete)
-                .onFailure(error -> {
-                    String errMessage = String.format("[Calendar@%s::getCalendarId]:  " +
-                                    "an error has occurred while fetching event data: %s",
-                            this.getClass().getSimpleName(), error.getMessage());
-                    log.error(errMessage);
-                    promise.fail(errMessage);
-                });
-
-        return promise.future();
-    }
-
-    private Future<JsonObject> getCalendarEventData (String eventId) {
-        Promise<JsonObject> promise = Promise.promise();
-
         eventServiceMongo.getCalendarEventById(eventId)
                 .onSuccess(promise::complete)
                 .onFailure(error -> {
-                    String errMessage = String.format("[Calendar@%s::getCalendarEventData]:  " +
+                    String errMessage = String.format("[Calendar@%s::getCalendarEvent]:  " +
                                     "an error has occurred while fetching event data: %s",
                             this.getClass().getSimpleName(), error.getMessage());
                     log.error(errMessage);
