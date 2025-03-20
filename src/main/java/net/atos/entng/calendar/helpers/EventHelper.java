@@ -35,6 +35,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.*;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 import fr.wseduc.mongodb.MongoDb;
@@ -44,6 +45,7 @@ import fr.wseduc.webutils.I18n;
 import fr.wseduc.webutils.collections.Joiner;
 import io.vertx.core.*;
 import net.atos.entng.calendar.Calendar;
+import net.atos.entng.calendar.core.constants.Actions;
 import net.atos.entng.calendar.core.constants.Field;
 import net.atos.entng.calendar.models.User;
 import net.atos.entng.calendar.services.CalendarService;
@@ -104,7 +106,7 @@ public class EventHelper extends MongoDbControllerHelper {
         this.mongo = MongoDb.getInstance();
         this.eb = eb;
         this.config = config;
-        this.reminderHelper = new ReminderHelper(serviceFactory);
+        this.reminderHelper = new ReminderHelper(serviceFactory, eb);
     }
 
     @Override
@@ -138,6 +140,7 @@ public class EventHelper extends MongoDbControllerHelper {
     public void create(final HttpServerRequest request) {
         UserUtils.getUserInfos(eb, request, user -> {
             final String calendarId = request.params().get(CALENDAR_ID_PARAMETER);
+            AtomicReference<JsonObject> remindersObject = new AtomicReference<>(new JsonObject());
             if (user != null) {
                 RequestUtils.bodyToJson(request, object -> {
                     calendarService.hasExternalCalendarId(object.getJsonArray("calendar")
@@ -146,23 +149,32 @@ public class EventHelper extends MongoDbControllerHelper {
                             .onSuccess(isExternal -> {
                                 if(Boolean.FALSE.equals(isExternal)) {
                                     if (isEventValid(object)) {
-                                        RbsHelper.saveBookingsInRbs(request, object, user, config, eb).onComplete(e ->
-                                                eventService.create(calendarId, object, user, event -> {
-                                                    if (event.isRight()) {
-                                                        JsonObject eventId = event.right().getValue();
-                                                        final JsonObject message = new JsonObject();
-                                                        message.put(Field._ID, calendarId);
-                                                        message.put(Field.EVENTID, eventId.getString("_id"));
-                                                        message.put(Field.START_DATE, (String) null);
-                                                        message.put(Field.END_DATE, (String) null);
-                                                        message.put(Field.SENDNOTIF, object.getBoolean(Field.SENDNOTIF, null));
-                                                        notifyEventCreatedOrUpdated(request, user, message, true);
-                                                        renderJson(request, event.right().getValue(), 200);
-                                                        eventHelper.onCreateResource(request, RESOURCE_NAME);
-                                                    } else if (event.isLeft()) {
-                                                        log.error("[Calendar@EventHelper::create] Error when getting notification informations.");
+                                        RbsHelper.saveBookingsInRbs(request, object, user, config, eb).onComplete(e -> {
+                                                    if (object.containsKey(Field.REMINDERS)) {
+                                                        remindersObject.set(object.getJsonObject(Field.REMINDERS));
+                                                        object.remove(Field.REMINDERS);
                                                     }
-                                                })
+                                                    eventService.create(calendarId, object, user, event -> {
+                                                        if (event.isRight()) {
+                                                            JsonObject eventId = event.right().getValue();
+                                                            final JsonObject message = new JsonObject();
+                                                            message.put(Field._ID, calendarId);
+                                                            message.put(Field.EVENTID, eventId.getString("_id"));
+                                                            message.put(Field.START_DATE, (String) null);
+                                                            message.put(Field.END_DATE, (String) null);
+                                                            message.put(Field.SENDNOTIF, object.getBoolean(Field.SENDNOTIF, null));
+                                                            notifyEventCreatedOrUpdated(request, user, message, true);
+                                                            if (!remindersObject.equals(new JsonObject())) {
+                                                                reminderHelper.remindersEventFormActions(Actions.CREATE_REMINDER,
+                                                                        eventId.getString(Field._ID), user, remindersObject.get());
+                                                            }
+                                                            renderJson(request, event.right().getValue(), 200);
+                                                            eventHelper.onCreateResource(request, RESOURCE_NAME);
+                                                        } else if (event.isLeft()) {
+                                                            log.error("[Calendar@EventHelper::create] Error when getting notification informations.");
+                                                        }
+                                                    });
+                                                }
                                         );
 
                                     } else {
@@ -192,10 +204,15 @@ public class EventHelper extends MongoDbControllerHelper {
             RequestUtils.bodyToJson(request, object -> {
                 final String eventId = request.params().get(EVENT_ID_PARAMETER);
                 final String calendarId = request.params().get(CALENDAR_ID_PARAMETER);
+                AtomicReference<JsonObject> remindersObject = new AtomicReference<>(new JsonObject());
                 isExternalCalendarEventImmutable(eventId)
                         .onSuccess(isExternal -> {
                             if(Boolean.FALSE.equals(isExternal)) {
                                 if (isEventValid(object)) {
+                                    if (object.containsKey(Field.REMINDERS)) {
+                                        remindersObject.set(object.getJsonObject(Field.REMINDERS));
+                                        object.remove(Field.REMINDERS);
+                                    }
                                     crudService.update(eventId, object, user, new Handler<Either<String, JsonObject>>() {
                                         public void handle(Either<String, JsonObject> event) {
                                             if (event.isRight()) {
@@ -206,6 +223,11 @@ public class EventHelper extends MongoDbControllerHelper {
                                                 message.put("end_date", (String) null);
                                                 message.put("sendNotif", object.containsKey("sendNotif") ? object.getBoolean("sendNotif") : null);
                                                 notifyEventCreatedOrUpdated(request, user, message, false);
+                                                if (!remindersObject.equals(new JsonObject())) {
+                                                    reminderHelper.remindersEventFormActions(remindersObject.get().containsKey(Field._ID)
+                                                            ? Actions.UPDATE_REMINDER : Actions.CREATE_REMINDER,
+                                                            eventId, user, remindersObject.get());
+                                                }
                                                 renderJson(request, event.right().getValue(), 200);
                                             } else if (event.isLeft()) {
                                                 log.error("Error when getting notification informations.");
@@ -411,6 +433,7 @@ public class EventHelper extends MongoDbControllerHelper {
 
                             getCalendarEventInfos
                                     .compose(event -> eventService.delete(calendarId, eventId, user))
+                                    .compose(res -> reminderHelper.remindersEventFormActions(Actions.DELETE_ALL_EVENT_REMINDERS, eventId))
                                     .compose(result -> {
                                         if (!getCalendarEventInfos.result().isEmpty()) {
                                             return RbsHelper.checkAndDeleteBookingRights(user, getCalendarEventInfos.result(), eb);

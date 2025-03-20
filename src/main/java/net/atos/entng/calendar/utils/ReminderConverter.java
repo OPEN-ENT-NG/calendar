@@ -5,6 +5,7 @@ import java.util.*;
 
 import io.vertx.core.json.JsonObject;
 import net.atos.entng.calendar.core.constants.Field;
+import net.atos.entng.calendar.models.OwnerModel;
 import net.atos.entng.calendar.models.User;
 import net.atos.entng.calendar.models.reminders.ReminderFrequencyFrontEndModel;
 import net.atos.entng.calendar.models.reminders.ReminderFrontEndModel;
@@ -17,14 +18,13 @@ public final class ReminderConverter {
     private ReminderConverter()  {}
 
     public static ReminderFrontEndModel convertToReminderFrontEndModel(ReminderModel reminderModel, Date eventStartMoment) {
-        ReminderFrontEndModel reminderFrontEndModel = new ReminderFrontEndModel();
+        ReminderFrontEndModel reminderFrontEndModel = new ReminderFrontEndModel(new JsonObject());
         reminderFrontEndModel.setId(reminderModel.getId());
         reminderFrontEndModel.setEventId(reminderModel.getEventId());
         reminderFrontEndModel.setReminderType(reminderModel.getReminderType());
 
         // Convert reminderFrequency
         ReminderFrequencyFrontEndModel frontEndReminderFrequency = new ReminderFrequencyFrontEndModel(new JsonObject());
-
 
         reminderModel.getReminderFrequency().stream()
                 .map(stringDate -> DateUtils.parseDate(stringDate, DateUtils.DATE_FORMAT_UTC))
@@ -39,7 +39,7 @@ public final class ReminderConverter {
                     if (diffHours >= 168 && diffHours < 192) {
                         frontEndReminderFrequency.setWeek(true);
                     }
-                    if (diffHours >= 720 && diffHours < 744) {
+                    if (diffHours >= 672 && diffHours < 744) { //taking February into account: 28 days = 672h
                         frontEndReminderFrequency.setMonth(true);
                     }
         });
@@ -54,7 +54,7 @@ public final class ReminderConverter {
         reminderModel.setId(reminderFrontEndModel.getId());
         reminderModel.setEventId(reminderFrontEndModel.getEventId());
         reminderModel.setReminderType(reminderFrontEndModel.getReminderType());
-        reminderModel.setOwner(new User(new JsonObject()
+        reminderModel.setOwner(new OwnerModel(new JsonObject()
                 .put(Field.USERID, user.getUserId())
                 .put(Field.DISPLAYNAME, user.getUsername())));
 

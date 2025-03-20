@@ -1,4 +1,12 @@
 import {CalendarEvents} from "./CalendarEvent";
+import {ICalendarPayload} from "./calendar-form.model";
+
+export interface ICalendarEventReminderPayload {
+    _id?: string;
+    eventId?: string;
+    reminderType: CalendarEventReminderType;
+    reminderFrequency: CalendarEventReminderFrequency;
+}
 
 export class CalendarEventReminder {
     private _id?: string;
@@ -6,22 +14,15 @@ export class CalendarEventReminder {
     private _reminderType: CalendarEventReminderType;
     private _reminderFrequency: CalendarEventReminderFrequency;
 
-    constructor(
-        eventId: string,
-        _id?: string
-    ) {        
-        if (!!_id) {
-            this._id = _id;
+    constructor(reminder?: any, eventId?: string) {
+        if (!!reminder?.id) this._id = reminder?.id;
+        if (!!eventId) {
+            this._eventId = eventId;
+        } else {
+            this._eventId = reminder?.eventId ?? "";
         }
-
-        if (!eventId) {
-            throw new Error("eventId is required");
-        }
-        this._eventId = eventId;
-
-        this._reminderType = new CalendarEventReminderType();
-
-        this._reminderFrequency = new CalendarEventReminderFrequency();
+        this._reminderType = reminder?.reminderType ?? new CalendarEventReminderType();
+        this._reminderFrequency = reminder?.reminderFrequency ?? new CalendarEventReminderFrequency();
     }
 
     // Getters and Setters
@@ -58,20 +59,22 @@ export class CalendarEventReminder {
 
     public set reminderFrequency(value: CalendarEventReminderFrequency) {
         this._reminderFrequency = {
-            hour: value.hour ?? [],
-            day: value.day ?? [],
-            week: value.week ?? [],
-            month: value.month ?? [],
+            hour: value.hour ?? false,
+            day: value.day ?? false,
+            week: value.week ?? false,
+            month: value.month ?? false,
         };
     }
 
-    toJson() {
-        return {
-            id: this._id,
-            eventId: this._eventId,
+    toJSON(): ICalendarEventReminderPayload  {
+        let json: ICalendarEventReminderPayload = {
             reminderType: this._reminderType,
             reminderFrequency: this._reminderFrequency,
         };
+        if (this._eventId) json.eventId = this._eventId;
+        if (this._id) json._id = this._id;
+
+        return json;
     }
 }
 
@@ -86,16 +89,16 @@ export class CalendarEventReminderType {
 };
 
 export class CalendarEventReminderFrequency {
-    hour: number[];
-    day: number[];
-    week: number[];
-    month: number[];
+    hour: boolean;
+    day: boolean;
+    week: boolean;
+    month: boolean;
     
     constructor() {
-        this.hour = [];
-        this.day = [];
-        this.week = [];
-        this.month = [];
+        this.hour = false;
+        this.day = false;
+        this.week = false;
+        this.month = false;
     }
     
 };
