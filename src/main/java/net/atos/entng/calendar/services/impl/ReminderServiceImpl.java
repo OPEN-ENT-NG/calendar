@@ -85,23 +85,26 @@ public class ReminderServiceImpl implements ReminderService {
                 JsonArray reminders = events.right().getValue();
                 JsonArray filteredReminders = new JsonArray();
 
-                for (int i = 0; i < reminders.size(); i++) {
-                    JsonObject reminder = reminders.getJsonObject(i);
-                    JsonArray frequencyList = reminder.getJsonArray(Field.REMINDERFREQUENCY);
+                // only keep relevant frequency in reminder list
+                reminders
+                        .stream()
+                        .map(JsonObject.class::cast)
+                        .forEach(reminder -> {
+                            JsonArray frequencyList = reminder.getJsonArray(Field.REMINDERFREQUENCY, new JsonArray());
 
-                    if (frequencyList != null) {
-                        List<String> filteredList = frequencyList.stream()
-                                .map(Object::toString)
-                                .filter(time -> time.compareTo(now) >= 0 && time.compareTo(nextMinute) < 0)
-                                .limit(1) // Ensure only one item
-                                .collect(Collectors.toList());
+                            if (!frequencyList.isEmpty()) {
+                                List<String> filteredList = frequencyList.stream()
+                                        .map(Object::toString)
+                                        .filter(time -> time.compareTo(now) >= 0 && time.compareTo(nextMinute) < 0)
+                                        .limit(1) // Ensure only one item
+                                        .collect(Collectors.toList());
 
-                        reminder.put(Field.REMINDERFREQUENCY, new JsonArray(filteredList));
-                    }
-                    filteredReminders.add(reminder);
-                }
+                                reminder.put(Field.REMINDERFREQUENCY, new JsonArray(filteredList));
+                            }
+                            filteredReminders.add(reminder);
+                        });
 
-                promise.complete(events.right().getValue());
+                promise.complete(filteredReminders);
             }
         }));
 
