@@ -82,7 +82,6 @@ public class CalendarReminderWorker extends BusModBase implements Handler<Messag
     private Future<Void> sendReminders(JsonArray reminders) {
         Promise<Void> promise = Promise.promise();
         List<Future> remindersActions = new ArrayList<>();
-        log.info(String.format("REMINDERS %s", reminders.toString()));
 
         reminders.stream()
                 .map(JsonObject.class::cast)
@@ -108,13 +107,9 @@ public class CalendarReminderWorker extends BusModBase implements Handler<Messag
         Promise<Void> promise = Promise.promise();
         List<Future> reminderActions =  new ArrayList<>();
         HttpServerRequest request = new JsonHttpServerRequest(new JsonObject());
-        log.info("I18N DATA");
-        log.info(I18n.getInstance().translate("calendar.reminder.push.notif.body", I18n.DEFAULT_DOMAIN, I18n.acceptLanguage(request)));
-        log.info(I18n.acceptLanguage(request));
 
         if (reminder.getReminderType().isEmail()) {
             reminderActions.add(sendReminderEmail(reminder, request)); //add send email action
-            log.info("CALENDAR send email action");
         }
 
         if (reminder.getReminderType().isTimeline()) {
@@ -237,7 +232,6 @@ public class CalendarReminderWorker extends BusModBase implements Handler<Messag
 
         getCalendarEvent(reminder.getEventId())
                 .compose(calendarEvent -> {
-                    log.info(String.format("Calevent : %s", calendarEvent.toString()));
                     try {
                         return sendEmail(reminder, calendarEvent, request);
                     } catch (ParseException e) {
@@ -298,8 +292,6 @@ public class CalendarReminderWorker extends BusModBase implements Handler<Messag
 //        Consultez l’application Agenda pour en savoir plus.
                 + "<br/>" + "<div>"  + I18n.getInstance().translate("calendar.event.reminder.email.end", I18n.DEFAULT_DOMAIN, I18n.acceptLanguage(request), calendarLink.toString()) + "</div>"
                 );
-
-        log.info(String.format("sendEmail body : %s", body));
 
         JsonObject message = new JsonObject()
                 .put(Field.SUBJECT, I18n.getInstance().translate("calendar.event.reminder.email.title",
