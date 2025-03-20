@@ -6,7 +6,7 @@ import {CalendarForm} from "../../model/calendar-form.model";
 import {idiom as lang} from "entcore";
 import {I18nUtils} from "../../utils/i18n.utils";
 import { CalendarEvent } from "../../model";
-import {CalendarEventReminder, CalendarEventReminderFrequency, CalendarEventReminderType } from "../../model/reminder";
+import {CalendarEventReminder, CalendarEventReminderFrequency, CalendarEventReminderType } from "../../model/reminder.model";
 
 
 interface ICalendareventReminderFormProps {
@@ -30,7 +30,7 @@ interface ICalendareventReminderFormScope extends IScope {
 class Controller implements IViewModel {
     calendarEvent: CalendarEvent;
 
-    constructor(private $scope: ICalendareventReminderFormScope, private $parse: any, private $timeout: ITimeoutService) {
+    constructor(private $scope: ICalendareventReminderFormScope) {
     }
 
     $onInit() {
@@ -43,14 +43,6 @@ class Controller implements IViewModel {
 
     getTranslate = (key: string, params?: string[]) => {
         return !!params ? this.$scope.vm.i18nUtils.getWithParams(key, params) : this.$scope.vm.i18nUtils.translate(key);
-    }
-    
-    private addOrRemoveReminder = (timeMeasurement: number[]): void => {
-        if (!!timeMeasurement.length) {
-            timeMeasurement = [];
-        } else {
-            timeMeasurement = [1];
-        }
     }
 
     hasEmailOrZimbra(): boolean {

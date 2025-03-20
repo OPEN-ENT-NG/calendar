@@ -8,16 +8,16 @@ import net.atos.entng.calendar.models.IModel;
 
 public class ReminderFrontEndModel implements IModel<ReminderFrontEndModel> {
 
-    private String id;
+    private String _id;
     private String eventId;
     private ReminderTypeModel reminderType;
     private ReminderFrequencyFrontEndModel reminderFrequency;
 
-    public void ReminderFrontEnd (JsonObject reminder) {
-        this.id = reminder.getString(Field._ID, "");
+    public ReminderFrontEndModel (JsonObject reminder) {
+        if (Boolean.TRUE.equals(reminder.containsKey(Field._ID))) this._id = reminder.getString(Field._ID);
         this.eventId = reminder.getString(Field.EVENTID_CAMEL, "");
-        this.reminderType = (ReminderTypeModel) reminder.getValue(Field.REMINDERTYPE, new ReminderTypeModel(new JsonObject()));
-        this.reminderFrequency = (ReminderFrequencyFrontEndModel) reminder.getValue(Field.REMINDERFREQUENCY, new ReminderFrequencyFrontEndModel(new JsonObject())); //pass through converter
+        this.reminderType = new ReminderTypeModel((JsonObject) reminder.getValue(Field.REMINDERTYPE, new JsonObject()));
+        this.reminderFrequency = new ReminderFrequencyFrontEndModel((JsonObject) reminder.getValue(Field.REMINDERFREQUENCY, new JsonObject()));
     }
 
     public ReminderTypeModel getReminderType() {
@@ -29,11 +29,11 @@ public class ReminderFrontEndModel implements IModel<ReminderFrontEndModel> {
     }
 
     public String getId() {
-        return id;
+        return _id;
     }
 
     public void setId(String id) {
-        this.id = id;
+        this._id = id;
     }
 
     public String getEventId() {
@@ -55,7 +55,7 @@ public class ReminderFrontEndModel implements IModel<ReminderFrontEndModel> {
     public JsonObject toJson() {
         JsonObject reminderObject = IModelHelper.toJson(this, true, false);
 
-        reminderObject.put(Field._ID, this.id);
+        reminderObject.put(Field._ID, this._id);
         reminderObject.remove(Field.ID);
 
         return reminderObject;

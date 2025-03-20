@@ -5,6 +5,8 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import org.entcore.common.user.UserInfos;
 
+import java.util.List;
+
 public interface ReminderService {
     /**
      * Return event reminders
@@ -20,4 +22,35 @@ public interface ReminderService {
      * WITH ONLY THE FITTING DATES IN REMINDERFREQUENCY
      */
     Future<JsonArray> fetchRemindersToSend();
+
+    /**
+     * Create a reminder
+     * @param body The fields of the new reminder
+     * @return {@link Future<Void>} Future response
+     */
+    Future<Void> create(JsonObject body);
+
+    /**
+     * Update reminder.* @param eventId The reminder's event id
+     * @param eventId The reminder's event id
+     * @param id the id of the reminder to update
+     * @param body the fields to change
+     * @return {@link Future<Void>} Future response
+     */
+    Future<Void> update(String eventId, String id, JsonObject body);
+
+    /**
+     * Delete reminder
+     * @param eventId The reminder's event id
+     * @param id the id of the reminder we want to delete
+     * @return {@link Future<Void>} Future response
+     */
+    Future<Void> delete(String eventId, String id);
+
+    /**
+     * Get reminders by event id
+     * @param eventId The reminder's event id
+     * @return {@link Future<List<String>>} Future response
+     */
+    Future<List<String>> getEventIdReminders(String eventId);
 }

@@ -29,6 +29,7 @@ import io.vertx.ext.web.client.WebClientOptions;
 import net.atos.entng.calendar.controllers.CalendarController;
 import net.atos.entng.calendar.controllers.EventController;
 import net.atos.entng.calendar.controllers.PlatformController;
+import net.atos.entng.calendar.controllers.ReminderController;
 import net.atos.entng.calendar.core.constants.Field;
 import net.atos.entng.calendar.cron.ReminderCalendarEventCron;
 import net.atos.entng.calendar.event.CalendarRepositoryEvents;
@@ -88,6 +89,7 @@ public class Calendar extends BaseServer {
         addController(new CalendarController(CALENDAR_COLLECTION, serviceFactory, eb, config));
         addController(new EventController(CALENDAR_EVENT_COLLECTION, eventService, serviceFactory, timelineHelper, storage, eb, config));
         addController(new PlatformController(PLATFORMS_COLLECTION, serviceFactory));
+        addController(new ReminderController(REMINDERS_COLLECTION, serviceFactory, eb));
 
         // External Import Calendar services
         vertx.deployVerticle(ExternalImportICal.class, new DeploymentOptions().setConfig(config).setWorker(true));

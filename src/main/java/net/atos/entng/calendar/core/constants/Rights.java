@@ -6,5 +6,6 @@ public class Rights {
     public static final String CHECKUPDATE = "calendar.checkupdate";
 
     public static final String GET = "calendar.get";
+    public static final String VIEW = "calendar.view";
 
 }
