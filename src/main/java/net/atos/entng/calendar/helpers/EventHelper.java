@@ -290,10 +290,15 @@ public class EventHelper extends MongoDbControllerHelper {
                                                     message.put("end_date", (String) null);
                                                     message.put("sendNotif", object.containsKey("sendNotif") ? object.getBoolean("sendNotif") : null);
                                                     notifyEventCreatedOrUpdated(request, user, message, false);
+                                                    log.info(e.stream().map(JsonObject.class::cast).map(ev -> ev.getString(Field._ID)));
                                                     if (!remindersObject.get().equals(new JsonObject())) {
-                                                        reminderHelper.remindersEventFormActions(remindersObject.get().containsKey(Field._ID)
+                                                        e.stream()
+                                                                .map(JsonObject.class::cast)
+                                                                .filter(elem -> elem.getString(Field.PARENTID, "").equals(parentId))
+                                                                .map(ev -> ev.getString(Field._ID))
+                                                                .forEach(calendarEventId -> reminderHelper.remindersEventFormActions(remindersObject.get().containsKey(Field._ID)
                                                                         ? Actions.UPDATE_REMINDER : Actions.CREATE_REMINDER,
-                                                                eventId, user, remindersObject.get());
+                                                                calendarEventId, user, remindersObject.get()));
                                                     }
                                                     renderJson(request, new JsonObject().put("status", "ok"), 200);
                                             });
