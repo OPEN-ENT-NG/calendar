@@ -502,7 +502,6 @@ public class EventServiceMongoImpl extends MongoDbCrudService implements EventSe
 
     @Override
     public void getCalendarEventById(String eventId, Handler<Either<String, JsonObject>> handler) {
-        JsonObject projection = new JsonObject();
         Bson query = eq("_id",eventId);
         mongo.findOne("calendarevent", MongoQueryBuilder.build(query), validResultHandler(handler));
     }
