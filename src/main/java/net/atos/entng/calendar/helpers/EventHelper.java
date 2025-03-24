@@ -290,7 +290,6 @@ public class EventHelper extends MongoDbControllerHelper {
                                                     message.put("end_date", (String) null);
                                                     message.put("sendNotif", object.containsKey("sendNotif") ? object.getBoolean("sendNotif") : null);
                                                     notifyEventCreatedOrUpdated(request, user, message, false);
-                                                    log.info(e.stream().map(JsonObject.class::cast).map(ev -> ev.getString(Field._ID)));
                                                     if (!remindersObject.get().equals(new JsonObject())) {
                                                         e.stream()
                                                                 .map(JsonObject.class::cast)
