@@ -557,6 +557,7 @@ export const calendarController = ng.controller('CalendarController',
                 child.endTime = calendarEvent.endTime;
                 child.isMultiDayPart = calendarEvent.isMultiDayPart;
                 child.attachments = calendarEvent.attachments;
+                if (calendarEvent.reminders && !$scope.isEventReminderFormEmpty()) child.reminders = calendarEvent.reminders;
                 return child;
             };
 
