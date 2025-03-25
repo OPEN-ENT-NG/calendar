@@ -13,7 +13,11 @@
     "timeline.calendar.of.calendar": "from the calendar management module",
     "timeline.event.shared": "has given you access to the event",
     "push.notif.calendar.share": "Calendar: new calendar",
-    "calendar.reminder": "Event reminder",
     "push.notif.event.created": "Calendar: new event",
-    "push.notif.event.updated": "Calendar: an event has been updated"
+    "push.notif.event.updated": "Calendar: an event has been updated",
+    "calendar.reminder": "Event reminder",
+    "timeline.calendar.event.reminder.start": "Reminder : the event",
+    "calendar.event.reminder.begin.in": "begins in",
+    "timeline.calendar.event.reminder.see": "Check the ",
+    "timeline.calendar.event.reminder.more.info": "for more information"
 }
