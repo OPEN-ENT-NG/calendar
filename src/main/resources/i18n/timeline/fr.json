@@ -17,6 +17,7 @@
     "push.notif.event.updated": "Agenda: Un événement à été modifié",
     "timeline.calendar.event.reminder.start": "Rappel : l'événement",
     "calendar.event.reminder.begin.in": "commence dans",
+    "calendar.reminder": "Rappel d'événement",
     "timeline.calendar.event.reminder.see": "Consultez l'",
     "timeline.calendar.event.reminder.more.info": "pour plus d'informations"
 }
