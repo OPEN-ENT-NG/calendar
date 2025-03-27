@@ -71,10 +71,7 @@ public class ReminderServiceImpl implements ReminderService {
         String now = getCurrentMinuteISO();
         String nextMinute = getNextMinuteISO();
 
-        final Bson query = and(
-                gte(Field.REMINDERFREQUENCY, now),
-                lt(Field.REMINDERFREQUENCY, nextMinute)
-        );
+        final Bson query = in(Field.REMINDERFREQUENCY, now);
 
         mongo.find(this.collection, MongoQueryBuilder.build(query), validResultsHandler(events -> {
             if (events.isLeft()) {
