@@ -39,7 +39,7 @@ public final class ReminderConverter {
                     if (diffHours >= 168 && diffHours < 192) {
                         frontEndReminderFrequency.setWeek(true);
                     }
-                    if (diffHours >= 672 && diffHours < 744) { //taking February into account: 28 days = 672h
+                    if (diffHours >= 672 && diffHours <= 744) { //taking February into account: 28 days = 672h
                         frontEndReminderFrequency.setMonth(true);
                     }
         });
