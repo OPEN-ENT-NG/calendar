@@ -91,4 +91,13 @@ public final class ReminderConverter {
 
         return clonedDate;
     }
+
+    public static ReminderModel updateReminderModel(ReminderModel reminderModel,
+                                                       Date eventStartMoment, UserInfos user, ReminderFrontEndModel updatedReminderFrontEnd) {
+        ReminderModel updatedReminder = convertToReminderModel(updatedReminderFrontEnd, eventStartMoment, user);
+        reminderModel.setReminderType(updatedReminder.getReminderType());
+        reminderModel.setReminderFrequency(updatedReminder.getReminderFrequency());
+
+        return reminderModel;
+    }
 }

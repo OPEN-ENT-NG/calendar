@@ -296,7 +296,7 @@ public class EventHelper extends MongoDbControllerHelper {
                                                                 .filter(elem -> elem.getString(Field.PARENTID, "").equals(parentId))
                                                                 .map(ev -> ev.getString(Field._ID))
                                                                 .forEach(calendarEventId -> reminderHelper.remindersEventFormActions(remindersObject.get().containsKey(Field._ID)
-                                                                        ? Actions.UPDATE_REMINDER : Actions.CREATE_REMINDER,
+                                                                        ? Actions.UPDATE_ALL_REMINDERS : Actions.CREATE_REMINDER,
                                                                 calendarEventId, user, remindersObject.get()));
                                                     }
                                                     renderJson(request, new JsonObject().put("status", "ok"), 200);

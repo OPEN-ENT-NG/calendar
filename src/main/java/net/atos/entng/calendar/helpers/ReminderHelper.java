@@ -121,6 +121,14 @@ public class ReminderHelper {
                         .onSuccess(promise::complete)
                         .onFailure(promise::fail);
                 break;
+            case (Actions.UPDATE_ALL_REMINDERS):
+                reminderService.getEventReminders(eventId, user)
+                        .compose(eventReminder -> getUpdatedReminder(new ReminderModel(eventReminder), eventId, user, new ReminderFrontEndModel(body)))
+                        .compose(reminder ->
+                                reminderService.update(eventId, reminder.getString(Field._ID, ""), reminder))
+                        .onSuccess(promise::complete)
+                        .onFailure(promise::fail);
+                break;
             case (Actions.DELETE_REMINDER):
                 reminderService.delete(eventId, (reminderId != null) ? reminderId : body.getString(Field.ID, ""))
                         .onSuccess(promise::complete)
@@ -168,6 +176,23 @@ public class ReminderHelper {
                 .compose(calendarEvent -> Future.succeededFuture(ReminderConverter.convertToReminderModel(new ReminderFrontEndModel(reminder),
                         DateUtils.parseDate(calendarEvent.getString(Field.STARTMOMENT), DateUtils.DATE_FORMAT_UTC),
                         user)))
+                .onSuccess(formattedReminder -> promise.complete(formattedReminder.toJson()))
+                .onFailure(fail -> {
+                    String message = String.format("[Magneto@%s::getFormattedReminder] Failed to format reminders into back end model : %s",
+                            this.getClass().getSimpleName(), fail.getMessage());
+                    promise.fail(message);
+                });
+
+        return promise.future();
+    }
+
+    public Future<JsonObject> getUpdatedReminder(ReminderModel reminder, String eventId, UserInfos user, ReminderFrontEndModel newReminder) {
+        Promise<JsonObject> promise = Promise.promise();
+
+        eventServiceMongo.getCalendarEventById(eventId)
+                .compose(calendarEvent -> Future.succeededFuture(ReminderConverter.updateReminderModel(reminder,
+                        DateUtils.parseDate(calendarEvent.getString(Field.STARTMOMENT), DateUtils.DATE_FORMAT_UTC),
+                        user, newReminder)))
                 .onSuccess(formattedReminder -> promise.complete(formattedReminder.toJson()))
                 .onFailure(fail -> {
                     String message = String.format("[Magneto@%s::getFormattedReminder] Failed to format reminders into back end model : %s",
