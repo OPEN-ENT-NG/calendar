@@ -168,7 +168,7 @@ public class ReminderHelper {
                 .compose(calendarEvent -> Future.succeededFuture(ReminderConverter.convertToReminderModel(new ReminderFrontEndModel(reminder),
                         DateUtils.parseDate(calendarEvent.getString(Field.STARTMOMENT), DateUtils.DATE_FORMAT_UTC),
                         user)))
-                .onSuccess(formattedEvent -> promise.complete(formattedEvent.toJson()))
+                .onSuccess(formattedReminder -> promise.complete(formattedReminder.toJson()))
                 .onFailure(fail -> {
                     String message = String.format("[Magneto@%s::getFormattedReminder] Failed to format reminders into back end model : %s",
                             this.getClass().getSimpleName(), fail.getMessage());
