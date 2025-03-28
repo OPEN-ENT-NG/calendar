@@ -31,5 +31,6 @@ public class Actions {
     public static final String CREATE_REMINDER = "CREATE_REMINDER";
     public static final String DELETE_REMINDER = "DELETE_REMINDER";
     public static final String UPDATE_REMINDER = "UPDATE_REMINDER";
+    public static final String UPDATE_ALL_REMINDERS = "UPDATE_ALL_REMINDERS";
     public static final String DELETE_ALL_EVENT_REMINDERS = "DELETE_ALL_EVENT_REMINDERS";
 }
