@@ -1,12 +1,7 @@
-import {angular, model, ng} from "entcore";
-import {ROOTS} from "../../core/const/roots";
-import {IParseService, IScope, ITimeoutService} from "angular";
-import {safeApply} from "../../model/Utils";
-import {CalendarForm} from "../../model/calendar-form.model";
-import {idiom as lang} from "entcore";
+import {ng} from "entcore";
+import {IScope} from "angular";
 import {I18nUtils} from "../../utils/i18n.utils";
 import { CalendarEvent } from "../../model";
-import {CalendarEventReminder, CalendarEventReminderFrequency, CalendarEventReminderType } from "../../model/reminder.model";
 
 
 interface ICalendareventReminderFormProps {
@@ -20,7 +15,6 @@ interface IViewModel extends ng.IController, ICalendareventReminderFormProps {
 
     changeSelection?(field: string): void;
     getTranslate?(key: string, params?: string[]): string;
-    hasEmailOrZimbra?(): boolean;
 }
 
 interface ICalendareventReminderFormScope extends IScope {
@@ -37,18 +31,12 @@ class Controller implements IViewModel {
         this.$scope.vm.i18nUtils = new I18nUtils();
     }
 
-
     $onDestroy() {
     }
 
     getTranslate = (key: string, params?: string[]) => {
         return !!params ? this.$scope.vm.i18nUtils.getWithParams(key, params) : this.$scope.vm.i18nUtils.translate(key);
     }
-
-    hasEmailOrZimbra(): boolean {
-        return !!model.me.email || !!(model.me.authorizedActions.find(action => action.displayName == "zimbra.view"));
-    }
-
 }
 
 function directive($parse) {
