@@ -1,8 +1,8 @@
 {
-    "agenda-widget": "Agenda",
-    "agenda-widget.widget.title": "Agenda",
-    "agenda-widget.widget.empty": "Aucun événement prévu",
-    "agenda-widget.widget.next.events": "Prochains événements",
-    "agenda-widget.widget.access.module": "Vers module Agenda",
-    "agenda-widget.widget.see.all": "Voir tout l'agenda"
+  "agenda-widget": "Agenda",
+  "agenda-widget.widget.access.module": "Vers module Agenda",
+  "agenda-widget.widget.empty": "Aucun événement prévu",
+  "agenda-widget.widget.next.events": "Prochains événements",
+  "agenda-widget.widget.see.all": "Voir tout l'agenda",
+  "agenda-widget.widget.title": "Agenda"
 }
