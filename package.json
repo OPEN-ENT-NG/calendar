@@ -23,7 +23,7 @@
   },
   "packageManager": "yarn@1.22.19",
   "engines": {
-    "node": "16.x"
+    "node": "16.x || 22"
   },
   "dependencies": {
     "entcore": "4.8.13",
