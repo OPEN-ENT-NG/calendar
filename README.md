@@ -43,16 +43,7 @@ Déclarer l'application dans la liste :
         "enable-zimbra": ${enableZimbra},
         "enableReminder": ${enableCalendarReminder},
         "calendarSyncTTL": ${calendarSyncTTL},
-        "calendarReminderCron": ${calendarReminderCron},
-        "publicConf": {
-          <% if ("true".equals(xitiSwitch)) { %>
-            "xiti": {
-              "ID_SERVICE": {
-                "default": 7
-              }
-            }
-          <% } %>
-        }
+        "calendarReminderCron": ${calendarReminderCron}
      }
 }
 </pre>
