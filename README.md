@@ -1,7 +1,7 @@
 # A propos de l'application Agenda
 
 * Licence : [AGPL v3](http://www.gnu.org/licenses/agpl.txt) - Copyright Région Hauts-de-France (ex Picardie), Département Essonne, Région Nouvelle Aquitaine (ex Poitou-Charente)
-* Développeur(s) : ATOS, CGI, Open Digital Education
+* Développeur(s) : ATOS, CGI, Edifice
 * Financeur(s) : Région Hauts-de-France (ex Picardie), Département Essonne, Région Nouvelle Aquitaine (ex Poitou-Charente)
 
 * Description : Application agenda personnel et agenda partagé
