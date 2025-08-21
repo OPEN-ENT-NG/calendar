@@ -1,6 +1,6 @@
 {
   "name": "calendar",
-  "version": "4.1.7-dev.0",
+  "version": "4.1.8",
   "description": "Agenda partagé.",
   "main": "gulpfile.js",
   "scripts": {
@@ -26,7 +26,7 @@
     "node": "16.x || 22"
   },
   "dependencies": {
-    "entcore": "dev",
+    "entcore": "4.8.14",
     "@types/core-js": "0.9.42",
     "awesome-typescript-loader": "3.2.1",
     "axios": "0.27.2",
