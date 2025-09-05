@@ -33,6 +33,7 @@ import org.entcore.common.service.impl.MongoDbRepositoryEvents;
 import io.vertx.core.Handler;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import org.entcore.common.user.ExportResourceResult;
 
 import java.util.HashSet;
 import java.util.Map;
@@ -54,7 +55,7 @@ public class CalendarRepositoryEvents extends MongoDbRepositoryEvents {
 
     @Override
     public void exportResources(JsonArray resourcesIds, boolean exportDocuments, boolean exportSharedResources, String exportId, String userId,
-                                JsonArray g, String exportPath, String locale, String host, Handler<Boolean> handler)
+                                JsonArray g, String exportPath, String locale, String host, Handler<ExportResourceResult> handler)
     {
         final Bson findByOwner = eq("owner.userId",userId);
         final Bson findByShared = or(
@@ -126,10 +127,10 @@ public class CalendarRepositoryEvents extends MongoDbRepositoryEvents {
                                                 public void handle(Boolean bool)
                                                 {
                                                     if (bool) {
-                                                        exportFiles(results, path, new HashSet<String>(), exported, handler);
+                                                        exportFiles(results, path, new HashSet<String>(), exported, e -> handler.handle(new ExportResourceResult(e, path)));
                                                     } else {
                                                         // Should never happen, export doesn't fail if docs export fail.
-                                                        handler.handle(exported.get());
+                                                        handler.handle(new ExportResourceResult(exported.get(), path));
                                                     }
                                                 }
                                             };
@@ -141,7 +142,8 @@ public class CalendarRepositoryEvents extends MongoDbRepositoryEvents {
                                         }
                                         else
                                         {
-                                            handler.handle(exported.get());
+                                            log.error(title + " : Could not create export directory " + exportPath);
+                                            handler.handle(new ExportResourceResult(exported.get(), exportPath));
                                         }
                                     }
                                 });
@@ -149,7 +151,7 @@ public class CalendarRepositoryEvents extends MongoDbRepositoryEvents {
                             else
                             {
                                 log.error(title + " : Could not proceed query " + query2.encode(), event2.body().getString("message"));
-                                handler.handle(exported.get());
+                                handler.handle(new ExportResourceResult(exported.get(), exportPath));
                             }
                         }
                     });
@@ -157,7 +159,7 @@ public class CalendarRepositoryEvents extends MongoDbRepositoryEvents {
                 else
                 {
                     log.error(title + " : Could not proceed query " + query.encode(), event.body().getString("message"));
-                    handler.handle(exported.get());
+                    handler.handle(new ExportResourceResult(exported.get(), exportPath));
                 }
             }
         });

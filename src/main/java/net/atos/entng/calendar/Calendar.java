@@ -23,6 +23,7 @@ import fr.wseduc.cron.CronTrigger;
 import fr.wseduc.mongodb.MongoDb;
 import fr.wseduc.webutils.Server;
 import io.vertx.core.DeploymentOptions;
+import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.client.WebClientOptions;
@@ -50,6 +51,8 @@ import org.entcore.common.sql.Sql;
 import org.entcore.common.storage.Storage;
 import org.entcore.common.storage.StorageFactory;
 
+import java.text.ParseException;
+
 
 public class Calendar extends BaseServer {
     public static final String CALENDAR_NAME = "CALENDAR";
@@ -65,12 +68,20 @@ public class Calendar extends BaseServer {
     
     @Override
     public void start(Promise<Void> startPromise) throws Exception {
-        super.start(startPromise);
+        final Promise<Void> promise = Promise.promise();
+        super.start(promise);
+        promise.future()
+		        .compose(init -> StorageFactory.build(vertx, config))
+                .compose(storageFactory ->initCalendar(storageFactory))
+		        .onComplete(startPromise);
+    }
+
+    public Future<Void> initCalendar(StorageFactory storageFactory){
         ServiceFactory serviceFactory = new ServiceFactory(vertx, Neo4j.getInstance(), Sql.getInstance(), MongoDb.getInstance(), initWebclient());
         CrudService eventService = new EventServiceMongoImpl(CALENDAR_EVENT_COLLECTION, vertx.eventBus(), serviceFactory);
 
         final MongoDbConf conf = MongoDbConf.getInstance();
-        final Storage storage = new StorageFactory(vertx, config).getStorage();
+        final Storage storage = storageFactory.getStorage();
         conf.setCollection(CALENDAR_COLLECTION);
         conf.setResourceIdLabel("id");
         
@@ -98,11 +109,15 @@ public class Calendar extends BaseServer {
 
         if(Boolean.TRUE.equals(config.getBoolean(Field.ENABLEREMINDER, false))) {
             ReminderCalendarEventCron reminderCalendarEventCron = new ReminderCalendarEventCron(serviceFactory.reminderService(), vertx.eventBus());
-            new CronTrigger(vertx, config.getString(Field.CALENDARREMINDERCRON)).schedule(reminderCalendarEventCron);
-            log.info("Calendar Reminder Cron enabled");
+	        try {
+		        new CronTrigger(vertx, config.getString(Field.CALENDARREMINDERCRON)).schedule(reminderCalendarEventCron);
+	        } catch (ParseException e) {
+		        return Future.failedFuture(e.getMessage());
+	        }
+	        log.info("Calendar Reminder Cron enabled");
         }
 
-        startPromise.tryComplete();
+        return Future.succeededFuture();
     }
 
     private WebClient initWebclient() {
