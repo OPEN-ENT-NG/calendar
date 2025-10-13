@@ -7,7 +7,7 @@
     <parent>
         <groupId>io.edifice</groupId>
         <artifactId>app-parent</artifactId>
-        <version>1.0.1</version>
+        <version>1.0.2</version>
     </parent>
 
     <groupId>net.atos</groupId>
@@ -39,6 +39,7 @@
         <web-utils.version>3.1-develop-b2school-SNAPSHOT</web-utils.version>
         <mongodb-helper.version>4.0-develop-b2school-SNAPSHOT</mongodb-helper.version>
         <vertxCronTimerVersion>3.0-develop-b2school-SNAPSHOT</vertxCronTimerVersion>
+        <shade.minimizeJar>false</shade.minimizeJar>
     </properties>
 
     <dependencies>
