@@ -349,15 +349,17 @@ public class EventHelper extends MongoDbControllerHelper {
             final String endMomentOfIndex = modification.getString("endMoment");
             final ZonedDateTime initialStart = Instant.parse(startMomentOfIndex).atZone(UTC_ZONE);
             final ZonedDateTime initialEnd = Instant.parse(endMomentOfIndex).atZone(UTC_ZONE);
+            final long durationInMillis = Duration.between(initialStart, initialEnd).toMillis();
+
             addAggregationOperationToSetHourForLocalDateTime("startMoment", initialStart, project);
-            addAggregationOperationToSetHourForLocalDateTime("endMoment", initialEnd, project);
+            addAggregationOperationToSetEndMomentWithDuration("endMoment", initialStart, durationInMillis, project);
 
             final LocalDateTime initialNotifStart = LocalDateTime.parse(modification.getString("notifStartMoment"), DEFAULT_LOCAL_DATE_TIME_FORMATTER);
             final LocalDateTime initialNotifEnd = LocalDateTime.parse(modification.getString("notifEndMoment"), DEFAULT_LOCAL_DATE_TIME_FORMATTER);
+            final long notifDurationInMinutes = Duration.between(initialNotifStart, initialNotifEnd).toMinutes();
 
             addAggregationOperationToSetHourForUTCDateTime("notifStartMoment", initialNotifStart, project);
-
-            addAggregationOperationToSetHourForUTCDateTime("notifEndMoment", initialNotifEnd, project);
+            addAggregationOperationToSetEndNotifMomentWithDuration("notifEndMoment", initialNotifStart, notifDurationInMinutes, project);
         }
         project.put("modified", new JsonObject().put("$toDate", System.currentTimeMillis()));
         return pipelines;
@@ -405,6 +407,25 @@ public class EventHelper extends MongoDbControllerHelper {
               .put("day", new JsonObject().put("$dayOfMonth", new JsonObject().put("$dateFromString", new JsonObject().put("dateString", "$" +fieldName))))
               .put("hour", new JsonObject().put("$literal", newDate.getHour()))
               .put("minute", new JsonObject().put("$literal", newDate.getMinute()))))));
+    }
+
+    private void addAggregationOperationToSetEndMomentWithDuration(final String fieldName, final ZonedDateTime newStartDate, final long durationInMillis, JsonObject aggregate) {
+        aggregate.put(fieldName, new JsonObject().put("$dateToString", new JsonObject()
+          .put("format", "%Y-%m-%dT%H:%M:%S.%LZ")
+          .put("date", new JsonObject().put("$add", new JsonArray()
+            .add(new JsonObject().put("$dateFromString", new JsonObject().put("dateString", "$startMoment")))
+            .add(new JsonObject().put("$literal", durationInMillis))))));
+    }
+
+    private void addAggregationOperationToSetEndNotifMomentWithDuration(final String fieldName, final LocalDateTime newStartDate, final long durationInMinutes, JsonObject aggregate) {
+        final long durationInMillis = durationInMinutes * 60000;
+        aggregate.put(fieldName, new JsonObject().put("$dateToString", new JsonObject()
+          .put("format", "%d/%m/%Y %H:%M")
+          .put("date", new JsonObject().put("$add", new JsonArray()
+            .add(new JsonObject().put("$dateFromString", new JsonObject()
+                .put("dateString", "$notifStartMoment")
+                .put("format", "%d/%m/%Y %H:%M")))
+            .add(new JsonObject().put("$literal", durationInMillis))))));
     }
 
     @Override
