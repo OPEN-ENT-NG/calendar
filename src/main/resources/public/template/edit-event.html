@@ -198,7 +198,7 @@
                             </div>
                             <div class="row" 
                                  ng-if="calendarEvent.shared && calendarEvent.shared.length > 0">
-                                 [[lang.translate("calendar.recurrence.impossible")]]
+                                 <i18n>calendar.recurrence.impossible</i18n>
                             </div>
                             <div class="content flex-row" ng-if="!calendarEvent.parentId && calendarEvent.isRecurrent">
                                 <div class="row">
