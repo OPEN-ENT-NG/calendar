@@ -12,7 +12,7 @@
 
     <groupId>net.atos</groupId>
     <artifactId>calendar</artifactId>
-    <version>4.1-SNAPSHOT</version>
+    <version>4.1.11</version>
 
     <scm>
         <connection>scm:git:https://github.com/OPEN-ENT-NG/calendar.git</connection>
@@ -29,16 +29,16 @@
     </repositories>
 
     <properties>
-        <entCoreVersion>6.9-SNAPSHOT</entCoreVersion>
+        <entCoreVersion>6.9.3</entCoreVersion>
         <junitVersion>4.10</junitVersion>
         <mockitoVersion>[2.0,3.0)</mockitoVersion>
         <powerMockVersion>2.0.2</powerMockVersion>
         <ical4jVersion>3.2.10</ical4jVersion>
         <toolsVersion>2.0.0-final</toolsVersion>
         <reflectionsVersion>0.10.2</reflectionsVersion>
-        <web-utils.version>3.2-SNAPSHOT</web-utils.version>
-        <mongodb-helper.version>3.0-SNAPSHOT</mongodb-helper.version>
-        <vertxCronTimerVersion>3.0-SNAPSHOT</vertxCronTimerVersion>
+        <web-utils.version>3.2.0</web-utils.version>
+        <mongodb-helper.version>3.0.3</mongodb-helper.version>
+        <vertxCronTimerVersion>3.0.0</vertxCronTimerVersion>
         <shade.minimizeJar>false</shade.minimizeJar>
     </properties>
 
