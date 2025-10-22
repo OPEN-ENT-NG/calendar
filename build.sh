@@ -172,6 +172,9 @@ do
     buildNode)
       buildNode
       ;;
+    buildMaven)
+      install
+      ;;
     install)
       buildNode && install
       ;;
