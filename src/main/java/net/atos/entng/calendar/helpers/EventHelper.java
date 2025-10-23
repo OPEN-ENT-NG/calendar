@@ -159,7 +159,7 @@ public class EventHelper extends MongoDbControllerHelper {
                                                             JsonObject eventId = event.right().getValue();
                                                             final JsonObject message = new JsonObject();
                                                             message.put(Field._ID, calendarId);
-                                                            message.put(Field.EVENTID, eventId.getString("_id"));
+                                                            message.put(Field.EVENTID_CAMEL, eventId.getString("_id"));
                                                             message.put(Field.START_DATE, (String) null);
                                                             message.put(Field.END_DATE, (String) null);
                                                             message.put(Field.SENDNOTIF, object.getBoolean(Field.SENDNOTIF, null));
@@ -557,15 +557,15 @@ public class EventHelper extends MongoDbControllerHelper {
      */
     private void notifyEventCreatedOrUpdated(final HttpServerRequest request, final UserInfos user, final JsonObject message, final boolean isCreated) {
 
-        final String calendarId = message.getString("id", null);
-        final String eventId = message.getString("eventId", null);
-        final String startDate = message.getString("start_date", null);
-        final String endDate = message.getString("end_date", null);
+        final String calendarId = message.getString(Field._ID, null);
+        final String eventId = message.getString(Field.EVENTID_CAMEL, null);
+        final String startDate = message.getString(Field.START_DATE, null);
+        final String endDate = message.getString(Field.END_DATE, null);
 
         final String eventType = isCreated ? EVENT_CREATED_EVENT_TYPE : EVENT_UPDATED_EVENT_TYPE;
 
         if (calendarId == null || eventId == null /*|| startDate == null || endDate == null*/) {
-            log.error("Could not get eventId, start_date or end_date from response. Unable to send timeline " + eventType + " notification.");
+            log.error("[Calendar@EventHelper::notifyEventCreatedOrUpdated] Could not get eventId, start_date or end_date from response. Unable to send timeline " + eventType + " notification.");
             return;
         }
 
