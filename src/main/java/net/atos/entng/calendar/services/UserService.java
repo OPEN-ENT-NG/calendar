@@ -27,6 +27,7 @@ import org.entcore.common.user.UserInfos;
 import java.util.List;
 
 public interface UserService {
+    Future<List<String>> getIdsFromBookMarks(List<String> bookmarksIds);
 
     /**
      * fetch users from shared data

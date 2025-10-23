@@ -141,6 +141,8 @@ public class Field {
 
     //Miscellaneous
     public static final String ALL = "all";
+    public static final String BOOKMARK_IDS = "bookmarksIds";
+    public static final String USER_OR_GROUP_IDS = "userOrGroupIds";
 
     //Actions
     public static final String ACTION = "action";
