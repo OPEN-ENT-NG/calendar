@@ -903,20 +903,29 @@ public class EventHelper extends MongoDbControllerHelper {
     public void addEventToUsersCalendar(String eventId, JsonObject shared, UserInfos user, String host, String lang) {
         List<String> sharedIds = new ArrayList<>(shared.getJsonObject("users").fieldNames());
         sharedIds.addAll(shared.getJsonObject("groups").fieldNames());
+        List<String> bookmarkIds = new ArrayList<>(shared.getJsonObject("bookmarks").fieldNames());
 
-        Future<List<User>> userIdsFuture = userService.fetchUser(sharedIds, user, false);             // from payload API sent us
-        Future<JsonObject> calendarsEventFuture = fetchCalendarsAndEventById(eventId);         // calendar Event and all calendars
+        userService.getIdsFromBookMarks(bookmarkIds)
+            .onSuccess(userOrGroupIdsFromBookmarks -> {
+                sharedIds.addAll(userOrGroupIdsFromBookmarks);
+                Future<List<User>> userIdsFuture = userService.fetchUser(sharedIds, user, false); // from payload API sent us
+                Future<JsonObject> calendarsEventFuture = fetchCalendarsAndEventById(eventId); // calendar Event and all calendars
 
-        CompositeFuture.all(userIdsFuture, calendarsEventFuture)
-                .compose(ar -> retrieveAllUsersFromCalendarsEvent(user, calendarsEventFuture))
-                .compose(shareIdsFromCalendar -> proceedOnUsersFetched(eventId, userIdsFuture.result(), calendarsEventFuture.result(),
-                        shareIdsFromCalendar, host, lang, user))
-                .onFailure(err -> {
-                    String message = String.format("[Calendar@%s::addEventToUsersCalendar] An error has occured" +
-                                    " during fetching userIds or calendar event, see previous logs: %s",
-                            this.getClass().getSimpleName(), err.getMessage());
-                    log.error(message, err.getMessage());
-                });
+                CompositeFuture.all(userIdsFuture, calendarsEventFuture)
+                        .compose(ar -> retrieveAllUsersFromCalendarsEvent(user, calendarsEventFuture))
+                        .compose(shareIdsFromCalendar -> proceedOnUsersFetched(eventId, userIdsFuture.result(), calendarsEventFuture.result(),
+                                shareIdsFromCalendar, host, lang, user))
+                        .onFailure(err -> {
+                            String message = String.format("[Calendar@%s::addEventToUsersCalendar] An error has occured" +
+                                            " during fetching userIds or calendar event, see previous logs: %s",
+                                    this.getClass().getSimpleName(), err.getMessage());
+                            log.error(message, err.getMessage());
+                        });
+            })
+            .onFailure(err -> {
+                String errorMessage = "Failed to get user/group ids from bookmarkIds : ";
+                log.error("[Calendar@EventHelper::addEventToUsersCalendar] " + errorMessage + err.getMessage());
+            });
     }
 
     /**

@@ -1,6 +1,5 @@
 package net.atos.entng.calendar.services.impl;
 
-import fr.wseduc.webutils.collections.Joiner;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.core.json.JsonObject;
@@ -15,6 +14,10 @@ import org.entcore.common.neo4j.Neo4jResult;
 import org.entcore.common.user.UserInfos;
 
 import java.util.List;
+import java.util.stream.Collectors;
+
+import static net.atos.entng.calendar.core.constants.Field.BOOKMARK_IDS;
+import static net.atos.entng.calendar.core.constants.Field.USER_OR_GROUP_IDS;
 
 public class DefaultUserServiceImpl implements UserService {
 
@@ -23,6 +26,33 @@ public class DefaultUserServiceImpl implements UserService {
 
     public DefaultUserServiceImpl(Neo4j neo4j) {
         this.neo4j = neo4j;
+    }
+
+    public Future<List<String>> getIdsFromBookMarks(List<String> bookmarksIds) {
+        Promise<List<String>> promise = Promise.promise();
+
+        JsonObject params = new JsonObject().put(BOOKMARK_IDS, bookmarksIds);
+
+        String query = "WITH {bookmarksIds} AS shareBookmarkIds " +
+                "UNWIND shareBookmarkIds AS shareBookmarkId " +
+                "MATCH (u:User)-[:HAS_SB]->(sb:ShareBookmark) " +
+                "UNWIND TAIL(sb[shareBookmarkId]) as vid MATCH (v:Visible {id : vid}) " +
+                "RETURN COLLECT(DISTINCT v.id) as userOrGroupIds;";
+
+        neo4j.execute(query, params, Neo4jResult.validUniqueResultHandler(res -> {
+            if (res.isLeft()) {
+                String errorMessage = "[Calendar@%s::getIdsFromBookMarks] Failed to get user/group ids from bookmark ids : %s";
+                log.error(String.format(errorMessage, this.getClass().getSimpleName(), res.left().getValue()));
+                promise.fail(res.left().getValue());
+            } else {
+                promise.complete(res.right().getValue()
+                        .getJsonArray(USER_OR_GROUP_IDS)
+                        .stream().map(String.class::cast)
+                        .collect(Collectors.toList()));
+            }
+        }));
+
+        return promise.future();
     }
 
     /**
