@@ -1,40 +1,44 @@
-import {$, _, moment, ng, template, idiom as lang, notify, toasts, angular, Document} from "entcore";
+import { IScope } from "angular";
+import { AxiosResponse } from "axios";
+import { $, _, angular, Document, idiom as lang, moment, ng, notify, template, toasts } from "entcore";
+import { Moment } from "moment";
+import { Subject } from "rxjs";
+import { FORMAT } from "../core/const/date-format";
+import { RBS_SNIPLET } from "../core/const/rbs-sniplet.const";
+import { DAY_OF_WEEK } from "../core/enum/dayOfWeek.enum";
+import { PERIODE_TYPE } from "../core/enum/period-type.enum";
+import { RBS_EVENTER } from "../core/enum/rbs/rbs-eventer.enum";
 import {
     Calendar,
-    Calendars,
     CalendarEvent,
-    CalendarEvents, CalendarEventRecurrence, Preference, CalendarEventReminder,
+    CalendarEventRecurrence,
+    CalendarEventReminder,
+    CalendarEvents,
+    Calendars,
+    Preference,
+    RbsEmitter,
 } from "../model";
 import {
-    defaultColor,
-    periods,
-    timeConfig,
-    recurrence,
-    LANG_CALENDAR,
-    rights,
+    ActionButtonType,
     ACTIONS,
-    ActionButtonType, minStartMomentDate, maxEndMomentDate
+    defaultColor,
+    LANG_CALENDAR,
+    maxEndMomentDate,
+    minStartMomentDate,
+    periods,
+    recurrence,
+    rights,
+    timeConfig
 } from "../model/constantes";
 import {
     makerFormatTimeInput,
-    utcTime,
-    safeApply
+    safeApply,
+    utcTime
 } from "../model/Utils";
-import {AxiosResponse} from "axios";
-import {DateUtils} from "../utils/date.utils";
-import {Subject} from "rxjs";
-import {Moment} from "moment";
-import {FORMAT} from "../core/const/date-format";
-import {DAY_OF_WEEK} from "../core/enum/dayOfWeek.enum";
-import {attachmentService, calendarEventService} from "../services";
-import {PERIODE_TYPE} from "../core/enum/period-type.enum";
-import {RbsEmitter} from "../model";
-import {IScope} from "angular";
-import {RBS_EVENTER} from "../core/enum/rbs/rbs-eventer.enum";
-import {RBS_SNIPLET} from "../core/const/rbs-sniplet.const";
-import {externalCalendarUtils} from "../utils/externalCalendarUtils";
-import {calendarService} from "../services";
-import {reminderService} from "../services/reminder.service";
+import { attachmentService, calendarService } from "../services";
+import { reminderService } from "../services/reminder.service";
+import { DateUtils } from "../utils/date.utils";
+import { externalCalendarUtils } from "../utils/externalCalendarUtils";
 
 declare var ENABLE_RBS: boolean;
 declare var ENABLE_ZIMBRA: boolean;
@@ -58,6 +62,7 @@ export const calendarController = ng.controller('CalendarController',
             $scope.display.list = false;
             $scope.display.calendar = false;
             $scope.display.editEventRight = false;
+            $scope.display.isSavingEvent = false;
             $scope.model = model;
             $scope.me = model.me;
             $scope.calendarEvent = new CalendarEvent();
@@ -1415,8 +1420,8 @@ export const calendarController = ng.controller('CalendarController',
             };
 
 
-            $scope.saveCalendarEventEdit = async (calendarEvent = $scope.calendarEvent, event ?, shareOption ?: boolean) => {
-
+            $scope.saveCalendarEventEdit = async (calendarEvent = $scope.calendarEvent, event?, shareOption?: boolean) => {
+                
                 const recurrenceItemsMinimumLength: number = 3;
                 /** indicates if the event is being created, in which case its id does not exist yet*/
                 const isEventCreated: boolean = !calendarEvent._id;
@@ -1425,7 +1430,8 @@ export const calendarController = ng.controller('CalendarController',
                     /**
                      * Resets elements before closing event saving
                      */
-                    function endRecurrenceSave() : void {
+                    function endRecurrenceSave(): void {
+                        $scope.display.isSavingEvent = false;
                         calendarEvent.noMoreRecurrent = calendarEvent.noMoreRecurrent && false;
                         calendarEvent.noMoreRecurrence = calendarEvent.noMoreRecurrence && false;
                         calendarEvent.detailToRecurrence = calendarEvent.detailToRecurrence && false;
@@ -1444,6 +1450,8 @@ export const calendarController = ng.controller('CalendarController',
                             }
                         }
                     }
+
+                    $scope.display.isSavingEvent = true;
 
                     if (!$scope.calendarEvent.isRecurrent || calendarEvent._id || items.length >= recurrenceItemsMinimumLength
                         || !$scope.isDateValid() || !$scope.areRecurrenceAndEventLengthsCompatible()) {
