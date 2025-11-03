@@ -63,6 +63,7 @@ export const calendarController = ng.controller('CalendarController',
             $scope.display.calendar = false;
             $scope.display.editEventRight = false;
             $scope.display.isSavingEvent = false;
+            $scope.display.isCreatingEvent = false;
             $scope.model = model;
             $scope.me = model.me;
             $scope.calendarEvent = new CalendarEvent();
@@ -1198,6 +1199,7 @@ export const calendarController = ng.controller('CalendarController',
          * @param isCalendar allows to use the lightbox from the calendar directive
          */
         $scope.createCalendarEvent = (newItem?, isCalendar?: boolean) => {
+            $scope.display.isCreatingEvent = true;
             $scope.calendarAsContribRight = new Array<Calendar>();
             $scope.selectedCalendarInEvent = new Array<Calendar>();
             $scope.calendarEvent = new CalendarEvent();
@@ -1246,6 +1248,8 @@ export const calendarController = ng.controller('CalendarController',
             $scope.calendarEvent.showDetails = true;
             $scope.initEventDates($scope.calendarEvent.startMoment, $scope.calendarEvent.endMoment);
             $scope.showCalendarEventTimePicker = true;
+            $scope.display.isCreatingEvent = false;
+            safeApply($scope);
         };
 
         //unique

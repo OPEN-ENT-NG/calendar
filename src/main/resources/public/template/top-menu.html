@@ -10,7 +10,10 @@
 <div class="nine cell" ng-if="!isEmpty()">
   <div class="row">
     <div class="right-magnet">
-      <button ng-if="hasContribRight()" ng-click="createCalendarEvent()"><i18n>calendar.new.event</i18n></button>
+      <button ng-if="hasContribRight()" ng-click="createCalendarEvent()" ng-disabled="display.isCreatingEvent">
+        <i class="loading" ng-if="display.isCreatingEvent"></i>
+        <i18n>calendar.new.event</i18n>
+      </button>
     </div>
     <div class="right-magnet">
       <button workflow="calendar.admin" ng-click="newCalendar()"><i18n>calendar.new</i18n></button>
