@@ -410,21 +410,35 @@ public class EventHelper extends MongoDbControllerHelper {
     }
 
     private void addAggregationOperationToSetEndMomentWithDuration(final String fieldName, final ZonedDateTime newStartDate, final long durationInMillis, JsonObject aggregate) {
+        // We need to recalculate the new startMoment here because in MongoDB aggregation,
+        // we cannot reference a field that was just calculated in the same $project stage
         aggregate.put(fieldName, new JsonObject().put("$dateToString", new JsonObject()
           .put("format", "%Y-%m-%dT%H:%M:%S.%LZ")
           .put("date", new JsonObject().put("$add", new JsonArray()
-            .add(new JsonObject().put("$dateFromString", new JsonObject().put("dateString", "$startMoment")))
+            .add(new JsonObject()
+              .put("$dateFromParts", new JsonObject()
+                .put("year", new JsonObject().put("$year", new JsonObject().put("$dateFromString", new JsonObject().put("dateString", "$startMoment"))))
+                .put("month", new JsonObject().put("$month", new JsonObject().put("$dateFromString", new JsonObject().put("dateString", "$startMoment"))))
+                .put("day", new JsonObject().put("$dayOfMonth", new JsonObject().put("$dateFromString", new JsonObject().put("dateString", "$startMoment"))))
+                .put("hour", new JsonObject().put("$literal", newStartDate.getHour()))
+                .put("minute", new JsonObject().put("$literal", newStartDate.getMinute()))))
             .add(new JsonObject().put("$literal", durationInMillis))))));
     }
 
     private void addAggregationOperationToSetEndNotifMomentWithDuration(final String fieldName, final LocalDateTime newStartDate, final long durationInMinutes, JsonObject aggregate) {
         final long durationInMillis = durationInMinutes * 60000;
+        // We need to recalculate the new notifStartMoment here because in MongoDB aggregation,
+        // we cannot reference a field that was just calculated in the same $project stage
         aggregate.put(fieldName, new JsonObject().put("$dateToString", new JsonObject()
           .put("format", "%d/%m/%Y %H:%M")
           .put("date", new JsonObject().put("$add", new JsonArray()
-            .add(new JsonObject().put("$dateFromString", new JsonObject()
-                .put("dateString", "$notifStartMoment")
-                .put("format", "%d/%m/%Y %H:%M")))
+            .add(new JsonObject()
+              .put("$dateFromParts", new JsonObject()
+                .put("year", new JsonObject().put("$year", new JsonObject().put("$dateFromString", new JsonObject().put("dateString", "$notifStartMoment").put("format", "%d/%m/%Y %H:%M"))))
+                .put("month", new JsonObject().put("$month", new JsonObject().put("$dateFromString", new JsonObject().put("dateString", "$notifStartMoment").put("format", "%d/%m/%Y %H:%M"))))
+                .put("day", new JsonObject().put("$dayOfMonth", new JsonObject().put("$dateFromString", new JsonObject().put("dateString", "$notifStartMoment").put("format", "%d/%m/%Y %H:%M"))))
+                .put("hour", new JsonObject().put("$literal", newStartDate.getHour()))
+                .put("minute", new JsonObject().put("$literal", newStartDate.getMinute()))))
             .add(new JsonObject().put("$literal", durationInMillis))))));
     }
 
