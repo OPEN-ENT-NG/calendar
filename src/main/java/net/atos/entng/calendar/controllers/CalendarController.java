@@ -197,7 +197,23 @@ public class CalendarController extends MongoDbControllerHelper {
         calendarService.isDefaultCalendar(calendarId)
                 .onSuccess(res -> {
                     if (Boolean.FALSE.equals(res)) {
-                        delete(request);
+                        // Delete the calendar first
+                        calendarService.delete(calendarId)
+                                .onSuccess(deleteRes -> {
+                                    // Then clean up events (remove calendar ID from events, delete orphaned events)
+                                    eventServiceMongo.deleteByCalendarId(calendarId)
+                                            .onSuccess(eventDeleteRes -> {
+                                                noContent(request);
+                                            })
+                                            .onFailure(eventDeleteErr -> {
+                                                log.error("[CalendarController@deleteCalendar] Error cleaning up events: " + eventDeleteErr.getMessage());
+                                                renderError(request);
+                                            });
+                                })
+                                .onFailure(deleteErr -> {
+                                    log.error("[CalendarController@deleteCalendar] Error deleting calendar: " + deleteErr.getMessage());
+                                    renderError(request);
+                                });
                     } else {
                         forbidden(request, I18n.getInstance().translate("cannot.delete.default.calendar", getHost(request), I18n.acceptLanguage(request)));
                     }
