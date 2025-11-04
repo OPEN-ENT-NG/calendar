@@ -324,6 +324,8 @@ public class CalendarRepositoryEvents extends MongoDbRepositoryEvents {
 
     /**
      * Delete events by calendar identifier
+     * Updated to handle multi-calendar events: removes calendar IDs from events
+     * and only deletes events that become orphaned (empty calendar array)
      * @param calendarIds calendars identifiers
      */
     private void cleanEvents(final String[] calendarIds) {
