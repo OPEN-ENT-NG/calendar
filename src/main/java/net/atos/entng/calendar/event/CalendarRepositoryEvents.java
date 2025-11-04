@@ -322,21 +322,49 @@ public class CalendarRepositoryEvents extends MongoDbRepositoryEvents {
 
     /**
      * Delete events by calendar identifier
+     * Updated to handle multi-calendar events: removes calendar IDs from events
+     * and only deletes events that become orphaned (empty calendar array)
      * @param calendarIds calendars identifiers
      */
     private void cleanEvents(final String[] calendarIds) {
-        JsonObject matcher = MongoQueryBuilder.build(in("calendar",calendarIds));
+        // Step 1: Remove deleted calendar IDs from events' calendar arrays
+        JsonObject matcher = MongoQueryBuilder.build(in("calendar", calendarIds));
+        JsonArray calendarIdsArray = new JsonArray();
+        for (String calendarId : calendarIds) {
+            calendarIdsArray.add(calendarId);
+        }
 
-        mongo.delete(Calendar.CALENDAR_EVENT_COLLECTION, matcher, MongoDbResult.validActionResultHandler(new Handler<Either<String, JsonObject>>() {
-            @Override
-            public void handle(Either<String, JsonObject> event) {
-                if (event.isRight()) {
-                    log.info("[CalendarRepositoryEvents][cleanEvents] The events created by users are deleted");
-                } else {
-                    log.error("[CalendarRepositoryEvents][cleanEvents] Error deleting the events created by users. Message : " + event.left().getValue());
+        JsonObject update = new JsonObject()
+            .put("$pullAll", new JsonObject()
+                .put("calendar", calendarIdsArray));
+
+        mongo.update(Calendar.CALENDAR_EVENT_COLLECTION, matcher, update, false, true,
+            MongoDbResult.validActionResultHandler(new Handler<Either<String, JsonObject>>() {
+                @Override
+                public void handle(Either<String, JsonObject> updateResult) {
+                    if (updateResult.isRight()) {
+                        log.info("[CalendarRepositoryEvents][cleanEvents] Calendar IDs removed from events");
+
+                        // Step 2: Delete events with empty calendar arrays (orphaned events)
+                        JsonObject emptyCalendarMatcher = new JsonObject()
+                            .put("calendar", new JsonObject().put("$size", 0));
+
+                        mongo.delete(Calendar.CALENDAR_EVENT_COLLECTION, emptyCalendarMatcher,
+                            MongoDbResult.validActionResultHandler(new Handler<Either<String, JsonObject>>() {
+                                @Override
+                                public void handle(Either<String, JsonObject> deleteResult) {
+                                    if (deleteResult.isRight()) {
+                                        log.info("[CalendarRepositoryEvents][cleanEvents] Orphaned events deleted successfully");
+                                    } else {
+                                        log.error("[CalendarRepositoryEvents][cleanEvents] Error deleting orphaned events: " + deleteResult.left().getValue());
+                                    }
+                                }
+                            }));
+                    } else {
+                        log.error("[CalendarRepositoryEvents][cleanEvents] Error removing calendar IDs from events: " + updateResult.left().getValue());
+                    }
                 }
-            }
-        }));
+            }));
     }
 
     /**

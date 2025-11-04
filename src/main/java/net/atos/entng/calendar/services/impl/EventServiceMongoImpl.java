@@ -354,16 +354,36 @@ public class EventServiceMongoImpl extends MongoDbCrudService implements EventSe
     public Future<Void> deleteByCalendarId(String calendarId) {
         Promise<Void> promise = Promise.promise();
 
+        // Step 1: Remove calendar ID from events' calendar arrays
         Bson query = eq(Field.CALENDAR, calendarId);
+        JsonObject update = new JsonObject()
+            .put("$pull", new JsonObject()
+                .put(Field.CALENDAR, calendarId));
 
-        mongo.delete(this.collection, MongoQueryBuilder.build(query), validResultHandler(event -> {
-            if (event.isLeft()) {
-                String errMessage = String.format("[Calendar@%s::deleteByCalendarId] An error has occurred while deleting events by calendar id: %s",
-                        this.getClass().getSimpleName(), event.left().getValue());
+        mongo.update(this.collection, MongoQueryBuilder.build(query), update, false, true, validResultHandler(updateEvent -> {
+            if (updateEvent.isLeft()) {
+                String errMessage = String.format("[Calendar@%s::deleteByCalendarId] An error has occurred while removing calendar ID from events: %s",
+                        this.getClass().getSimpleName(), updateEvent.left().getValue());
                 log.error(errMessage);
-                promise.fail(event.left().getValue());
+                promise.fail(updateEvent.left().getValue());
             } else {
-                promise.complete();
+                log.info(String.format("[Calendar@%s::deleteByCalendarId] Calendar ID removed from events", this.getClass().getSimpleName()));
+
+                // Step 2: Delete events with empty calendar arrays (orphaned events)
+                JsonObject emptyCalendarQuery = new JsonObject()
+                    .put(Field.CALENDAR, new JsonObject().put("$size", 0));
+
+                mongo.delete(this.collection, emptyCalendarQuery, validResultHandler(deleteEvent -> {
+                    if (deleteEvent.isLeft()) {
+                        String errMessage = String.format("[Calendar@%s::deleteByCalendarId] An error has occurred while deleting orphaned events: %s",
+                                this.getClass().getSimpleName(), deleteEvent.left().getValue());
+                        log.error(errMessage);
+                        promise.fail(deleteEvent.left().getValue());
+                    } else {
+                        log.info(String.format("[Calendar@%s::deleteByCalendarId] Orphaned events deleted successfully", this.getClass().getSimpleName()));
+                        promise.complete();
+                    }
+                }));
             }
         }));
         return promise.future();
