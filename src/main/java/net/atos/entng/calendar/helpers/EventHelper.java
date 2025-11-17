@@ -213,25 +213,23 @@ public class EventHelper extends MongoDbControllerHelper {
                                         remindersObject.set(object.getJsonObject(Field.REMINDERS));
                                         object.remove(Field.REMINDERS);
                                     }
-                                    crudService.update(eventId, object, user, new Handler<Either<String, JsonObject>>() {
-                                        public void handle(Either<String, JsonObject> event) {
-                                            if (event.isRight()) {
-                                                final JsonObject message = new JsonObject();
-                                                message.put("id", calendarId);
-                                                message.put("eventId", eventId);
-                                                message.put("start_date", (String) null);
-                                                message.put("end_date", (String) null);
-                                                message.put("sendNotif", object.containsKey("sendNotif") ? object.getBoolean("sendNotif") : null);
-                                                notifyEventCreatedOrUpdated(request, user, message, false);
-                                                if (!remindersObject.get().equals(new JsonObject())) {
-                                                    reminderHelper.remindersEventFormActions(remindersObject.get().containsKey(Field._ID)
-                                                            ? Actions.UPDATE_REMINDER : Actions.CREATE_REMINDER,
-                                                            eventId, user, remindersObject.get());
-                                                }
-                                                renderJson(request, event.right().getValue(), 200);
-                                            } else if (event.isLeft()) {
-                                                log.error("Error when getting notification informations.");
+                                    crudService.update(eventId, object, user, event -> {
+                                        if (event.isRight()) {
+                                            final JsonObject message = new JsonObject();
+                                            message.put("id", calendarId);
+                                            message.put("eventId", eventId);
+                                            message.put("start_date", (String) null);
+                                            message.put("end_date", (String) null);
+                                            message.put("sendNotif", true);
+                                            notifyEventCreatedOrUpdated(request, user, message, false);
+                                            if (!remindersObject.get().equals(new JsonObject())) {
+                                                reminderHelper.remindersEventFormActions(remindersObject.get().containsKey(Field._ID)
+                                                        ? Actions.UPDATE_REMINDER : Actions.CREATE_REMINDER,
+                                                        eventId, user, remindersObject.get());
                                             }
+                                            renderJson(request, event.right().getValue(), 200);
+                                        } else if (event.isLeft()) {
+                                            log.error("Error when getting notification informations.");
                                         }
                                     });
                                 } else {
