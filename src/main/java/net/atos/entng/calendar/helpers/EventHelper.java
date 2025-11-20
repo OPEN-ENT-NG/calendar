@@ -555,7 +555,7 @@ public class EventHelper extends MongoDbControllerHelper {
      */
     private void notifyEventCreatedOrUpdated(final HttpServerRequest request, final UserInfos user, final JsonObject message, final boolean isCreated) {
 
-        final String calendarId = message.getString(Field._ID, null);
+        final String calendarId = message.getString(Field._ID, message.getString(Field.ID, null));
         final String eventId = message.getString(Field.EVENTID_CAMEL, null);
         final String startDate = message.getString(Field.START_DATE, null);
         final String endDate = message.getString(Field.END_DATE, null);
