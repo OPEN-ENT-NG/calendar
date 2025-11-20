@@ -579,7 +579,7 @@ public class EventHelper extends MongoDbControllerHelper {
                             && Boolean.FALSE.equals(calendarEvent.getJsonArray("shared").isEmpty());
                     if (!calendar.isEmpty()) {
                         for (Object id : calendar) {
-                            if (message.getBoolean("sendNotif") == null || Boolean.FALSE.equals(isCreated)) {
+                            if (message.getBoolean("sendNotif") != Boolean.FALSE  || Boolean.FALSE.equals(isCreated)) {
                                 notifyUsersSharing(request, user, id.toString(), calendarEvent, isCreated, restrictedEvent);
                             }
                         }
