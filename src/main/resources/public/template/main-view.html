@@ -92,7 +92,7 @@
 
 <!-- Lightbox : Share event -->
 <div ng-if="display.showPanelEvent" class="absolute-magnet">
-    <lightbox show="display.showPanelEvent" on-close="display.showPanelEvent = false;">
+    <lightbox show="display.showPanelEvent" on-close="finishShareEvent();">
         <share-panel app-prefix="'calendar/calendarevent'" resources="calendarEvent" auto-close="true"></share-panel>
     </lightbox>
 </div>
