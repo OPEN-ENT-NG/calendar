@@ -1154,6 +1154,12 @@ export const calendarController = ng.controller('CalendarController',
                 event.stopPropagation();
             };
 
+            $scope.finishShareEvent = function() {
+                $scope.display.showPanelEvent = false;
+                // COCO-4754, refresh events after sharing event
+                $scope.refreshCalendarEvents();
+            };
+
             $scope.saveAndShareEvent = async function (calendarEvent, event) {
                 try {
                     $scope.sendNotif = false;
