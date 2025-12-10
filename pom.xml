@@ -36,7 +36,7 @@
         <ical4jVersion>3.2.10</ical4jVersion>
         <toolsVersion>2.0.0-final</toolsVersion>
         <reflectionsVersion>0.10.2</reflectionsVersion>
-        <mongodb-helper.version>3.0-SNAPSHOT</mongodb-helper.version>
+        <mongodb-helper.version>3.0-zookeeper-SNAPSHOT</mongodb-helper.version>
         <vertxCronTimerVersion>3.0-SNAPSHOT</vertxCronTimerVersion>
         <shade.minimizeJar>false</shade.minimizeJar>
     </properties>
