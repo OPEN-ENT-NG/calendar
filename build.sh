@@ -45,9 +45,15 @@ init() {
 }
 
 clean () {
+  echo "Cleaning front files"
+  rm -rf .nx
+  rm -rf .pnpm-store
+  rm -rf node_modules 
+  rm -f pnpm-lock.yaml
+  rm -rf ./src/main/resources/public/dist 
+  rm -rf ./src/main/resources/public/build 
+
   if [ "$NO_DOCKER" = "true" ] ; then
-    rm -rf node_modules
-    rm -f yarn.lock
     mvn clean
   else
     docker compose run --rm maven mvn $MVN_OPTS clean
@@ -62,17 +68,32 @@ test () {
   docker compose run --rm maven mvn $MVN_OPTS test
 }
 
-buildNodeDev () {
- case `uname -s` in
-    MINGW*)
-      docker-compose run --rm -u "$USER_UID:$GROUP_GID" node sh -c "yarn install --production=false --no-bin-links && node_modules/gulp/bin/gulp.js build && yarn run build:sass"
-      ;;
-    *)
-      docker-compose run --rm -u "$USER_UID:$GROUP_GID" node sh -c "yarn install --production=false && node_modules/gulp/bin/gulp.js build && yarn run build:sass"
-  esac
+buildFrontend () {
+  if [ ! -e "pnpm-lock.yaml" ] ; then
+    echo "Running pnpm install..."
+    if [ "$NO_DOCKER" = "true" ] ; then
+      pnpm install
+    else
+      docker compose run -e NPM_TOKEN -e TIPTAP_PRO_TOKEN --rm $USER_OPTION node sh -c "pnpm install"
+    fi
+  fi
+
+    echo "Building frontend..."
+  if [ "$NO_DOCKER" = "true" ] ; then
+    pnpm run build
+  else
+    docker compose run -e NPM_TOKEN -e TIPTAP_PRO_TOKEN --rm $USER_OPTION node sh -c "pnpm build"
+  fi
+  status=$?
+  if [ $status != 0 ];
+  then
+    exit $status
+  fi
 }
 
 buildNode () {
+  echo "DEPRECATED - buildNode"
+
   #jenkins
   echo "[buildNode] Get branch name from jenkins env..."
 
@@ -166,17 +187,14 @@ do
     clean)
       clean
       ;;
-    buildNodeDev)
-      buildNodeDev
-      ;;
-    buildNode)
-      buildNode
+    buildFrontend)
+      buildFrontend
       ;;
     buildMaven)
       install
       ;;
     install)
-      buildNode && install
+      buildFrontend && install
       ;;
     installDev)
       buildNodeDev && install
