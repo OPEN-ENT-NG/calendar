@@ -7,15 +7,18 @@ export default {
   build: {
     outDir: "./dist",
     sourcemap: true,
-    minify: false,
+    //    minify: false,
 
     rollupOptions: {
       input: {
         application: "./src/main/resources/public/ts/app.ts",
-        behaviours: "./src/main/resources/public/ts/behaviours.ts",
       },
       output: {
         entryFileNames: "[name].js",
+        format: "umd",
+        globals: {
+          entcore: "entcore",
+        },
       },
       external: [
         "entcore/entcore",
