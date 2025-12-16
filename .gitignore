@@ -6,6 +6,7 @@
 .settings
 .yardoc
 .yardopts
+.pnpm-store
 bin
 build
 */build
