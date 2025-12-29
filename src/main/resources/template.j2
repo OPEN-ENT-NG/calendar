@@ -1,0 +1,32 @@
+{
+  "name": "net.atos~calendar",
+  "config": {
+    "main": "net.atos.entng.calendar.Calendar",
+    "port": 8098,
+    "csrf-token": {{ csrfToken | default('true') }},
+    "app-name": "Calendar",
+    "app-address": "/calendar",
+    "app-icon": "calendar-large",
+    "app-type" : "END_USER",
+    "host": "https://{{ host }}",
+    "ssl": true,
+    "userbook-host": "https://{{ host }}",
+    "integration-mode": "{{ integration_mode|default('HTTP') }}",
+    "app-registry.port": 8012,
+    "mode": "prod",
+    "entcore.port": 8009,
+    "enable-rbs": {{ calendarEnableRbs | default('false') }},
+    "enable-zimbra": {{ calendarEnableZimbra | default('false') }},
+    "calendarSyncTTL": {{ calendarSyncTTL | default('3600') }},
+    "enableReminder": {{ calendarEnableReminder | default('true') }},
+    {% if ha is defined and ha and inventory_hostname_short is defined and inventory_hostname_short != 'jobs' %}
+    	"calendarReminderCron": "0 */5 * * * ? 2099"
+    {% else %}
+    	{% if calendarEnableReminder is defined and calendarEnableReminder == 'false' %}
+    		"calendarReminderCron": "{{ calendarReminderCron | default('0 */1 * * * ? 2099') }}"
+    	{% else %}
+    		"calendarReminderCron": "{{ calendarReminderCron | default('0 */5 * * * ? *') }}"
+    	{% endif %}
+    {% endif %}
+  }
+}
