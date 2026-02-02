@@ -140,26 +140,34 @@ public class CalendarReminderWorker extends BusModBase implements Handler<Messag
                     List<String> recipient = new JsonArray().add(reminder.getOwner().userId()).getList();
                     String calendarId = calendarEvent.getJsonArray(Field.CALENDAR, new JsonArray()).getString(0);
                     JsonObject notificationParameters = null;
+                    String remainingTime;
                     try {
-                        notificationParameters = new JsonObject()
-                                .put(Field.PROFILURI,
-                                        "/userbook/annuaire#" + reminder.getOwner().userId())
-                                .put(Field.USERNAME, user.getUsername())
-                                .put(Field.CALENDARURI,
-                                        "/calendar#/view/" + calendarId)
-                                .put(Field.RESOURCEURI, "/calendar#/view/" + calendarId)
-                                .put(Field.EVENTURI, "/calendar#/view/" + calendarId)
-                                .put(Field.EVENTTITLE, calendarEvent.getString(Field.TITLE, ""))
-                                .put(Field.REMAININGTIME, getRemainingTime(reminder.getReminderFrequency().get(0), calendarEvent.getString(Field.STARTMOMENT), request));
+                        remainingTime = getRemainingTime(reminder.getReminderFrequency().get(0), calendarEvent.getString(Field.STARTMOMENT), request);
                     } catch (ParseException e) {
                         throw new RuntimeException(e);
                     }
 
+                    notificationParameters = new JsonObject()
+                        .put(Field.PROFILURI, "/userbook/annuaire#" + reminder.getOwner().userId())
+                        .put(Field.USERNAME, user.getUsername())
+                        .put(Field.CALENDARURI, "/calendar#/view/" + calendarId)
+                        .put(Field.RESOURCEURI, "/calendar#/view/" + calendarId)
+                        .put(Field.EVENTURI, "/calendar#/view/" + calendarId)
+                        .put(Field.EVENTTITLE, calendarEvent.getString(Field.TITLE, ""))
+                        .put(Field.REMAININGTIME, remainingTime);
+
                     JsonObject pushNotif = new JsonObject()
-                            .put(Field.TITLE, "push.notif.event.reminder")
-                            .put(Field.BODY, user.getUsername() + " " + I18n.getInstance().translate("calendar.reminder.push.notif.body",
-                                    I18n.DEFAULT_DOMAIN, I18n.acceptLanguage(request)));
-                notificationParameters.put(Field.PUSHNOTIF, pushNotif);
+                        .put(Field.TITLE, "push.notif.event.reminder")
+                        .put(Field.BODY, user.getUsername() + " " + I18n.getInstance().translate(
+                            "calendar.reminder.push.notif.body",
+                            I18n.DEFAULT_DOMAIN,
+                            I18n.acceptLanguage(request),
+                            calendarEvent.getString(Field.TITLE, ""),
+                            remainingTime
+                        )
+                    );
+
+                    notificationParameters.put(Field.PUSHNOTIF, pushNotif);
                     notification.notifyTimeline(request, template, user, recipient, null, null,
                             notificationParameters, false);
                     return Future.succeededFuture();
