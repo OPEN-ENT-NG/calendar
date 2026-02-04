@@ -83,7 +83,7 @@ buildFrontend () {
     fi
   fi
 
-    echo "Building frontend..."
+  echo "Building frontend..."
   if [ "$NO_DOCKER" = "true" ] ; then
     pnpm run build
   else
