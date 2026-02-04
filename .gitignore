@@ -1,11 +1,13 @@
 .DS_Store
 .gradle
 .idea
+.vscode
 .classpath
 .project
 .settings
 .yardoc
 .yardopts
+.pnpm-store
 bin
 build
 */build

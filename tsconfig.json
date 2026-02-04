@@ -7,13 +7,7 @@
     "sourceMap": true,
     "noImplicitAny": false,
     "lib": ["es2015", "dom"],
-    "types": [
-      "jquery",
-      "core-js",
-      "jest"
-    ]
+    "types": ["jquery", "core-js", "jest"]
   },
-  "exclude": [
-    "build", "node_modules"
-  ]
+  "exclude": ["build", "node_modules"]
 }

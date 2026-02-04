@@ -42,12 +42,23 @@ done
 init() {
   me=`id -u`:`id -g`
   echo "DEFAULT_DOCKER_USER=$me" > .env
+  echo "" >> .env
+  echo "# Vite proxy configuration" >> .env
+  echo "#VITE_RECETTE= " >> .env
+  echo "#VITE_ONE_SESSION_ID= " >> .env
+  echo "#VITE_XSRF_TOKEN= " >> .env
 }
 
 clean () {
+  echo "Cleaning front files"
+  rm -rf .nx
+  rm -rf .pnpm-store
+  rm -rf node_modules 
+  rm -f pnpm-lock.yaml
+  rm -rf ./src/main/resources/public/dist 
+  rm -rf ./src/main/resources/public/build 
+
   if [ "$NO_DOCKER" = "true" ] ; then
-    rm -rf node_modules
-    rm -f yarn.lock
     mvn clean
   else
     docker compose run --rm maven mvn $MVN_OPTS clean
@@ -62,69 +73,26 @@ test () {
   docker compose run --rm maven mvn $MVN_OPTS test
 }
 
-buildNodeDev () {
- case `uname -s` in
-    MINGW*)
-      docker-compose run --rm -u "$USER_UID:$GROUP_GID" node sh -c "yarn install --production=false --no-bin-links && node_modules/gulp/bin/gulp.js build && yarn run build:sass"
-      ;;
-    *)
-      docker-compose run --rm -u "$USER_UID:$GROUP_GID" node sh -c "yarn install --production=false && node_modules/gulp/bin/gulp.js build && yarn run build:sass"
-  esac
-}
-
-buildNode () {
-  #jenkins
-  echo "[buildNode] Get branch name from jenkins env..."
-
-  if [ ! -z "$FRONT_BRANCH" ]; then
-      echo "[buildNode] Get tag name from jenkins param... $FRONT_BRANCH"
-      BRANCH_NAME="$FRONT_BRANCH"
-  else
-      BRANCH_NAME=`echo $GIT_BRANCH | sed -e "s|origin/||g"`
-      if [ "$BRANCH_NAME" = "" ]; then
-        echo "[buildNode] Get branch name from git..."
-        BRANCH_NAME=`git branch | sed -n -e "s/^\* \(.*\)/\1/p"`
-      fi
-      if [ "$BRANCH_NAME" = "" ]; then
-        echo "[buildNode] Branch name should not be empty!"
-        exit -1
-      fi
+buildFrontend () {
+  if [ ! -e "pnpm-lock.yaml" ] ; then
+    echo "Running pnpm install..."
+    if [ "$NO_DOCKER" = "true" ] ; then
+      pnpm install
+    else
+      docker compose run -e NPM_TOKEN -e TIPTAP_PRO_TOKEN --rm -u "$USER_UID:$GROUP_GID" node sh -c "pnpm install"
+    fi
   fi
 
-  if [ "$BRANCH_NAME" = 'master' ]; then
-      echo "[buildNode] Use entcore version from package.json ($BRANCH_NAME)"
-      case `uname -s` in
-        MINGW*)
-          if [ "$NO_DOCKER" = "true" ] ; then
-            yarn install --no-bin-links && yarn upgrade entcore && node_modules/gulp/bin/gulp.js build
-          else
-            docker compose run --rm -u "$USER_UID:$GROUP_GID" node sh -c "yarn install --no-bin-links --legacy-peer-deps --force && yarn upgrade entcore && node_modules/gulp/bin/gulp.js build && yarn run build:sass"
-          fi
-          ;;
-        *)
-          if [ "$NO_DOCKER" = "true" ] ; then
-            yarn install && yarn upgrade entcore && node_modules/gulp/bin/gulp.js build && yarn run build:sass
-          else
-            docker compose run --rm -u "$USER_UID:$GROUP_GID" node sh -c "yarn install --legacy-peer-deps --force && yarn upgrade entcore && node_modules/gulp/bin/gulp.js build && yarn run build:sass"
-          fi
-      esac
+  echo "Building frontend..."
+  if [ "$NO_DOCKER" = "true" ] ; then
+    pnpm run build
   else
-      echo "[buildNode] Use entcore tag $BRANCH_NAME"
-      case `uname -s` in
-        MINGW*)
-          if [ "$NO_DOCKER" = "true" ] ; then
-            yarn install && yarn upgrade entcore && node_modules/gulp/bin/gulp.js build && yarn run build:sass
-          else
-            docker compose run --rm -u "$USER_UID:$GROUP_GID" node sh -c "yarn install --no-bin-links --legacy-peer-deps --force && npm rm --no-save entcore && yarn install --no-save entcore@dev && node_modules/gulp/bin/gulp.js build && yarn run build:sass"
-          fi
-          ;;
-        *)
-          if [ "$NO_DOCKER" = "true" ] ; then
-            yarn install --no-bin-links && yarn upgrade entcore && node_modules/gulp/bin/gulp.js build && yarn run build:sass
-          else
-            docker compose run --rm -u "$USER_UID:$GROUP_GID" node sh -c "yarn install --legacy-peer-deps --force && npm rm --no-save entcore && yarn install --no-save entcore@dev && node_modules/gulp/bin/gulp.js build && yarn run build:sass"
-          fi
-      esac
+    docker compose run -e NPM_TOKEN -e TIPTAP_PRO_TOKEN --rm -u "$USER_UID:$GROUP_GID" node sh -c "pnpm build"
+  fi
+  status=$?
+  if [ $status != 0 ];
+  then
+    exit $status
   fi
 }
 
@@ -151,9 +119,11 @@ publishNexus() {
 
 watch () {
   if [ "$NO_DOCKER" = "true" ] ; then
-    node_modules/gulp/bin/gulp.js watch --springboard=../recette
+    pnpm dev
   else
-    docker compose run --rm -u "$USER_UID:$GROUP_GID" node sh -c "node_modules/gulp/bin/gulp.js watch --springboard=/home/node/$SPRINGBOARD"
+    docker compose run -e NPM_TOKEN -e TIPTAP_PRO_TOKEN --rm -u "$USER_UID:$GROUP_GID" node sh -c "pnpm dev"
+# TODO appliquer la variable SPRINGBOARD comme fait auparavant :
+#    docker compose run --rm -u "$USER_UID:$GROUP_GID" node sh -c "node_modules/gulp/bin/gulp.js watch --springboard=/home/node/$SPRINGBOARD"
   fi
 }
 
@@ -166,20 +136,14 @@ do
     clean)
       clean
       ;;
-    buildNodeDev)
-      buildNodeDev
-      ;;
-    buildNode)
-      buildNode
+    buildFrontend)
+      buildFrontend
       ;;
     buildMaven)
       install
       ;;
     install)
-      buildNode && install
-      ;;
-    installDev)
-      buildNodeDev && install
+      buildFrontend && install
       ;;
     test)
       test
