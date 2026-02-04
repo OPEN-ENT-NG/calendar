@@ -7,8 +7,7 @@
   "scripts": {
     "build": "vite --config vite.config.application.ts build && vite --config vite.config.behaviours.ts build",
     "clean": "./build.sh clean && pnpm install",
-    "dev": "vite",
-    "dev:mock": "VITE_MOCK=true vite",
+    "dev": "vite --config vite.config.application.ts",
     "format": "prettier --write \"**/*.{ts,tsx,css}\"",
     "preview": "vite preview",
     "test": "vitest",

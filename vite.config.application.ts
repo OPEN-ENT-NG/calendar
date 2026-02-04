@@ -39,6 +39,10 @@ export default {
     extensions: [".ts", ".js"],
   },
 
+  server: {
+    port: 4200,
+  },
+
   optimizeDeps: {
     exclude: ["entcore", "entcore-toolkit"],
   },
