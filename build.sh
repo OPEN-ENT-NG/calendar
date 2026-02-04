@@ -79,7 +79,7 @@ buildFrontend () {
     if [ "$NO_DOCKER" = "true" ] ; then
       pnpm install
     else
-      docker compose run -e NPM_TOKEN -e TIPTAP_PRO_TOKEN --rm $USER_OPTION node sh -c "pnpm install"
+      docker compose run -e NPM_TOKEN -e TIPTAP_PRO_TOKEN --rm -u "$USER_UID:$GROUP_GID" node sh -c "pnpm install"
     fi
   fi
 
@@ -87,7 +87,7 @@ buildFrontend () {
   if [ "$NO_DOCKER" = "true" ] ; then
     pnpm run build
   else
-    docker compose run -e NPM_TOKEN -e TIPTAP_PRO_TOKEN --rm $USER_OPTION node sh -c "pnpm build"
+    docker compose run -e NPM_TOKEN -e TIPTAP_PRO_TOKEN --rm -u "$USER_UID:$GROUP_GID" node sh -c "pnpm build"
   fi
   status=$?
   if [ $status != 0 ];
@@ -121,7 +121,7 @@ watch () {
   if [ "$NO_DOCKER" = "true" ] ; then
     pnpm dev
   else
-    docker compose run -e NPM_TOKEN -e TIPTAP_PRO_TOKEN --rm $USER_OPTION node sh -c "pnpm dev"
+    docker compose run -e NPM_TOKEN -e TIPTAP_PRO_TOKEN --rm -u "$USER_UID:$GROUP_GID" node sh -c "pnpm dev"
 # TODO appliquer la variable SPRINGBOARD comme fait auparavant :
 #    docker compose run --rm -u "$USER_UID:$GROUP_GID" node sh -c "node_modules/gulp/bin/gulp.js watch --springboard=/home/node/$SPRINGBOARD"
   fi
