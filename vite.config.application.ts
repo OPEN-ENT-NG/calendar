@@ -5,17 +5,20 @@ export default {
   root: path.resolve(__dirname, "./src/main/resources/public/"),
 
   build: {
-    outDir: "./dist",
+    outDir: ".",
     sourcemap: true,
     minify: false,
     emptyOutDir: false,
+    cssCodeSplit: false,
 
     rollupOptions: {
       input: {
         application: "./src/main/resources/public/ts/app.ts",
       },
       output: {
-        entryFileNames: "[name].js",
+        name: "calendar",
+        entryFileNames: "dist/[name].js",
+        assetFileNames: "css/calendar[extname]",
         format: "umd",
         globals: {
           entcore: "entcore",
