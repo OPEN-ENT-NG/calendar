@@ -310,14 +310,115 @@ public class EventServiceMongoImpl extends MongoDbCrudService implements EventSe
 
     }
 
+    /**
+     * Get the parentId of an event for recurrence handling.
+     * If the event is recurrent, returns its parentId.
+     * If the event is the parent itself (parentId equals _id), returns the _id.
+     * If the event is not recurrent, returns null.
+     *
+     * @param eventId the event id
+     * @return Future containing the parentId, or null if not recurrent
+     */
+    private Future<String> getParentId(String eventId) {
+        Promise<String> promise = Promise.promise();
+
+        JsonObject query = new JsonObject().put(Field._ID, eventId);
+        JsonObject projection = new JsonObject()
+                .put(Field._ID, 1)
+                .put(Field.PARENTID, 1);
+
+        mongo.findOne(this.collection, query, projection, result -> {
+            if (result.body() == null || result.body().isEmpty()) {
+                promise.complete(null);
+            } else {
+                JsonObject event = result.body().getJsonObject("result", new JsonObject());
+                String parentId = event.getString(Field.PARENTID, null);
+                promise.complete(parentId);
+            }
+        });
+
+        return promise.future();
+    }
+
+    /**
+     * Delete an event from a calendar. For recurrent events, this will remove the calendarId
+     * from all occurrences sharing the same parentId.
+     * Events that become orphaned (empty calendar array) are deleted.
+     *
+     * @param calendarId calendar id to remove from the event(s)
+     * @param eventId the event id
+     * @param user the user performing the action
+     * @param handler the result handler
+     */
     @Override
     public void delete(String calendarId, String eventId, UserInfos user, Handler<Either<String, JsonObject>> handler) {
-        Bson query = and(
-          eq("_id",eventId),
-          eq("calendar", calendarId)
-        );
-        mongo.delete(this.collection, MongoQueryBuilder.build(query), validActionResultHandler(handler));
+        getParentId(eventId)
+                .onSuccess(parentId -> {
+                    // Build the query: if recurrent, target all events with same parentId, otherwise just this event
+                    JsonObject pullQuery;
+                    if (parentId != null && !parentId.isEmpty()) {
+                        // Recurrent event: pull calendarId from all occurrences
+                        pullQuery = new JsonObject().put(Field.PARENTID, parentId);
+                        log.info(String.format("[Calendar@%s::delete] Recurrent event detected, removing calendar %s from all occurrences with parentId %s",
+                                this.getClass().getSimpleName(), calendarId, parentId));
+                    } else {
+                        // Non-recurrent event: pull calendarId from this event only
+                        pullQuery = new JsonObject().put(Field._ID, eventId);
+                        log.info(String.format("[Calendar@%s::delete] Non-recurrent event, removing calendar %s from event %s",
+                                this.getClass().getSimpleName(), calendarId, eventId));
+                    }
 
+                    // Step 1: Pull calendarId from the event(s)
+                    JsonObject pullUpdate = new JsonObject()
+                            .put("$pull", new JsonObject().put(Field.CALENDAR, calendarId));
+
+                    mongo.update(this.collection, pullQuery, pullUpdate, false, true, pullResult -> {
+                        if (pullResult.body() == null || "error".equals(pullResult.body().getString("status"))) {
+                            String errMessage = String.format("[Calendar@%s::delete] Error removing calendar from event(s): %s",
+                                    this.getClass().getSimpleName(), pullResult.body());
+                            log.error(errMessage);
+                            handler.handle(new Either.Left<>(errMessage));
+                            return;
+                        }
+
+                        log.info(String.format("[Calendar@%s::delete] Calendar removed from event(s), now cleaning orphaned events",
+                                this.getClass().getSimpleName()));
+
+                        // Step 2: Delete orphaned events (empty calendar array)
+                        JsonObject deleteQuery;
+                        if (parentId != null && !parentId.isEmpty()) {
+                            // Delete orphaned events from this recurrence
+                            deleteQuery = new JsonObject()
+                                    .put(Field.PARENTID, parentId)
+                                    .put(Field.CALENDAR, new JsonObject().put("$size", 0));
+                        } else {
+                            // Delete this specific event if orphaned
+                            deleteQuery = new JsonObject()
+                                    .put(Field._ID, eventId)
+                                    .put(Field.CALENDAR, new JsonObject().put("$size", 0));
+                        }
+
+                        mongo.delete(this.collection, deleteQuery, deleteResult -> {
+                            if (deleteResult.body() == null || "error".equals(deleteResult.body().getString("status"))) {
+                                String errMessage = String.format("[Calendar@%s::delete] Error deleting orphaned event(s): %s",
+                                        this.getClass().getSimpleName(), deleteResult.body());
+                                log.error(errMessage);
+                                handler.handle(new Either.Left<>(errMessage));
+                                return;
+                            }
+
+                            log.info(String.format("[Calendar@%s::delete] Event deletion completed successfully",
+                                    this.getClass().getSimpleName()));
+                            handler.handle(new Either.Right<>(new JsonObject().put("status", "ok")));
+                        });
+                    });
+                })
+                .onFailure(err -> {
+                    String errMessage = String.format("[Calendar@%s::delete] Error getting parentId for event %s: %s",
+                            this.getClass().getSimpleName(), eventId, err.getMessage());
+                    log.error(errMessage);
+                    handler.handle(new Either.Left<>(errMessage));
+                });
     }
 
     public Future<JsonObject> delete(String calendarId, String eventId, UserInfos user) {
@@ -351,21 +452,54 @@ public class EventServiceMongoImpl extends MongoDbCrudService implements EventSe
         return promise.future();
     }
 
+    /**
+     * Delete all events associated with a calendar.
+     * This method removes the calendarId from all events containing it,
+     * then deletes events that become orphaned (empty calendar array).
+     * For recurrent events, this ensures all occurrences are handled consistently.
+     *
+     * @param calendarId the calendar id to remove
+     * @return Future that completes when the operation is done
+     */
     public Future<Void> deleteByCalendarId(String calendarId) {
         Promise<Void> promise = Promise.promise();
 
-        Bson query = eq(Field.CALENDAR, calendarId);
+        // Step 1: Pull calendarId from all events containing it
+        JsonObject pullQuery = new JsonObject().put(Field.CALENDAR, calendarId);
+        JsonObject pullUpdate = new JsonObject()
+                .put("$pull", new JsonObject().put(Field.CALENDAR, calendarId));
 
-        mongo.delete(this.collection, MongoQueryBuilder.build(query), validResultHandler(event -> {
-            if (event.isLeft()) {
-                String errMessage = String.format("[Calendar@%s::deleteByCalendarId] An error has occurred while deleting events by calendar id: %s",
-                        this.getClass().getSimpleName(), event.left().getValue());
+        mongo.update(this.collection, pullQuery, pullUpdate, false, true, pullResult -> {
+            if (pullResult.body() == null || "error".equals(pullResult.body().getString("status"))) {
+                String errMessage = String.format("[Calendar@%s::deleteByCalendarId] Error removing calendar %s from events: %s",
+                        this.getClass().getSimpleName(), calendarId, pullResult.body());
                 log.error(errMessage);
-                promise.fail(event.left().getValue());
-            } else {
-                promise.complete();
+                promise.fail(errMessage);
+                return;
             }
-        }));
+
+            log.info(String.format("[Calendar@%s::deleteByCalendarId] Calendar %s removed from events, now cleaning orphaned events",
+                    this.getClass().getSimpleName(), calendarId));
+
+            // Step 2: Delete all orphaned events (empty calendar array)
+            JsonObject deleteQuery = new JsonObject()
+                    .put(Field.CALENDAR, new JsonObject().put("$size", 0));
+
+            mongo.delete(this.collection, deleteQuery, deleteResult -> {
+                if (deleteResult.body() == null || "error".equals(deleteResult.body().getString("status"))) {
+                    String errMessage = String.format("[Calendar@%s::deleteByCalendarId] Error deleting orphaned events: %s",
+                            this.getClass().getSimpleName(), deleteResult.body());
+                    log.error(errMessage);
+                    promise.fail(errMessage);
+                    return;
+                }
+
+                log.info(String.format("[Calendar@%s::deleteByCalendarId] Orphaned events deleted successfully",
+                        this.getClass().getSimpleName()));
+                promise.complete();
+            });
+        });
+
         return promise.future();
     }
 
