@@ -28,7 +28,7 @@
   "calendar.edit.event": "Éditer un événement",
   "calendar.edit.recurrence": "Éditer une récurrence",
   "calendar.edit.recurrent.event": "Modifier un évènement récurrent",
-  "calendar.email": "Mail",
+  "calendar.email": "Message (interne)",
   "calendar.error.booking.saving": "Problème d'enregistrement de la ou des réservations",
   "calendar.error.date": "La date de fin doit être supérieure ou égale à la date de début.",
   "calendar.error.date.far": "La durée de l'événement ne doit pas excéder 80 ans.",
