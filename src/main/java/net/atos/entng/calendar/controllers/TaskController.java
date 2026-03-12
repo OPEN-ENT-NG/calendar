@@ -1,6 +1,8 @@
 package net.atos.entng.calendar.controllers;
 
 import fr.wseduc.rs.Post;
+import fr.wseduc.security.ActionType;
+import fr.wseduc.security.SecuredAction;
 import fr.wseduc.webutils.http.BaseController;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.logging.Logger;
@@ -17,6 +19,7 @@ public class TaskController extends BaseController {
 	}
 
 	@Post("api/internal/reminder/calendar-event")
+	@SecuredAction(value = "", type = ActionType.RESOURCE)
 	public void sendCalendarReminder(final HttpServerRequest request) {
 		log.info("Triggered send calendar reminder task");
 		reminderCalendarEventCron.handle(0L);
