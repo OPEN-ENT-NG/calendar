@@ -15,7 +15,7 @@ export default {
         behaviours: "./src/main/resources/public/ts/behaviours.ts",
       },
       output: {
-        entryFileNames: "dist/[name].js",
+        entryFileNames: "js/[name].js",
         format: "umd",
         globals: {
           entcore: "entcore",
