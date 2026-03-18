@@ -5,7 +5,7 @@ export default {
   root: path.resolve(__dirname, "./src/main/resources/public/"),
 
   build: {
-    outDir: "./dist",
+    outDir: ".",
     sourcemap: true,
     minify: false,
     emptyOutDir: false,
@@ -15,7 +15,7 @@ export default {
         behaviours: "./src/main/resources/public/ts/behaviours.ts",
       },
       output: {
-        entryFileNames: "[name].js",
+        entryFileNames: "dist/[name].js",
         format: "umd",
         globals: {
           entcore: "entcore",
