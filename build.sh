@@ -2,15 +2,12 @@
 
 MVN_OPTS="-Duser.home=/var/maven"
 
-if [ ! -e node_modules ]
-then
-  mkdir node_modules
-fi
+mkdir -p node_modules
 
 case `uname -s` in
   MINGW* | Darwin*)
     USER_UID=1000
-    GROUP_UID=1000
+    GROUP_GID=1000
     ;;
   *)
     if [ -z ${USER_UID:+x} ]
@@ -55,8 +52,9 @@ clean () {
   rm -rf .pnpm-store
   rm -rf node_modules 
   rm -f pnpm-lock.yaml
-  rm -rf ./src/main/resources/public/dist 
-  rm -rf ./src/main/resources/public/build 
+  rm -rf ./src/main/resources/public/dist
+  rm -rf ./src/main/resources/public/js
+  rm -rf ./src/main/resources/public/build
 
   if [ "$NO_DOCKER" = "true" ] ; then
     mvn clean
@@ -83,12 +81,9 @@ buildFrontend () {
     fi
   fi
 
-  if [ ! -e "./src/main/resources/view" ]
-  then
-    mkdir "./src/main/resources/view"
-  fi
+  mkdir -p "./src/main/resources/view"
   # Copy view-src to view and replace @@VERSION variables
-  VERSION=$(date +%s%3N)
+  VERSION=$(node -e "process.stdout.write(String(Date.now()))")
   find ./src/main/resources/view-src -type f \( -name "*.html" -o -name "*.json" \) | while read -r file; do
     dest="./src/main/resources/view/${file#./src/main/resources/view-src/}"
     mkdir -p "$(dirname "$dest")"
