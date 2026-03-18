@@ -45,3 +45,4 @@ gradle/
 /yarn.lock
 .env
 dependency-reduced-pom.xml
+.pnpm-store

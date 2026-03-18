@@ -32,4 +32,4 @@ export const calendarEventService: ICalendarEventService = {
     }
 };
 
-export const CalendarEventService = ng.service('CalendarEventService', (): ICalendarEventService => calendarEventService);
+export const CalendarEventService = ng.service('CalendarEventService', function(): ICalendarEventService { return calendarEventService; });
