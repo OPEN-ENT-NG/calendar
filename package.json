@@ -3,11 +3,10 @@
   "version": "0.0.0",
   "private": true,
   "description": "Agenda partagé",
-  "main": "gulpfile.js",
   "scripts": {
     "build": "vite --config vite.config.application.ts build && vite --config vite.config.behaviours.ts build",
     "clean": "./build.sh clean && pnpm install",
-    "dev": "vite --config vite.config.application.ts",
+    "dev": "trap 'kill 0' EXIT; vite --config vite.config.application.ts build --watch & vite --config vite.config.dev.ts",
     "format": "prettier --write \"**/*.{ts,tsx,css}\"",
     "preview": "vite preview",
     "test": "vitest",

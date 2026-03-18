@@ -53,10 +53,11 @@ clean () {
   echo "Cleaning front files"
   rm -rf .nx
   rm -rf .pnpm-store
-  rm -rf node_modules 
+  rm -rf node_modules
   rm -f pnpm-lock.yaml
-  rm -rf ./src/main/resources/public/dist 
-  rm -rf ./src/main/resources/public/build 
+  rm -rf ./src/main/resources/public/dist
+  rm -rf ./src/main/resources/public/js
+  rm -rf ./src/main/resources/public/build
 
   if [ "$NO_DOCKER" = "true" ] ; then
     mvn clean
@@ -88,7 +89,7 @@ buildFrontend () {
     mkdir "./src/main/resources/view"
   fi
   # Copy view-src to view and replace @@VERSION variables
-  VERSION=$(date +%s%3N)
+  VERSION=$(node -e "process.stdout.write(String(Date.now()))")
   find ./src/main/resources/view-src -type f \( -name "*.html" -o -name "*.json" \) | while read -r file; do
     dest="./src/main/resources/view/${file#./src/main/resources/view-src/}"
     mkdir -p "$(dirname "$dest")"
@@ -176,4 +177,3 @@ do
     exit 1
   fi
 done
-

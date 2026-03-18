@@ -1,15 +1,8 @@
-import path = require("path");
-import type { UserConfig } from "vite";
+import { mergeConfig, type UserConfig } from "vite";
+import sharedConfig from "./vite.config.shared";
 
-export default {
-  root: path.resolve(__dirname, "./src/main/resources/public/"),
-
+export default mergeConfig(sharedConfig, {
   build: {
-    outDir: ".",
-    sourcemap: true,
-    minify: false,
-    emptyOutDir: false,
-
     rollupOptions: {
       input: {
         behaviours: "./src/main/resources/public/ts/behaviours.ts",
@@ -21,22 +14,6 @@ export default {
           entcore: "entcore",
         },
       },
-      external: [
-        "entcore/entcore",
-        "entcore",
-        "moment",
-        "underscore",
-        "jquery",
-        "angular",
-      ],
     },
   },
-
-  resolve: {
-    extensions: [".ts", ".js"],
-  },
-
-  optimizeDeps: {
-    exclude: ["entcore", "entcore-toolkit"],
-  },
-} satisfies UserConfig;
+} satisfies UserConfig);
