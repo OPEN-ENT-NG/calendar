@@ -83,6 +83,18 @@ buildFrontend () {
     fi
   fi
 
+  if [ ! -e "./src/main/resources/view" ]
+  then
+    mkdir "./src/main/resources/view"
+  fi
+  # Copy view-src to view and replace @@VERSION variables
+  VERSION=$(date +%s%3N)
+  find ./src/main/resources/view-src -type f \( -name "*.html" -o -name "*.json" \) | while read -r file; do
+    dest="./src/main/resources/view/${file#./src/main/resources/view-src/}"
+    mkdir -p "$(dirname "$dest")"
+    sed "s/@@VERSION/$VERSION/g" "$file" > "$dest"
+  done
+
   echo "Building frontend..."
   if [ "$NO_DOCKER" = "true" ] ; then
     pnpm run build
