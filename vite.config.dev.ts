@@ -115,14 +115,26 @@ export default ({ mode }: { mode: string }) => {
       headers,
       proxy: {
         // Proxy everything to recette, except /calendar/public/* (served locally by plugin)
-        "/": {
-          ...proxyObj,
-          bypass(req) {
-            if (req.url?.split("?")[0].startsWith("/calendar/public/")) {
-              return req.url;
-            }
-          },
-        },
+
+        "/applications-list": proxyObj,
+        "/conf/public": proxyObj,
+        "^/(?=assets)": proxyObj,
+        "^/(?=theme|locale|i18n|skin)": proxyObj,
+        "^/(?=auth|appregistry|cas|userbook|directory|communication|conversation|portal|session|timeline|workspace|infra|resources-applications)":
+          proxyObj,
+        "^/calendar(?!/public/)": proxyObj,
+        // Other apps' behaviours loaded by entcore
+        "^/(?=rbs|actualites|workspace|blog|mindmap|collaborativewall|community|exercizer|formulaire|homeworks|pages|poll|rack|scrapbook|sharebigfiles|support|timelinegenerator|wiki|collaborative-editor)":
+          proxyObj,
+
+        // "/": {
+        //   ...proxyObj,
+        //   bypass(req) {
+        //     if (req.url?.split("?")[0].startsWith("/calendar/public/")) {
+        //       return req.url;
+        //     }
+        //   },
+        // },
       }
     },
     plugins: [serveCalendarAssets(), watchBuiltAssets()],
