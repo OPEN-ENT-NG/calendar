@@ -22,4 +22,4 @@ export const reminderService: IReminderService = {
     }
 };
 
-export const ReminderService = ng.service('ReminderService', (): IReminderService => reminderService);
+export const ReminderService = ng.service('ReminderService', function(): IReminderService { return reminderService; });

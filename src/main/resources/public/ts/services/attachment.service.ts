@@ -15,4 +15,4 @@ export const attachmentService : AttachmentService = {
 
 };
 
-export const AttachmentService = ng.service('AttachmentService', (): AttachmentService => attachmentService);
+export const AttachmentService = ng.service('AttachmentService', function(): AttachmentService { return attachmentService; });
