@@ -45,4 +45,5 @@ gradle/
 /yarn.lock
 .env
 dependency-reduced-pom.xml
+edifice
 .pnpm-store
