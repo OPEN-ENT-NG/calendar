@@ -111,7 +111,7 @@ public class CalendarHelper extends MongoDbControllerHelper {
                             if (calendar.getJsonObject(Field.UPDATED, null) == null) {
                                 return Future.succeededFuture();
                             } else {
-                                Date date = new Date(calendar.getJsonObject(Field.UPDATED).getLong(MongoField.$DATE));
+                                Date date = MongoDb.parseIsoDate(calendar.getJsonObject(Field.UPDATED));
                                 SimpleDateFormat simpleDateFormat = new SimpleDateFormat(DateUtils.DATE_FORMAT_UTC);
                                 simpleDateFormat.setTimeZone(TimeZone.getTimeZone(ZoneId.of("UTC")));
                                 return eventServiceMongo.deleteDatesAfterComparisonDate(calendar.getString(Field._ID), simpleDateFormat.format(date));
@@ -266,15 +266,12 @@ public class CalendarHelper extends MongoDbControllerHelper {
      * @return {@link Boolean} true if the time since the last update is longer than the minimum time between two updates
      */
     public Boolean isTimeToLivePast(JsonObject calendar) {
-        Long calendarUpdateTime = calendar.getJsonObject(Field.UPDATED, new JsonObject()).getLong(MongoField.$DATE, null);
-        if (calendarUpdateTime == null) {
-            return false;
+        JsonObject updateAt = calendar.getJsonObject(Field.UPDATED);
+        if (updateAt == null) {
+           return false;
         }
-
-        Timestamp lastUpdateTimestamp = new Timestamp(calendarUpdateTime);
-        Date lastUpdateDate = new Date(lastUpdateTimestamp.getTime());
-        long secondsSinceLastUpdate = (new Date().getTime()-lastUpdateDate.getTime())/1000;
-
+        Date  calendarUpdateTime = MongoDb.parseIsoDate(updateAt);
+        long secondsSinceLastUpdate = (new Date().getTime()-calendarUpdateTime.getTime())/1000;
         return secondsSinceLastUpdate - config.getLong(Field.CALENDARSYNCTTL, 3600L) > 0;
     }
 
