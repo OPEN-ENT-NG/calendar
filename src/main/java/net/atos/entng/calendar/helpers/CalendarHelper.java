@@ -266,7 +266,11 @@ public class CalendarHelper extends MongoDbControllerHelper {
      * @return {@link Boolean} true if the time since the last update is longer than the minimum time between two updates
      */
     public Boolean isTimeToLivePast(JsonObject calendar) {
-        Date  calendarUpdateTime = MongoDb.parseIsoDate(calendar.getJsonObject(Field.UPDATED, new JsonObject()));
+        JsonObject updateAt = calendar.getJsonObject(Field.UPDATED);
+        if (updateAt == null) {
+           return false;
+        }
+        Date  calendarUpdateTime = MongoDb.parseIsoDate(updateAt);
         long secondsSinceLastUpdate = (new Date().getTime()-calendarUpdateTime.getTime())/1000;
         return secondsSinceLastUpdate - config.getLong(Field.CALENDARSYNCTTL, 3600L) > 0;
     }
