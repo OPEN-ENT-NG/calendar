@@ -94,8 +94,7 @@ public class ExternalImportICal extends BusModBase implements Handler<Message<Js
     private void updateEventsFromICal(Message<JsonObject> message, UserInfos user) {
         JsonObject calendar = message.body().getJsonObject(Field.CALENDAR, new JsonObject());
         JsonObject requestInfo = message.body().getJsonObject(Field.REQUEST, new JsonObject());
-        String calendarLastUpdate = new Date(calendar.getJsonObject(Field.UPDATED, new JsonObject()).getLong(MongoField.$DATE))
-                .toInstant().toString();
+        String calendarLastUpdate = MongoDb.parseIsoDate(calendar.getJsonObject(Field.UPDATED, new JsonObject())).toInstant().toString();
 
         fetchICalFromUrl(message.body().getJsonObject(Field.CALENDAR, new JsonObject()).getString(Field.ICSLINK, null))
                 .compose(ical -> eventService.importIcal(calendar.getString(Field._ID), ical, user, requestInfo,
