@@ -27,10 +27,7 @@ import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.client.WebClientOptions;
-import net.atos.entng.calendar.controllers.CalendarController;
-import net.atos.entng.calendar.controllers.EventController;
-import net.atos.entng.calendar.controllers.PlatformController;
-import net.atos.entng.calendar.controllers.ReminderController;
+import net.atos.entng.calendar.controllers.*;
 import net.atos.entng.calendar.core.constants.Field;
 import net.atos.entng.calendar.cron.ReminderCalendarEventCron;
 import net.atos.entng.calendar.event.CalendarRepositoryEvents;
@@ -107,8 +104,12 @@ public class Calendar extends BaseServer {
         // Calendar reminder service
         vertx.deployVerticle(CalendarReminderWorker.class, new DeploymentOptions().setConfig(config).setWorker(true));
 
+        ReminderCalendarEventCron reminderCalendarEventCron = new ReminderCalendarEventCron(serviceFactory.reminderService(), vertx.eventBus());
+
+        // Enable calendar reminder tasks to be triggered via API
+        addController(new TaskController(reminderCalendarEventCron));
+        // Schedule the reminder cron if enabled in configuration
         if(Boolean.TRUE.equals(config.getBoolean(Field.ENABLEREMINDER, false))) {
-            ReminderCalendarEventCron reminderCalendarEventCron = new ReminderCalendarEventCron(serviceFactory.reminderService(), vertx.eventBus());
 	        try {
 		        new CronTrigger(vertx, config.getString(Field.CALENDARREMINDERCRON)).schedule(reminderCalendarEventCron);
 	        } catch (ParseException e) {
