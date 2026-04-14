@@ -23,13 +23,15 @@ import org.entcore.common.http.request.JsonHttpServerRequest;
 import org.entcore.common.neo4j.Neo4j;
 import org.entcore.common.notification.TimelineHelper;
 import org.entcore.common.sql.Sql;
+import org.entcore.common.user.DefaultPreferenceHelper;
+import org.entcore.common.user.PreferenceHelper;
 import org.entcore.common.user.UserInfos;
+import org.entcore.common.user.dto.UserPreferenceDto;
 import org.vertx.java.busmods.BusModBase;
 
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -39,7 +41,7 @@ public class CalendarReminderWorker extends BusModBase implements Handler<Messag
     private EventServiceMongo eventServiceMongo;
     private UserService userService;
     private TimelineHelper notification;
-
+    private PreferenceHelper preferenceHelper;
 
     @Override
     public void start() {
@@ -51,6 +53,7 @@ public class CalendarReminderWorker extends BusModBase implements Handler<Messag
         this.eventServiceMongo = new EventServiceMongoImpl(Calendar.CALENDAR_EVENT_COLLECTION, eb, serviceFactory);
         this.userService = serviceFactory.userService();
         notification = new TimelineHelper(vertx, eb, config);
+        this.preferenceHelper = new DefaultPreferenceHelper(eb);
         eb.consumer(this.getClass().getName(), this);
     }
 
@@ -128,9 +131,17 @@ public class CalendarReminderWorker extends BusModBase implements Handler<Messag
         return promise.future();
     }
 
-    private Future<Void> sendTimelineNotification (ReminderModel reminder, HttpServerRequest request) {
+    private Future<Void> sendTimelineNotification(ReminderModel reminder, HttpServerRequest request) {
         Promise<Void> promise = Promise.promise();
+        preferenceHelper.getPreferences(reminder.getOwner().userId())
+                .onFailure( t -> sendTimelineNotificationWithPref(reminder, request, new UserPreferenceDto(), promise))
+                .onSuccess( pref -> sendTimelineNotificationWithPref(reminder, request, pref, promise));
+        return promise.future();
+    }
 
+    private void sendTimelineNotificationWithPref(ReminderModel reminder, HttpServerRequest request,
+                                                  UserPreferenceDto preference, Promise<Void> promise) {
+        String language = preferenceHelper.getLanguage(preference);
         getCalendarEvent(reminder.getEventId())
                 .compose(calendarEvent -> {
                     String template = "calendar.reminder";
@@ -142,30 +153,33 @@ public class CalendarReminderWorker extends BusModBase implements Handler<Messag
                     JsonObject notificationParameters = null;
                     String remainingTime;
                     try {
-                        remainingTime = getRemainingTime(reminder.getReminderFrequency().get(0), calendarEvent.getString(Field.STARTMOMENT), request);
+                        remainingTime = getRemainingTime(reminder.getReminderFrequency().get(0),
+                                calendarEvent.getString(Field.STARTMOMENT),
+                                request,
+                                language);
                     } catch (ParseException e) {
                         throw new RuntimeException(e);
                     }
-
+                    String lastDomain = preference.getLastDomain() != null ? preference.getLastDomain() : I18n.DEFAULT_DOMAIN;
                     notificationParameters = new JsonObject()
-                        .put(Field.PROFILURI, "/userbook/annuaire#" + reminder.getOwner().userId())
-                        .put(Field.USERNAME, user.getUsername())
-                        .put(Field.CALENDARURI, "/calendar#/view/" + calendarId)
-                        .put(Field.RESOURCEURI, "/calendar#/view/" + calendarId)
-                        .put(Field.EVENTURI, "/calendar#/view/" + calendarId)
-                        .put(Field.EVENTTITLE, calendarEvent.getString(Field.TITLE, ""))
-                        .put(Field.REMAININGTIME, remainingTime);
+                            .put(Field.PROFILURI, "/userbook/annuaire#" + reminder.getOwner().userId())
+                            .put(Field.USERNAME, user.getUsername())
+                            .put(Field.CALENDARURI, "/calendar#/view/" + calendarId)
+                            .put(Field.RESOURCEURI, "/calendar#/view/" + calendarId)
+                            .put(Field.EVENTURI, "/calendar#/view/" + calendarId)
+                            .put(Field.EVENTTITLE, calendarEvent.getString(Field.TITLE, ""))
+                            .put(Field.REMAININGTIME, remainingTime);
 
                     JsonObject pushNotif = new JsonObject()
-                        .put(Field.TITLE, "push.notif.event.reminder")
-                        .put(Field.BODY, user.getUsername() + " " + I18n.getInstance().translate(
-                            "calendar.reminder.push.notif.body",
-                            I18n.DEFAULT_DOMAIN,
-                            I18n.acceptLanguage(request),
-                            calendarEvent.getString(Field.TITLE, ""),
-                            remainingTime
-                        )
-                    );
+                            .put(Field.TITLE, "push.notif.event.reminder")
+                            .put(Field.BODY, user.getUsername() + " " + I18n.getInstance().translate(
+                                            "calendar.reminder.push.notif.body",
+                                            lastDomain,
+                                            language,
+                                            calendarEvent.getString(Field.TITLE, ""),
+                                            remainingTime
+                                    )
+                            );
 
                     notificationParameters.put(Field.PUSHNOTIF, pushNotif);
                     notification.notifyTimeline(request, template, user, recipient, null, null,
@@ -180,8 +194,6 @@ public class CalendarReminderWorker extends BusModBase implements Handler<Messag
                     log.error(errMessage);
                     promise.fail(errMessage);
                 });
-
-        return promise.future();
     }
 
     private Future<JsonObject> getCalendarEvent (String eventId) {
@@ -200,24 +212,24 @@ public class CalendarReminderWorker extends BusModBase implements Handler<Messag
         return promise.future();
     }
 
-    private String getRemainingTime( String reminderTime, String calendarEventTime, HttpServerRequest request) throws ParseException {
+    private String getRemainingTime( String reminderTime, String calendarEventTime, HttpServerRequest request, String language) throws ParseException {
         long diffInMillis = DateUtils.getTimeDifference(reminderTime, calendarEventTime);
 
         long months = diffInMillis / (30L * 24 * 60 * 60 * 1000);
         if (months > 0) return months + " " + I18n.getInstance().translate(months == 1 ? "calendar.month" : "calendar.recurrence.monthes",
-                Renders.getHost(request), I18n.acceptLanguage(request));
+                Renders.getHost(request), language);
 
         long weeks = diffInMillis / (7L * 24 * 60 * 60 * 1000);
         if (weeks > 0) return weeks + " " +I18n.getInstance().translate(weeks == 1 ? "calendar.week" : "calendar.recurrence.weeks",
-                Renders.getHost(request), I18n.acceptLanguage(request));
+                Renders.getHost(request), language);
 
         long days = TimeUnit.MILLISECONDS.toDays(diffInMillis);
         if (days > 0) return days + " " + I18n.getInstance().translate(days == 1 ? "calendar.day" : "calendar.recurrence.days",
-                Renders.getHost(request), I18n.acceptLanguage(request));;
+                Renders.getHost(request), language);
 
         long hours = TimeUnit.MILLISECONDS.toHours(diffInMillis);
         return hours + " " + I18n.getInstance().translate(hours == 1 ? "calendar.hour" : "calendar.hours.lc",
-                Renders.getHost(request), I18n.acceptLanguage(request));
+                Renders.getHost(request), language);
     }
 
     private Future<Void> sendReminderEmail(ReminderModel reminder, HttpServerRequest request) {
@@ -245,69 +257,82 @@ public class CalendarReminderWorker extends BusModBase implements Handler<Messag
 
     private Future<JsonObject> sendEmail(ReminderModel reminder, JsonObject calendarEvent, HttpServerRequest request) throws ParseException {
         Promise<JsonObject> promise = Promise.promise();
-
-//        Agenda = lien vers l'application Agenda / Calendar
-        StringBuilder calendarLink = new StringBuilder("<a href=\"" + config.getString(Field.HOST) + "/calendar#/\">" +
-                I18n.getInstance().translate("calendar.title", I18n.DEFAULT_DOMAIN, I18n.acceptLanguage(request)) + "</a>");
-
-        StringBuilder body = new StringBuilder(
-//         Bonjour,
-                "<div>" + I18n.getInstance().translate("calendar.hello", I18n.DEFAULT_DOMAIN, I18n.acceptLanguage(request))
-                + ",</div> <br/>"
-//        Nous vous rappelons que l’événement “[Nom de l'événement]” commence dans [durée].
-                + "<div>" + I18n.getInstance().translate("calendar.event.reminder.email.start",
-                I18n.DEFAULT_DOMAIN, I18n.acceptLanguage(request),
-                calendarEvent.getString(Field.TITLE, ""), getRemainingTime(reminder.getReminderFrequency().get(0), calendarEvent.getString(Field.STARTMOMENT), request)) + "</div>"
-                + "<ul>"
-//        Détails de l’événement :
-//        [Description]
-                + (calendarEvent.containsKey(Field.DESCRIPTION) ? ("<li>"
-                        +  I18n.getInstance().translate("calendar.event.reminder.email.details", I18n.DEFAULT_DOMAIN, I18n.acceptLanguage(request))
-                        + " : " + "<br/>" + calendarEvent.getString(Field.DESCRIPTION) + "</li>") : "")
-//        Lieu : [Lieu]
-                + (calendarEvent.containsKey(Field.LOCATION) ? ("<li>"
-                        + I18n.getInstance().translate("calendar.event.location", I18n.DEFAULT_DOMAIN, I18n.acceptLanguage(request))
-                        + " : " + calendarEvent.getString(Field.LOCATION) + "</li>") : "")
-                + "<li>"
-//        Du dd/mm/yyyy à hh:mm au dd/mm/yyyy à hh:mm (hours only if event is not full day)
-                        + I18n.getInstance().translate("calendar.filters.date.from", I18n.DEFAULT_DOMAIN, I18n.acceptLanguage(request))
-                + " " + DateUtils.getStringDate(calendarEvent.getString(Field.STARTMOMENT, ""), DateUtils.DATE_FORMAT_UTC, DateUtils.DATE_MONTH_YEAR)
-                + (Boolean.FALSE.equals(calendarEvent.getBoolean(Field.ALLDAY_LC)) ? (" " +
-                        I18n.getInstance().translate("calendar.search.date.to", I18n.DEFAULT_DOMAIN, I18n.acceptLanguage(request))
-                        + " " + DateUtils.getStringDate(calendarEvent.getString(Field.STARTMOMENT, ""), DateUtils.DATE_FORMAT_UTC, DateUtils.HOURS_MINUTES)) : "")
-
-                        + " " + I18n.getInstance().translate("calendar.filters.date.to", I18n.DEFAULT_DOMAIN, I18n.acceptLanguage(request))
-                        + " " + DateUtils.getStringDate(calendarEvent.getString(Field.ENDMOMENT, ""), DateUtils.DATE_FORMAT_UTC, DateUtils.DATE_MONTH_YEAR)
-                + (Boolean.FALSE.equals(calendarEvent.getBoolean(Field.ALLDAY_LC)) ? (" " +
-                        I18n.getInstance().translate("calendar.search.date.to", I18n.DEFAULT_DOMAIN, I18n.acceptLanguage(request))
-                        + " " + DateUtils.getStringDate(calendarEvent.getString(Field.ENDMOMENT, ""), DateUtils.DATE_FORMAT_UTC, DateUtils.HOURS_MINUTES)  + "</li>") : "")
-                + "</ul>"
-//        Consultez l’application Agenda pour en savoir plus.
-                + "<br/>" + "<div>"  + I18n.getInstance().translate("calendar.event.reminder.email.end", I18n.DEFAULT_DOMAIN, I18n.acceptLanguage(request), calendarLink.toString()) + "</div>"
-                );
-
-        JsonObject message = new JsonObject()
-                .put(Field.SUBJECT, I18n.getInstance().translate("calendar.event.reminder.email.title",
-                                I18n.DEFAULT_DOMAIN, I18n.acceptLanguage(request)))
-                .put(Field.BODY, body)
-                .put(Field.TO, new JsonArray().add(reminder.getOwner().userId()))
-                .put(Field.CCI, new JsonArray());
-
-        JsonObject action = new JsonObject()
-                .put(Field.ACTION, Field.SEND)
-                .put(Field.USERID, reminder.getOwner().userId())
-                .put(Field.USERNAME, reminder.getOwner().displayName())
-                .put(Field.MESSAGE, message);
-
-        eb.request(EventBusAction.CONVERSATION_ADDRESS.method(), action, (Handler<AsyncResult<Message<JsonObject>>>) messageEvt -> {
-            if (!messageEvt.result().body().getString(Field.STATUS).equals(Field.OK)) {
-                log.error("[Formulaire@FormController::sendReminder] Failed to send email reminder : " + messageEvt.cause());
-                promise.fail(messageEvt.cause());
-            } else {
-                promise.complete(messageEvt.result().body());
-            }
-        });
-
+        preferenceHelper.getPreferences(reminder.getOwner().userId())
+                .onSuccess( pref -> {
+                    sendEmailWithPref(reminder, calendarEvent, request, pref, promise);
+                }).onFailure(t -> sendEmailWithPref(reminder, calendarEvent, request, new UserPreferenceDto(), promise));
         return promise.future();
     }
+
+    private void sendEmailWithPref(ReminderModel reminder, JsonObject calendarEvent, HttpServerRequest request,
+                                   UserPreferenceDto pref, Promise<JsonObject> promise) {
+        String language = preferenceHelper.getLanguage(pref);
+        try {
+//        Agenda = lien vers l'application Agenda / Calendar
+            StringBuilder calendarLink = new StringBuilder("<a href=\"" + config.getString(Field.HOST) + "/calendar#/\">" +
+                    I18n.getInstance().translate("calendar.title", I18n.DEFAULT_DOMAIN, language) + "</a>");
+
+            StringBuilder body = new StringBuilder(
+//         Bonjour,
+                    "<div>" + I18n.getInstance().translate("calendar.hello", I18n.DEFAULT_DOMAIN, language)
+                            + ",</div> <br/>"
+//        Nous vous rappelons que l’événement “[Nom de l'événement]” commence dans [durée].
+                            + "<div>" + I18n.getInstance().translate("calendar.event.reminder.email.start",
+                            I18n.DEFAULT_DOMAIN, language,
+                            calendarEvent.getString(Field.TITLE, ""), getRemainingTime(reminder.getReminderFrequency().get(0),
+                                    calendarEvent.getString(Field.STARTMOMENT), request, language)) + "</div>"
+                            + "<ul>"
+//        Détails de l’événement :
+//        [Description]
+                            + (calendarEvent.containsKey(Field.DESCRIPTION) ? ("<li>"
+                            + I18n.getInstance().translate("calendar.event.reminder.email.details", I18n.DEFAULT_DOMAIN, language)
+                            + " : " + "<br/>" + calendarEvent.getString(Field.DESCRIPTION) + "</li>") : "")
+//        Lieu : [Lieu]
+                            + (calendarEvent.containsKey(Field.LOCATION) ? ("<li>"
+                            + I18n.getInstance().translate("calendar.event.location", I18n.DEFAULT_DOMAIN, language)
+                            + " : " + calendarEvent.getString(Field.LOCATION) + "</li>") : "")
+                            + "<li>"
+//        Du dd/mm/yyyy à hh:mm au dd/mm/yyyy à hh:mm (hours only if event is not full day)
+                            + I18n.getInstance().translate("calendar.filters.date.from", I18n.DEFAULT_DOMAIN, language)
+                            + " " + DateUtils.getStringDate(calendarEvent.getString(Field.STARTMOMENT, ""), DateUtils.DATE_FORMAT_UTC, DateUtils.DATE_MONTH_YEAR)
+                            + (Boolean.FALSE.equals(calendarEvent.getBoolean(Field.ALLDAY_LC)) ? (" " +
+                            I18n.getInstance().translate("calendar.search.date.to", I18n.DEFAULT_DOMAIN, language)
+                            + " " + DateUtils.getStringDate(calendarEvent.getString(Field.STARTMOMENT, ""), DateUtils.DATE_FORMAT_UTC, DateUtils.HOURS_MINUTES)) : "")
+
+                            + " " + I18n.getInstance().translate("calendar.filters.date.to", I18n.DEFAULT_DOMAIN, language)
+                            + " " + DateUtils.getStringDate(calendarEvent.getString(Field.ENDMOMENT, ""), DateUtils.DATE_FORMAT_UTC, DateUtils.DATE_MONTH_YEAR)
+                            + (Boolean.FALSE.equals(calendarEvent.getBoolean(Field.ALLDAY_LC)) ? (" " +
+                            I18n.getInstance().translate("calendar.search.date.to", I18n.DEFAULT_DOMAIN, language)
+                            + " " + DateUtils.getStringDate(calendarEvent.getString(Field.ENDMOMENT, ""), DateUtils.DATE_FORMAT_UTC, DateUtils.HOURS_MINUTES) + "</li>") : "")
+                            + "</ul>"
+//        Consultez l’application Agenda pour en savoir plus.
+                            + "<br/>" + "<div>" + I18n.getInstance().translate("calendar.event.reminder.email.end", I18n.DEFAULT_DOMAIN, language, calendarLink.toString()) + "</div>"
+            );
+
+            JsonObject message = new JsonObject()
+                    .put(Field.SUBJECT, I18n.getInstance().translate("calendar.event.reminder.email.title",
+                            I18n.DEFAULT_DOMAIN, language))
+                    .put(Field.BODY, body)
+                    .put(Field.TO, new JsonArray().add(reminder.getOwner().userId()))
+                    .put(Field.CCI, new JsonArray());
+
+            JsonObject action = new JsonObject()
+                    .put(Field.ACTION, Field.SEND)
+                    .put(Field.USERID, reminder.getOwner().userId())
+                    .put(Field.USERNAME, reminder.getOwner().displayName())
+                    .put(Field.MESSAGE, message);
+
+            eb.request(EventBusAction.CONVERSATION_ADDRESS.method(), action, (Handler<AsyncResult<Message<JsonObject>>>) messageEvt -> {
+                if (!messageEvt.result().body().getString(Field.STATUS).equals(Field.OK)) {
+                    log.error("[Formulaire@FormController::sendReminder] Failed to send email reminder : " + messageEvt.cause());
+                    promise.fail(messageEvt.cause());
+                } else {
+                    promise.complete(messageEvt.result().body());
+                }
+            });
+        } catch (ParseException e) {
+            promise.fail(e);
+        }
+    }
+
 }
