@@ -141,7 +141,7 @@ public class CalendarReminderWorker extends BusModBase implements Handler<Messag
 
     private void sendTimelineNotificationWithPref(ReminderModel reminder, HttpServerRequest request,
                                                   UserPreferenceDto preference, Promise<Void> promise) {
-        String language = preferenceHelper.getLanguage(preference);
+        String language = preference != null ? preference.getCurrentLanguage() : "fr";
         getCalendarEvent(reminder.getEventId())
                 .compose(calendarEvent -> {
                     String template = "calendar.reminder";
@@ -266,7 +266,7 @@ public class CalendarReminderWorker extends BusModBase implements Handler<Messag
 
     private void sendEmailWithPref(ReminderModel reminder, JsonObject calendarEvent, HttpServerRequest request,
                                    UserPreferenceDto pref, Promise<JsonObject> promise) {
-        String language = preferenceHelper.getLanguage(pref);
+        String language = pref.getCurrentLanguage();
         try {
 //        Agenda = lien vers l'application Agenda / Calendar
             StringBuilder calendarLink = new StringBuilder("<a href=\"" + config.getString(Field.HOST) + "/calendar#/\">" +
