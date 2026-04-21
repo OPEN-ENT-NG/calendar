@@ -128,11 +128,7 @@ publishNexus() {
 }
 
 watch () {
-  if [ "$NO_DOCKER" = "true" ] ; then
-    node_modules/gulp/bin/gulp.js watch --springboard=../recette
-  else
-    docker compose run --rm -u "$USER_UID:$GROUP_GID" node sh -c "node_modules/gulp/bin/gulp.js watch --springboard=/home/node/$SPRINGBOARD"
-  fi
+  echo "launch the command: pnpm i && pnpm dev"
 }
 
 for param in "$@"

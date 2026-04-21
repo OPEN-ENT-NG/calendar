@@ -4,6 +4,7 @@
   "description": "Agenda partagé.",
   "main": "gulpfile.js",
   "scripts": {
+    "dev": "vite --config vite.config.dev.ts",
     "build": "vite --config vite.config.application.ts build && vite --config vite.config.behaviours.ts build",
     "coverage": "./node_modules/.bin/jest --config jest.config.js --coverage",
     "test": "npm run coverage",

@@ -1,3 +1,5 @@
+import "../sass/index.scss";
+
 import { routes, ng } from "entcore";
 import * as controllers from './controllers';
 import * as services from './services';
