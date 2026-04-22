@@ -86,7 +86,7 @@ buildFrontend () {
     mkdir "./src/main/resources/view"
   fi
   # Copy view-src to view and replace @@VERSION variables
-  VERSION=$(node -e "process.stdout.write(String(Date.now()))")
+  VERSION=$(date +%s)
   find ./src/main/resources/view-src -type f \( -name "*.html" -o -name "*.json" \) | while read -r file; do
     dest="./src/main/resources/view/${file#./src/main/resources/view-src/}"
     mkdir -p "$(dirname "$dest")"
