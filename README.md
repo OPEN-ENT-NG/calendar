@@ -118,10 +118,11 @@ Il y a 2 Collections globales :
 
 ### 1 - Initialiser les variables d'environnement
 - `./build.sh init`
-- Un fichier `.env` est créé.
+- Un fichier `.env` minimal est créé.
 
 ### 2 - Proxifier le backend avec une URL de recette
-- Dans le fichier `.env`, renseigner les champs avec les tokens d'authentification (voir le template `env.template`).
+- Copier dans `.env` les variables présentes dans le template `env.template` (ou les y coller si le fichier existe déjà).
+- Dans le fichier `.env`, renseigner ensuite les champs `VITE_*` avec les tokens d'authentification et les valeurs attendues.
 
 ### 3 - Installer les dépendances
 - `pnpm i`
