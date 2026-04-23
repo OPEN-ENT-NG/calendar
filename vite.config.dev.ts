@@ -1,5 +1,8 @@
-import { defineConfig, loadEnv, type ProxyOptions, type Plugin } from "vite";
+import { defineConfig, loadEnv, type ProxyOptions } from "vite";
 import path = require("path");
+import { appPrefixRewritePlugin } from "./vite/plugins/appPrefixRewrite";
+import { entcoreGlobalsPlugin } from "./vite/plugins/entcoreGlobals";
+import { injectAppPrefixPlugin } from "./vite/plugins/injectAppPrefix";
 
 const publicRoot = path.resolve(__dirname, "src/main/resources/public");
 
@@ -26,75 +29,7 @@ const UMD_GLOBALS: Record<string, { source: string; named: string[] }> = {
   underscore: { source: "window.entcore._", named: [] },
 };
 
-/**
- * Maps `import { ... } from 'entcore'` to window.entcore.*, and the four
- * UMD globals (angular, moment, jquery, underscore) to their respective
- * window globals. ng-app.js installs all of these before any module runs.
- * Deep type-only imports like 'entcore/types/...' return an empty module.
- */
-function entcoreGlobalsPlugin(): Plugin {
-  return {
-    name: "entcore-globals",
-    enforce: "pre",
-    resolveId(id) {
-      if (id === "entcore" || id.startsWith("entcore/")) return `\0${id}`;
-      if (id in UMD_GLOBALS) return `\0umd:${id}`;
-    },
-    load(id) {
-      if (id === "\0entcore") {
-        const named = ENTCORE_EXPORTS.map(
-          (name) => `export const ${name} = _e.${name};`
-        ).join("\n");
-        return `const _e = window.entcore;\n${named}\nexport default _e;`;
-      }
-      if (id.startsWith("\0entcore/")) {
-        return "export default {};";
-      }
-      if (id.startsWith("\0umd:")) {
-        const name = id.slice("\0umd:".length);
-        const { source, named } = UMD_GLOBALS[name];
-        const exports = named
-          .map((n) => `export const ${n} = _g.${n};`)
-          .join("\n");
-        return `const _g = ${source};\n${exports}\nexport default _g;`;
-      }
-    },
-  };
-}
-
-/**
- * infra-front's `template.getCompletePath` builds view URLs shaped like
- * `/calendar/public/template/<view>.html` — the production-deployed layout.
- * In dev, Vite's root is already `src/main/resources/public`, so those URLs
- * don't resolve to any file and the SPA fallback returns `index.html`,
- * which AngularJS then injects via `ng-include` inside `<container>` —
- * producing infinite recursion (and re-running the `ng-app.js` <script>
- * on every cycle, which is what surfaces as "AngularJS loaded twice").
- *
- * Strip the `/calendar/public/` prefix so requests land on the local
- * files (templates, css, i18n, …). Also 404 stale `dist/` and
- * `js/behaviours*` artifacts left over from a prior `pnpm build` — those
- * would otherwise be served on top of the Vite-transformed dev modules.
- */
-function appPrefixRewritePlugin(): Plugin {
-  const blocked = /^\/(dist\/|js\/behaviours)/;
-  return {
-    name: "app-prefix-rewrite",
-    configureServer(server) {
-      server.middlewares.use((req, res, next) => {
-        if (req.url?.startsWith("/calendar/public/")) {
-          req.url = req.url.slice("/calendar/public".length);
-        }
-        if (req.url && blocked.test(req.url)) {
-          res.statusCode = 404;
-          res.end();
-          return;
-        }
-        next();
-      });
-    },
-  };
-}
+const APP_NAME = "calendar";
 
 export default ({ mode }: { mode: string }) => {
   const envFile = loadEnv(mode, process.cwd());
@@ -153,6 +88,13 @@ export default ({ mode }: { mode: string }) => {
       },
     },
 
-    plugins: [entcoreGlobalsPlugin(), appPrefixRewritePlugin()],
+    plugins: [
+      entcoreGlobalsPlugin({
+        entcoreExports: ENTCORE_EXPORTS,
+        umdGlobals: UMD_GLOBALS,
+      }),
+      injectAppPrefixPlugin({ appName: APP_NAME }),
+      appPrefixRewritePlugin({ appName: APP_NAME }),
+    ],
   });
 };
