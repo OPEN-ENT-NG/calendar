@@ -1,6 +1,7 @@
-import { defineConfig, loadEnv, type ProxyOptions } from "vite";
+import { defineConfig } from "vite";
 import path = require("path");
 import { appPrefixRewritePlugin } from "./vite/plugins/appPrefixRewrite";
+import { createDevProxyConfig } from "./vite/plugins/devProxy";
 import { entcoreGlobalsPlugin } from "./vite/plugins/entcoreGlobals";
 import { injectAppPrefixPlugin } from "./vite/plugins/injectAppPrefix";
 
@@ -32,38 +33,17 @@ const UMD_GLOBALS: Record<string, { source: string; named: string[] }> = {
 const APP_NAME = "calendar";
 
 export default ({ mode }: { mode: string }) => {
-  const envFile = loadEnv(mode, process.cwd());
-  const envs = { ...process.env, ...envFile };
-  const hasEnvFile = Object.keys(envFile).length;
-
-  const headers = hasEnvFile
-    ? {
-        "set-cookie": [
-          `oneSessionId=${envs.VITE_ONE_SESSION_ID}`,
-          `XSRF-TOKEN=${envs.VITE_XSRF_TOKEN}`,
-          `authenticated=true`,
-        ],
-        "Cache-Control": "public, max-age=300",
-      }
-    : {};
-
-  const proxyObj: ProxyOptions = hasEnvFile
-    ? {
-        target: envs.VITE_RECETTE,
-        changeOrigin: true,
-        headers: {
-          cookie: `oneSessionId=${envs.VITE_ONE_SESSION_ID};authenticated=true; XSRF-TOKEN=${envs.VITE_XSRF_TOKEN}`,
-        },
-        configure: (proxy) => {
-          proxy.on("proxyReq", (proxyReq) => {
-            proxyReq.setHeader("X-XSRF-TOKEN", envs.VITE_XSRF_TOKEN || "");
-          });
-        },
-      }
-    : {
-        target: "http://localhost:8090",
-        changeOrigin: false,
-      };
+  const { headers, proxy } = createDevProxyConfig({
+    mode,
+    routes: [
+      "/conf/public",
+      "^/(?=applications-list)",
+      "^/(?=assets)",
+      "^/(?=theme|locale|i18n|skin)",
+      "^/(?=auth|appregistry|cas|userbook|directory|communication|conversation|portal|session|timeline|workspace|infra)",
+      "^/calendar/(?!public/)",
+    ],
+  });
 
   return defineConfig({
     root: publicRoot,
@@ -77,15 +57,7 @@ export default ({ mode }: { mode: string }) => {
       port: 4200,
       host: "localhost",
       headers,
-      proxy: {
-        "/conf/public": proxyObj,
-        "^/(?=applications-list)": proxyObj,
-        "^/(?=assets)": proxyObj,
-        "^/(?=theme|locale|i18n|skin)": proxyObj,
-        "^/(?=auth|appregistry|cas|userbook|directory|communication|conversation|portal|session|timeline|workspace|infra)":
-          proxyObj,
-        "^/calendar/(?!public/)": proxyObj,
-      },
+      proxy,
     },
 
     plugins: [
