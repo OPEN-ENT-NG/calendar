@@ -114,18 +114,18 @@ Il y a 2 Collections globales :
 * `model.calendars.all` qui contient l'ensemble des objets `calendar` synchronisé depuis le serveur.
 * `model.calendarEvent.all` qui contient l'ensemble des objets `event` synchronisé depuis le serveur.
 
-## Developpement Frontend
+## Développement frontend
 
-### 1 - Initier les variables d'environnement
-- `./build.sh init` 
-- un .env a été crée
+### 1 - Initialiser les variables d'environnement
+- `./build.sh init`
+- Un fichier `.env` est créé.
 
-### 2 - Proxifier le backend avec une url de recette 
-- Dans le fichier .env, remplir les champs avec les tokens d'authentification (voir le template `env.template`) 
+### 2 - Proxifier le backend avec une URL de recette
+- Dans le fichier `.env`, renseigner les champs avec les tokens d'authentification (voir le template `env.template`).
 
-### 3 - Installer les dependances
+### 3 - Installer les dépendances
 - `pnpm i`
 
-### Lancer le server proxifié
+### 4 - Lancer le serveur proxifié
 - `pnpm dev`
-- Se rendre sur http://localhost:4200/
+- Ouvrir [http://localhost:4200/](http://localhost:4200/).
