@@ -86,7 +86,7 @@ buildFrontend () {
     mkdir "./src/main/resources/view"
   fi
   # Copy view-src to view and replace @@VERSION variables
-  VERSION=$(node -e "process.stdout.write(String(Date.now()))")
+  VERSION=$(date +%s)
   find ./src/main/resources/view-src -type f \( -name "*.html" -o -name "*.json" \) | while read -r file; do
     dest="./src/main/resources/view/${file#./src/main/resources/view-src/}"
     mkdir -p "$(dirname "$dest")"
@@ -128,11 +128,7 @@ publishNexus() {
 }
 
 watch () {
-  if [ "$NO_DOCKER" = "true" ] ; then
-    node_modules/gulp/bin/gulp.js watch --springboard=../recette
-  else
-    docker compose run --rm -u "$USER_UID:$GROUP_GID" node sh -c "node_modules/gulp/bin/gulp.js watch --springboard=/home/node/$SPRINGBOARD"
-  fi
+  echo "launch the command: pnpm i && pnpm dev"
 }
 
 for param in "$@"

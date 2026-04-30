@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+	<title>Calendar</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+    <script src="/assets/js/entcore/ng-app.js" id="context" type="text/javascript"></script>
+    <script type="module" src="/ts/app.ts"></script>
+    <script type="module" src="/ts/behaviours.ts"></script>
+    <script type="text/javascript">
+        var ENABLE_RBS =false;
+        var ENABLE_ZIMBRA = false;
+        var ENABLE_REMINDER = false;
+    </script>
+    <script type="text/ng-template" id="empty"></script>
+  </head>
+
+  <body ng-controller="CalendarController" class="calendar">
+    <portal>
+        <div class="row">
+          <container template="top-menu"></container>
+        </div>
+        <div class="row">
+          <container template="main"></container>
+        </div>
+    </portal>
+  </body>
+
+
+</html>
