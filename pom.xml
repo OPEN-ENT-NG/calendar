@@ -11,7 +11,7 @@
   </parent>
   <groupId>net.atos</groupId>
   <artifactId>calendar</artifactId>
-  <version>4.2-separation-SNAPSHOT</version>
+  <version>4.2-SNAPSHOT</version>
   <scm>
     <connection>scm:git:https://github.com/OPEN-ENT-NG/calendar.git</connection>
     <developerConnection>scm:git:https://github.com/OPEN-ENT-NG/calendar.git</developerConnection>
@@ -25,7 +25,7 @@
     </repository>
   </repositories>
   <properties>
-    <entCoreVersion>6.14-separation-SNAPSHOT</entCoreVersion>
+    <entCoreVersion>6.14-SNAPSHOT</entCoreVersion>
     <junitVersion>4.10</junitVersion>
     <mockitoVersion>[2.0,3.0)</mockitoVersion>
     <powerMockVersion>2.0.2</powerMockVersion>
@@ -37,7 +37,7 @@
     <shade.minimizeJar>false</shade.minimizeJar>
     <modJsonSchemaValidatorVersion>2.1-SNAPSHOT</modJsonSchemaValidatorVersion>
     <entCoreLibsVersion>6.14-separation-SNAPSHOT</entCoreLibsVersion>
-    <modMongoVersion>4.1-separation-SNAPSHOT</modMongoVersion>
+    <modMongoVersion>4.1-SNAPSHOT</modMongoVersion>
   </properties>
   <dependencies>
     <dependency>
