@@ -11,7 +11,7 @@
   </parent>
   <groupId>net.atos</groupId>
   <artifactId>calendar</artifactId>
-  <version>4.3-SNAPSHOT</version>
+  <version>4.3-develop-integration-SNAPSHOT</version>
   <scm>
     <connection>scm:git:https://github.com/OPEN-ENT-NG/calendar.git</connection>
     <developerConnection>scm:git:https://github.com/OPEN-ENT-NG/calendar.git</developerConnection>
