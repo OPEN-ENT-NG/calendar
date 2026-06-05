@@ -323,8 +323,8 @@ public class CalendarReminderWorker extends BusModBase implements Handler<Messag
                     .put(Field.MESSAGE, message);
 
             eb.request(EventBusAction.CONVERSATION_ADDRESS.method(), action, (Handler<AsyncResult<Message<JsonObject>>>) messageEvt -> {
-                if (!messageEvt.result().body().getString(Field.STATUS).equals(Field.OK)) {
-                    log.error("[Formulaire@FormController::sendReminder] Failed to send email reminder : " + messageEvt.cause());
+                if (!messageEvt.succeeded() || messageEvt.result().body() == null || !Field.OK.equals(messageEvt.result().body().getString(Field.STATUS))) {
+                    log.error("[Formulaire@FormController::sendReminder] Failed to send email reminder : ", messageEvt.cause());
                     promise.fail(messageEvt.cause());
                 } else {
                     promise.complete(messageEvt.result().body());
