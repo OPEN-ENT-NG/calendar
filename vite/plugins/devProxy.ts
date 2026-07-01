@@ -44,7 +44,7 @@ export function createDevProxyConfig({
   const headers = hasEnvFile
     ? {
         "set-cookie": setCookie,
-        "Cache-Control": "public, max-age=300",
+      
       }
     : {};
 
@@ -58,6 +58,9 @@ export function createDevProxyConfig({
         configure: (proxy) => {
           proxy.on("proxyReq", (proxyReq) => {
             proxyReq.setHeader("X-XSRF-TOKEN", envs.VITE_XSRF_TOKEN || "");
+          });
+          proxy.on("proxyRes", (proxyRes) => {
+            proxyRes.headers["cache-control"] = "public, max-age=300";
           });
         },
       }

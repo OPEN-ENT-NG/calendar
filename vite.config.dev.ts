@@ -3,6 +3,7 @@ import path = require("path");
 import { appPrefixRewritePlugin } from "./vite/plugins/appPrefixRewrite";
 import { createDevProxyConfig } from "./vite/plugins/devProxy";
 import { entcoreGlobalsPlugin } from "./vite/plugins/entcoreGlobals";
+import { htmlTemplateReloadPlugin } from "./vite/plugins/htmlTemplateReload";
 import { injectAppPrefixPlugin } from "./vite/plugins/injectAppPrefix";
 
 const publicRoot = path.resolve(__dirname, "src/main/resources/public");
@@ -67,6 +68,7 @@ export default ({ mode }: { mode: string }) => {
       }),
       injectAppPrefixPlugin({ appName: APP_NAME }),
       appPrefixRewritePlugin({ appName: APP_NAME }),
+      htmlTemplateReloadPlugin(),
     ],
   });
 };
