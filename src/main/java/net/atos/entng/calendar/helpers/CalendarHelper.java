@@ -4,6 +4,7 @@ import fr.wseduc.mongodb.MongoDb;
 import fr.wseduc.webutils.http.Renders;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
+import io.vertx.core.eventbus.DeliveryOptions;
 import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -186,7 +187,7 @@ public class CalendarHelper extends MongoDbControllerHelper {
                 .put(Field.ACTION, action)
                 .put(Field.USERID, user.getUserId());
 
-        eb.request(ExternalImportICal.class.getName(), message, event -> {
+        eb.request(ExternalImportICal.class.getName(), message, new DeliveryOptions().setLocalOnly(true), event -> {
             if(event.failed()) {
                 String errMessage = String.format("[Calendar@%s::callLinkImportEventBus]:  " +
                         "an error has occurred while creating external calendar events: %s",

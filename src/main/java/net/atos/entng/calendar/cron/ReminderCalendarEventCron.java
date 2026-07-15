@@ -1,6 +1,8 @@
 package net.atos.entng.calendar.cron;
 
+import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Handler;
+import io.vertx.core.eventbus.DeliveryOptions;
 import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
@@ -28,7 +30,7 @@ public class ReminderCalendarEventCron  implements Handler<Long> {
         log.info(String.format("[Calendar@%s::handle] ReminderCalendarEventCron started", this.getClass().getSimpleName()));
         final JsonObject message = new JsonObject();
         message.put(Field.ACTION, ReminderCalendarEventWorkerAction.SEND_REMINDERS.method());
-        eb.request(CalendarReminderWorker.class.getName(), message, result -> {
+        eb.request(CalendarReminderWorker.class.getName(), message, new DeliveryOptions().setLocalOnly(true), result -> {
             if(result.failed()) {
                 String errMessage = String.format("[Calendar@%s::handle]: Failed to sync reminders: %s",
                         this.getClass().getSimpleName(), result.cause().getMessage());
