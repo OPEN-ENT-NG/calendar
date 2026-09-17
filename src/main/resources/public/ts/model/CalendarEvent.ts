@@ -1,8 +1,7 @@
-import http from "axios";
 import {_, Behaviours, moment, Rights, Shareable, Document, angular} from "entcore";
 import { timeConfig } from "./constantes";
 import {Booking, Calendar, Calendars} from "./";
-import { Mix, Selectable, Selection } from "entcore-toolkit";
+import { Mix, Selectable, Selection, http } from "entcore-toolkit";
 import {getTime, makerFormatTimeInput, utcTime} from './Utils'
 import {multiDaysEventsUtils} from "../utils/multiDaysEventsUtils";
 import {FORMAT} from "../core/const/date-format";
@@ -185,7 +184,6 @@ export class CalendarEvents extends Selection<CalendarEvent> {
     filtered: Array<CalendarEvent>;
     filters: filterCalendarEvent;
     calendar: Calendar;
-    all: Array<CalendarEvent>;
     isRecurrent: boolean;
     multiDaysEvents: Array<CalendarEvent>;
 

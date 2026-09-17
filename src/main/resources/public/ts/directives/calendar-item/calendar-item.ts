@@ -4,7 +4,7 @@ import {Calendar} from "../../model";
 import {IIntervalService, IPromise, IScope, ITimeoutService} from "angular";
 import {ICalendarService} from "../../services";
 import {DateUtils} from "../../utils/date.utils";
-import {AxiosResponse} from "axios";
+import {HttpResponse} from "entcore-toolkit";
 import {safeApply} from "../../model/Utils";
 import {FORMAT} from "../../core/const/date-format";
 
@@ -65,7 +65,7 @@ class Controller implements ng.IController, IViewModel {
             if (this.calendarIsNotPlatformCreation()) await this.calendarService.updateExternalCalendar(this.$scope.vm.calendar);
             this.$timeout(() : IPromise<void> => {
                 this.calendarService.checkExternalCalendarSync(this.$scope.vm.calendar)
-                    .then((r:AxiosResponse) => {
+                    .then((r:HttpResponse) => {
                         if(r.data['isUpdating'] == false) {
                             this.loading = false;
                             let successMessage : string = lang.translate("calendar.the.calendar") + " " +  this.$scope.vm.calendar.title
@@ -111,7 +111,7 @@ class Controller implements ng.IController, IViewModel {
     handleUpdateInterval = async (isSyncButton? : boolean): Promise<void> => {
         this.$interval(() : IPromise<void> => {
             this.calendarService.checkExternalCalendarSync(this.$scope.vm.calendar)
-                .then((r: AxiosResponse) => {
+                .then((r: HttpResponse) => {
                     if(r.data.isUpdating == false) {
                         this.loading = false;
                         let successMessage : string = lang.translate("calendar.the.calendar") + " " +  this.$scope.vm.calendar.title

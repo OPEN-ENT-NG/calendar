@@ -1,7 +1,6 @@
-import http, {AxiosError, AxiosResponse} from "axios";
 import {CalendarEvents} from "./";
 import {Rights, notify, Shareable, Behaviours, _, idiom as lang, moment} from 'entcore';
-import {Mix, Selectable, Selection} from "entcore-toolkit";
+import {Mix, Selectable, Selection, http, HttpError} from "entcore-toolkit";
 import {CalendarEventService, calendarEventService, calendarService} from "../services";
 import {extend} from "angular";
 import {DateUtils} from "../utils/date.utils";
@@ -81,7 +80,6 @@ export class Calendar implements Selectable, Shareable {
 export class Calendars extends Selection<Calendar> {
     behaviours: string;
     preference: Preference;
-    all: Array<Calendar>;
 
     constructor() {
         super([]);
@@ -92,7 +90,7 @@ export class Calendars extends Selection<Calendar> {
     async syncCalendars(): Promise<void> {
         await calendarService.fetchCalendars()
             .then((calendars: Array<Calendar>) => this.all = calendars)
-            .catch((e: AxiosError) => notify.error(lang.translate("calendar.notify.sync.calendars.error")));
+            .catch((e: HttpError) => notify.error(lang.translate("calendar.notify.sync.calendars.error")));
     }
 
     async sync(): Promise<void> {

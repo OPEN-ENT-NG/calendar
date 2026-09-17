@@ -4,7 +4,6 @@ import {ROOTS} from "../../core/const/roots";
 import {Subject} from "rxjs";
 import {calendar} from "entcore/types/src/ts/calendar";
 import {calendarService} from "../../services";
-import {AxiosResponse} from "axios";
 import {safeApply} from "../../model/Utils";
 
 interface IViewModel {
