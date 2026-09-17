@@ -1,5 +1,5 @@
 import { Behaviours, model, _ } from 'entcore';
-import http from "axios";
+import { http } from "entcore-toolkit";
 import { CalendarEvent } from "./model";
 import { rights } from "./model/constantes";
 
