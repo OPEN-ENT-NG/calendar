@@ -11,7 +11,7 @@
   </parent>
   <groupId>net.atos</groupId>
   <artifactId>calendar</artifactId>
-  <version>4.3-SNAPSHOT</version>
+  <version>4.3-develop-axios-SNAPSHOT</version>
   <scm>
     <connection>scm:git:https://github.com/OPEN-ENT-NG/calendar.git</connection>
     <developerConnection>scm:git:https://github.com/OPEN-ENT-NG/calendar.git</developerConnection>
@@ -25,7 +25,7 @@
     </repository>
   </repositories>
   <properties>
-    <entCoreVersion>6.16-SNAPSHOT</entCoreVersion>
+    <entCoreVersion>6.16-develop-axios-SNAPSHOT</entCoreVersion>
     <junitVersion>4.10</junitVersion>
     <mockitoVersion>[2.0,3.0)</mockitoVersion>
     <powerMockVersion>2.0.2</powerMockVersion>

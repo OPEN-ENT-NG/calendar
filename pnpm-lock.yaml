@@ -17,18 +17,15 @@ importers:
       awesome-typescript-loader:
         specifier: 3.2.1
         version: 3.2.1
-      axios:
-        specifier: 0.27.2
-        version: 0.27.2
       core-js:
         specifier: 2.4.1
         version: 2.4.1
       entcore:
-        specifier: develop-b2school
-        version: 4.8.16-develop-b2school.202603231504(lodash@4.17.23)
+        specifier: dev
+        version: 4.8.19-dev.202609031552(lodash@4.17.23)
       entcore-toolkit:
-        specifier: 1.0.1
-        version: 1.0.1(axios@0.27.2)(core-js@2.4.1)(lodash@4.17.23)(typescript@4.8.3)
+        specifier: 2.0.0-dev.2
+        version: 2.0.0-dev.2(typescript@4.8.3)
       file-saver:
         specifier: 2.0.1
         version: 2.0.1
@@ -69,9 +66,6 @@ importers:
       angular-mocks:
         specifier: 1.8.2
         version: 1.8.2
-      axios-mock-adapter:
-        specifier: 1.19.0
-        version: 1.19.0(axios@0.27.2)
       entcore-css-lib:
         specifier: npm:ode-csslib@4.2.3
         version: ode-csslib@4.2.3
@@ -930,17 +924,9 @@ packages:
   awesome-typescript-loader@3.2.1:
     resolution: {integrity: sha512-/4abhqe5+wX/hQrquLT95o3QkaUCkzOfC6XQZcbk5sxI5V4rxcA3az7DQRHoHL2EWn7mnP3orzNfkjZAA/TVzA==}
 
-  axios-mock-adapter@1.19.0:
-    resolution: {integrity: sha512-D+0U4LNPr7WroiBDvWilzTMYPYTuZlbo6BI8YHZtj7wYQS8NkARlP9KBt8IWWHTQJ0q/8oZ0ClPBtKCCkx8cQg==}
-    peerDependencies:
-      axios: '>= 0.9.0'
-
   axios@0.15.3:
     resolution: {integrity: sha512-w3/VNaraEcDri16lbemQWQGKfaFk9O0IZkzKlLeF5r6WWDv9TkcXkP+MWkRK8FbxwfozY/liI+qtvhV295t3HQ==}
     deprecated: Critical security vulnerability fixed in v0.21.1. For more information, see https://github.com/axios/axios/pull/3410
-
-  axios@0.27.2:
-    resolution: {integrity: sha512-t+yRIyySRTp/wua5xEr+z1q60QmLq8ABsS5O9Me1AsE5dfKqgnCFzwiCZZ/cGNd1lq4/7akDWMxdhVlucjmnOQ==}
 
   babel-jest@26.6.3:
     resolution: {integrity: sha512-pl4Q+GAVOHwvjrck6jKjvmGhnO3jHX/xuB9d27f+EJZ/6k+6nMuPjorrYp7s++bKKdANwzElBWnLWaObvTnaZA==}
@@ -1302,6 +1288,7 @@ packages:
   conventional-changelog-atom@2.0.8:
     resolution: {integrity: sha512-xo6v46icsFTK3bb7dY/8m2qvc8sZemRgdqLb/bjpBsH2UyOS8rKNTgcb5025Hri6IpANPApbXMg15QLb1LJpBw==}
     engines: {node: '>=10'}
+    deprecated: This preset is deprecated. Please use conventional-changelog-conventionalcommits or conventional-changelog-angular instead.
 
   conventional-changelog-cli@2.0.12:
     resolution: {integrity: sha512-6wh9W5Gpr9DM40E8cFi0qa6JotVm4Jq+suksuqgKnm544H8ZXsRhgGNXShDASOteY9brv9fX8/+fE/QL1wHqbA==}
@@ -1312,30 +1299,37 @@ packages:
   conventional-changelog-codemirror@2.0.8:
     resolution: {integrity: sha512-z5DAsn3uj1Vfp7po3gpt2Boc+Bdwmw2++ZHa5Ak9k0UKsYAO5mH1UBTN0qSCuJZREIhX6WU4E1p3IW2oRCNzQw==}
     engines: {node: '>=10'}
+    deprecated: This preset is deprecated. Please use conventional-changelog-conventionalcommits or conventional-changelog-angular instead.
 
   conventional-changelog-core@3.2.3:
     resolution: {integrity: sha512-LMMX1JlxPIq/Ez5aYAYS5CpuwbOk6QFp8O4HLAcZxe3vxoCtABkhfjetk8IYdRB9CDQGwJFLR3Dr55Za6XKgUQ==}
     engines: {node: '>=6.9.0'}
+    deprecated: Deprecated and no longer maintained. Please use conventional-changelog instead.
 
   conventional-changelog-ember@2.0.9:
     resolution: {integrity: sha512-ulzIReoZEvZCBDhcNYfDIsLTHzYHc7awh+eI44ZtV5cx6LVxLlVtEmcO+2/kGIHGtw+qVabJYjdI5cJOQgXh1A==}
     engines: {node: '>=10'}
+    deprecated: This preset is deprecated. Please use conventional-changelog-conventionalcommits or conventional-changelog-angular instead.
 
   conventional-changelog-eslint@3.0.9:
     resolution: {integrity: sha512-6NpUCMgU8qmWmyAMSZO5NrRd7rTgErjrm4VASam2u5jrZS0n38V7Y9CzTtLT2qwz5xEChDR4BduoWIr8TfwvXA==}
     engines: {node: '>=10'}
+    deprecated: This preset is deprecated. Please use conventional-changelog-conventionalcommits or conventional-changelog-angular instead.
 
   conventional-changelog-express@2.0.6:
     resolution: {integrity: sha512-SDez2f3iVJw6V563O3pRtNwXtQaSmEfTCaTBPCqn0oG0mfkq0rX4hHBq5P7De2MncoRixrALj3u3oQsNK+Q0pQ==}
     engines: {node: '>=10'}
+    deprecated: This preset is deprecated. Please use conventional-changelog-conventionalcommits or conventional-changelog-angular instead.
 
   conventional-changelog-jquery@3.0.11:
     resolution: {integrity: sha512-x8AWz5/Td55F7+o/9LQ6cQIPwrCjfJQ5Zmfqi8thwUEKHstEn4kTIofXub7plf1xvFA2TqhZlq7fy5OmV6BOMw==}
     engines: {node: '>=10'}
+    deprecated: This preset is deprecated. Please use conventional-changelog-conventionalcommits or conventional-changelog-angular instead.
 
   conventional-changelog-jshint@2.0.9:
     resolution: {integrity: sha512-wMLdaIzq6TNnMHMy31hql02OEQ8nCQfExw1SE0hYL5KvU+JCTuPaDO+7JiogGT2gJAxiUGATdtYYfh+nT+6riA==}
     engines: {node: '>=10'}
+    deprecated: This preset is deprecated. Please use conventional-changelog-conventionalcommits or conventional-changelog-angular instead.
 
   conventional-changelog-preset-loader@2.3.4:
     resolution: {integrity: sha512-GEKRWkrSAZeTq5+YjUZOYxdHq+ci4dNwHvpaBC3+ENalzFWuCWa9EZXSuZBpkr72sMdKB+1fyDV4takK1Lf58g==}
@@ -1601,8 +1595,13 @@ packages:
       lodash: ^4.17.1
       typescript: 2.1.1
 
-  entcore@4.8.16-develop-b2school.202603231504:
-    resolution: {integrity: sha512-UN054XMmzLF8z6yeqhfL55m/f5Ieg6jGi6Tlt5lT6HBDConb7AUbmkF2BUBs/8VxDSl7kQVYcriTUYRDEAq8Yg==}
+  entcore-toolkit@2.0.0-dev.2:
+    resolution: {integrity: sha512-Y9WHiTDyOOlt3+fvLHCaaxC5yEk9lbqupsrJQCXorBj10roJNlL051JAXQjl8VZvE95Rz/qMjQe2ew3tKiJxRw==}
+    peerDependencies:
+      typescript: 4.6.4
+
+  entcore@4.8.19-dev.202609031552:
+    resolution: {integrity: sha512-HHWeF5RUm4LvBqazPKMYmJRu4faP1W94GoW7zVK/eUO4DfbbcYQzWkllBTXp2GRAwvNiPj16sLiZMvUzaRtC/A==}
 
   errno@0.1.8:
     resolution: {integrity: sha512-dJ6oBr5SQ1VSd9qkk7ByRgb/1SH4JZjCHSW/mr63/QcXO9zLVxvJ6Oy13nio03rxpSnVDDjFor75SjVeZWPW/A==}
@@ -1854,15 +1853,6 @@ packages:
   follow-redirects@1.0.0:
     resolution: {integrity: sha512-7s+wBk4z5xTwVJuozRBAyRofWKjD3uG2CUjZfZTrw9f+f+z8ZSxOjAqfIDLtc0Hnz+wGK2Y8qd93nGGjXBYKsQ==}
 
-  follow-redirects@1.15.11:
-    resolution: {integrity: sha512-deG2P0JfjrTxl50XGCDyfI97ZGVCxIpfKYmfyrQ54n5FO/0gfIES8C/Psl6kWVDolizcaaxZJnTS0QSMxvnsBQ==}
-    engines: {node: '>=4.0'}
-    peerDependencies:
-      debug: '*'
-    peerDependenciesMeta:
-      debug:
-        optional: true
-
   for-each@0.3.5:
     resolution: {integrity: sha512-dKx12eRCVIzqCxFGplyFKJMPvLEWgmNtUrpTiJIR5u97zEhRG8ySrtboPHZXx7daLxQVrl643cTzbab2tkQjxg==}
     engines: {node: '>= 0.4'}
@@ -1881,10 +1871,6 @@ packages:
 
   form-data@3.0.4:
     resolution: {integrity: sha512-f0cRzm6dkyVYV3nPoooP8XlccPQukegwhAnpoLcXy+X+A8KfpGOoXwDr9FLZd3wzgLaBGQBE3lY93Zm/i1JvIQ==}
-    engines: {node: '>= 6'}
-
-  form-data@4.0.5:
-    resolution: {integrity: sha512-8RipRLol37bNs2bhoV67fiTEvdTrbMUYcFTiy3+wuuOnUog2QBHCZWXDRijWQfAkhBj2Uf5UnVaiWwA5vdd82w==}
     engines: {node: '>= 6'}
 
   fragment-cache@0.2.1:
@@ -1962,7 +1948,7 @@ packages:
   git-raw-commits@2.0.0:
     resolution: {integrity: sha512-w4jFEJFgKXMQJ0H0ikBk2S+4KP2VEjhCvLCNqbNRQC8BgGWgLKNCO7a9K9LI+TVT7Gfoloje502sEnctibffgg==}
     engines: {node: '>=6.9.0'}
-    deprecated: This package is no longer maintained. For the JavaScript API, please use @conventional-changelog/git-client instead.
+    deprecated: Deprecated and no longer maintained. Use @conventional-changelog/git-client instead.
     hasBin: true
 
   git-remote-origin-url@2.0.0:
@@ -1972,7 +1958,7 @@ packages:
   git-semver-tags@2.0.3:
     resolution: {integrity: sha512-tj4FD4ww2RX2ae//jSrXZzrocla9db5h0V7ikPl1P/WwoZar9epdUhwR7XHXSgc+ZkNq72BEEerqQuicoEQfzA==}
     engines: {node: '>=6.9.0'}
-    deprecated: This package is no longer maintained. For the JavaScript API, please use @conventional-changelog/git-client instead.
+    deprecated: Deprecated and no longer maintained. Use @conventional-changelog/git-client instead.
     hasBin: true
 
   gitconfiglocal@1.0.0:
@@ -2251,10 +2237,6 @@ packages:
 
   is-buffer@1.1.6:
     resolution: {integrity: sha512-NcdALwpXkTm5Zvvbk7owOUSvVvBKDgKP5/ewfXEznmQFfs4ZRmanOeKBTjRVjka3QFoN6XJ+9F3USqfHqTaU5w==}
-
-  is-buffer@2.0.5:
-    resolution: {integrity: sha512-i2R6zNFDwgEHJyQUtJEk0XFi1i0dPFn/oqjK3/vPCcDeJvW5NQ83V8QbicfF1SupOaB0h8ntgBC2YiE7dfyctQ==}
-    engines: {node: '>=4'}
 
   is-callable@1.2.7:
     resolution: {integrity: sha512-1BC0BVFhS/p0qtw6enp8e+8OD0UrK0oFLztSjNzhcKA3WDuJxxAPXzPuPtKkjEY9UUoEWlX/8fgKeu2S8i9JTA==}
@@ -4270,7 +4252,7 @@ packages:
 
   uuid@2.0.3:
     resolution: {integrity: sha512-FULf7fayPdpASncVy4DLh3xydlXEJJpvIELjYjNeQWYUZ9pclcpvCZSr2gkmN2FrrGcI7G/cJsIEwk5/8vfXpg==}
-    deprecated: Please upgrade  to version 7 or higher.  Older versions may use Math.random() in certain circumstances, which is known to be problematic.  See https://v8.dev/blog/math-random for details.
+    deprecated: uuid@10 and below is no longer supported.  For ESM codebases, update to uuid@latest.  For CommonJS codebases, use uuid@11 (but be aware this version will likely be deprecated in 2028).
 
   uuid@8.3.2:
     resolution: {integrity: sha512-+NYs2QeMWy+GWFOEm9xnn6HCDp0l7QBD7ml8zLUmJ+93Q5NF0NocErnwkTkXVFNiX3/fpC6afS8Dhb/gz7R7eg==}
@@ -5376,24 +5358,11 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  axios-mock-adapter@1.19.0(axios@0.27.2):
-    dependencies:
-      axios: 0.27.2
-      fast-deep-equal: 3.1.3
-      is-buffer: 2.0.5
-
   axios@0.15.3:
     dependencies:
       follow-redirects: 1.0.0
     transitivePeerDependencies:
       - supports-color
-
-  axios@0.27.2:
-    dependencies:
-      follow-redirects: 1.15.11
-      form-data: 4.0.5
-    transitivePeerDependencies:
-      - debug
 
   babel-jest@26.6.3(@babel/core@7.29.0):
     dependencies:
@@ -6290,15 +6259,11 @@ snapshots:
       merge2: 1.1.0
       typescript: 2.4.1
 
-  entcore-toolkit@1.0.1(axios@0.27.2)(core-js@2.4.1)(lodash@4.17.23)(typescript@4.8.3):
+  entcore-toolkit@2.0.0-dev.2(typescript@4.8.3):
     dependencies:
-      axios: 0.27.2
-      core-js: 2.4.1
-      lodash: 4.17.23
-      merge2: 1.1.0
       typescript: 4.8.3
 
-  entcore@4.8.16-develop-b2school.202603231504(lodash@4.17.23):
+  entcore@4.8.19-dev.202609031552(lodash@4.17.23):
     dependencies:
       angular: 1.8.3
       angular-route: 1.8.3
@@ -6739,8 +6704,6 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  follow-redirects@1.15.11: {}
-
   for-each@0.3.5:
     dependencies:
       is-callable: 1.2.7
@@ -6756,14 +6719,6 @@ snapshots:
       for-in: 1.0.2
 
   form-data@3.0.4:
-    dependencies:
-      asynckit: 0.4.0
-      combined-stream: 1.0.8
-      es-set-tostringtag: 2.1.0
-      hasown: 2.0.2
-      mime-types: 2.1.35
-
-  form-data@4.0.5:
     dependencies:
       asynckit: 0.4.0
       combined-stream: 1.0.8
@@ -7203,8 +7158,6 @@ snapshots:
 
   is-buffer@1.1.6: {}
 
-  is-buffer@2.0.5: {}
-
   is-callable@1.2.7: {}
 
   is-ci@1.2.1:
@@ -7549,7 +7502,11 @@ snapshots:
       pretty-format: 26.6.2
       throat: 5.0.0
     transitivePeerDependencies:
+      - bufferutil
+      - canvas
       - supports-color
+      - ts-node
+      - utf-8-validate
 
   jest-leak-detector@26.6.2:
     dependencies:
@@ -8066,7 +8023,7 @@ snapshots:
 
   md5.js@1.3.5:
     dependencies:
-      hash-base: 3.0.5
+      hash-base: 3.1.2
       inherits: 2.0.4
       safe-buffer: 5.2.1
 

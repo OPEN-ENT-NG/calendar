@@ -1,5 +1,5 @@
 import { IScope } from "angular";
-import { AxiosResponse } from "axios";
+import { HttpResponse } from "entcore-toolkit";
 import { $, _, angular, Document, idiom as lang, moment, ng, notify, template, toasts } from "entcore";
 import { Moment } from "moment";
 import { Subject } from "rxjs";
@@ -946,7 +946,7 @@ export const calendarController = ng.controller('CalendarController',
                 try {
                     await event.delete();
                 } catch (err) {
-                    let error: AxiosResponse = err.response;
+                    let error: HttpResponse = err.response;
                     if (error.status === 400 && event.deleteAllBookings
                         && ($scope.display.calendar || $scope.calendarEvents.selected.length == 1)) {
                         toasts.warning(lang.translate('calendar.rbs.sniplet.error.booking.deletion'));
@@ -1116,7 +1116,7 @@ export const calendarController = ng.controller('CalendarController',
                 try {
                     await $scope.calendar.delete();
                 } catch (err) {
-                    let error: AxiosResponse = err.response;
+                    let error: HttpResponse = err.response;
                     if (error.status === 403) {
                         toasts.warning(error.data.error);
                     } else {
@@ -1167,7 +1167,7 @@ export const calendarController = ng.controller('CalendarController',
                     $scope.sendNotif = true;
                 } catch (err) {
                     $scope.display.showPanelEvent = false;
-                    let error: AxiosResponse = err.response;
+                    let error: HttpResponse = err.response;
                     if (error.status === 401) {
                         toasts.warning(error.data.error);
                     } else {
