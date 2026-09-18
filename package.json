@@ -56,6 +56,6 @@
     "sass": "1.49.9",
     "entcore-css-lib": "npm:ode-csslib@4.2.3",
     "underscore": "1.8.3",
-    "vite": "^5.4.6"
+    "vite": "^6.4.3"
   }
 }
