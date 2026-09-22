@@ -29,6 +29,8 @@ import io.vertx.core.json.JsonObject;
 
 import fr.wseduc.webutils.Either;
 
+import java.util.List;
+
 
 public interface EventServiceMongo {
 
@@ -37,6 +39,17 @@ public interface EventServiceMongo {
     void list(String calendarId, UserInfos user,  String startDate, String endDate, Handler<Either<String, JsonArray>> handler);
 
     Future<JsonArray> list(String calendarId, UserInfos user,  String startDate, String endDate);
+
+    /**
+     * Same as {@link #list(String, UserInfos, String, String, Handler)} but for several calendars at once : fetches
+     * the events to come of the given calendars, sorted by start moment and limited to nbEvents.
+     *
+     * @param calendarIds calendars the events are fetched from
+     * @param user user asking for the events
+     * @param nbEvents max number of events to fetch
+     * @param handler handler
+     */
+    void list(List<String> calendarIds, UserInfos user, int nbEvents, Handler<Either<String, JsonArray>> handler);
 
     void create(String calendarId, JsonObject body, UserInfos user, Handler<Either<String, JsonObject>> handler);
 
