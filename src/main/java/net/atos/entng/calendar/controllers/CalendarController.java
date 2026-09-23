@@ -44,6 +44,7 @@ import net.atos.entng.calendar.helpers.EventBusHelper;
 import net.atos.entng.calendar.helpers.PlatformHelper;
 import net.atos.entng.calendar.models.CalendarModel;
 import net.atos.entng.calendar.security.ShareEventConf;
+import net.atos.entng.calendar.security.ViewRight;
 import net.atos.entng.calendar.services.CalendarService;
 import net.atos.entng.calendar.services.EventServiceMongo;
 import net.atos.entng.calendar.services.ServiceFactory;
@@ -57,14 +58,21 @@ import org.entcore.common.http.filter.SuperAdminFilter;
 import org.entcore.common.http.filter.Trace;
 import org.entcore.common.mongodb.MongoDbConf;
 import org.entcore.common.mongodb.MongoDbControllerHelper;
+import org.entcore.common.service.VisibilityFilter;
 import org.entcore.common.user.UserInfos;
 import org.entcore.common.user.UserUtils;
 import org.vertx.java.core.http.RouteMatcher;
 
 import java.util.*;
+import java.util.stream.Collectors;
+
+import static org.entcore.common.http.response.DefaultResponseHandler.arrayResponseHandler;
 
 public class CalendarController extends MongoDbControllerHelper {
     static final String RESOURCE_NAME = "agenda";
+    private static final int MIN_UPCOMING_EVENTS = 3;
+    private static final int MAX_UPCOMING_EVENTS = 10;
+    private static final int DEFAULT_UPCOMING_EVENTS = 5;
     // Used for module "statistics"
     private final EventHelper eventHelper;
     private final CalendarService calendarService;
@@ -128,6 +136,42 @@ public class CalendarController extends MongoDbControllerHelper {
     @SecuredAction("calendar.view")
     public void listCalendars(HttpServerRequest request) {
         list(request);
+    }
+
+    /**
+     * Get the events to come from every calendar the user has access to, in a single call (widget)
+     *
+     * @param request request
+     */
+    @Get("/events/upcoming")
+    @SecuredAction(value = "", type = ActionType.RESOURCE)
+    @ResourceFilter(ViewRight.class)
+    public void getUpcomingEvents(HttpServerRequest request) {
+        int nbEvents;
+        try {
+            nbEvents = Integer.parseInt(request.params().get("limit"));
+        } catch (NumberFormatException e) {
+            nbEvents = DEFAULT_UPCOMING_EVENTS;
+        }
+        final int limit = Math.max(MIN_UPCOMING_EVENTS, Math.min(MAX_UPCOMING_EVENTS, nbEvents));
+
+        UserUtils.getUserInfos(eb, request, user -> {
+            if (user == null) {
+                unauthorized(request);
+                return;
+            }
+            // Same as MongoDbControllerHelper#list, but we keep the calendar ids instead of rendering them.
+            crudService.list(VisibilityFilter.ALL, user, calendars -> {
+                if (calendars.isLeft()) {
+                    renderError(request);
+                    return;
+                }
+                eventServiceMongo.list(calendars.right().getValue().stream()
+                        .map(JsonObject.class::cast)
+                        .map(calendar -> calendar.getString(Field._ID))
+                        .collect(Collectors.toList()), user, limit, arrayResponseHandler(request));
+            });
+        });
     }
 
     @Get("/calendars/:id")
