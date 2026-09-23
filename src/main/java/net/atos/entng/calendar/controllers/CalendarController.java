@@ -156,6 +156,10 @@ public class CalendarController extends MongoDbControllerHelper {
         final int limit = Math.max(MIN_UPCOMING_EVENTS, Math.min(MAX_UPCOMING_EVENTS, nbEvents));
 
         UserUtils.getUserInfos(eb, request, user -> {
+            if (user == null) {
+                unauthorized(request);
+                return;
+            }
             // Same as MongoDbControllerHelper#list, but we keep the calendar ids instead of rendering them.
             crudService.list(VisibilityFilter.ALL, user, calendars -> {
                 if (calendars.isLeft()) {

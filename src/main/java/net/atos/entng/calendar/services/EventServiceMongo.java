@@ -41,8 +41,9 @@ public interface EventServiceMongo {
     Future<JsonArray> list(String calendarId, UserInfos user,  String startDate, String endDate);
 
     /**
-     * Same as {@link #list(String, UserInfos, String, String, Handler)} but for several calendars at once : fetches
-     * the events to come of the given calendars, sorted by start moment and limited to nbEvents.
+     * Fetches the events to come of the given calendars, sorted by start moment and limited to nbEvents.
+     * Events of a calendar the user does not own are filtered by their own sharing rules, as in
+     * {@link #list(String, UserInfos, String, String, Handler)}.
      *
      * @param calendarIds calendars the events are fetched from
      * @param user user asking for the events
